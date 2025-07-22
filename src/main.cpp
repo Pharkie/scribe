@@ -20,8 +20,6 @@ void handleStatus();
 void handle404();
 String getFormattedDateTime();
 String formatCustomDate(String customDate);
-bool isValidDate(int day, int month, int year);
-int calculateDayOfWeek(int day, int month, int year);
 void initializePrinter();
 void printReceipt();
 void printServerInfo();
@@ -433,143 +431,60 @@ String getFormattedDateTime()
   return myTZ.dateTime("D, d M Y");
 }
 
-// === Date Validation ===
-bool isValidDate(int day, int month, int year)
-{
-  if (year < 1900 || year > 2100)
-    return false;
-  if (month < 1 || month > 12)
-    return false;
-  if (day < 1)
-    return false;
-
-  // Days in month (handling leap years)
-  int daysInMonth[] = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
-
-  // Check for leap year
-  if (month == 2 && ((year % 4 == 0 && year % 100 != 0) || (year % 400 == 0)))
-  {
-    daysInMonth[1] = 29;
-  }
-
-  if (day > daysInMonth[month - 1])
-    return false;
-
-  return true;
-}
-
-// === Day of Week Calculation ===
-int calculateDayOfWeek(int day, int month, int year)
-{
-  // Zeller's Congruence algorithm for day of week calculation
-  if (month < 3)
-  {
-    month += 12;
-    year -= 1;
-  }
-
-  int k = year % 100;
-  int j = year / 100;
-
-  int h = (day + ((13 * (month + 1)) / 5) + k + (k / 4) + (j / 4) - 2 * j) % 7;
-
-  // Convert to standard format (0=Sun, 1=Mon, etc.)
-  return (h + 5) % 7;
-}
-
 String formatCustomDate(String customDate)
 {
-  // Parse common date formats and return formatted string
-  // Supported formats: YYYY-MM-DD, DD-MM-YYYY, DD/MM/YYYY, MM/DD/YYYY
-
-  String dayNames[] = {"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"};
-  String monthNames[] = {"Jan", "Feb", "Mar", "Apr", "May", "Jun",
-                         "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
-
-  int day = 0, month = 0, year = 0;
-  bool parsed = false;
-
-  // Remove any whitespace
+  // Use ezTime's makeTime for robust date parsing with minimal custom logic
   customDate.trim();
 
-  // Try multiple date formats
-  if (customDate.indexOf('-') != -1)
+  int year = 0, month = 0, day = 0;
+  bool parsed = false;
+
+  // Try different date formats in order of preference
+  if (sscanf(customDate.c_str(), "%d-%d-%d", &year, &month, &day) == 3)
   {
-    // Handle YYYY-MM-DD or DD-MM-YYYY
-    int firstDash = customDate.indexOf('-');
-    int secondDash = customDate.indexOf('-', firstDash + 1);
-
-    if (firstDash > 0 && secondDash > firstDash + 1)
-    {
-      String part1 = customDate.substring(0, firstDash);
-      String part2 = customDate.substring(firstDash + 1, secondDash);
-      String part3 = customDate.substring(secondDash + 1);
-
-      if (part1.length() == 4)
-      {
-        // YYYY-MM-DD format
-        year = part1.toInt();
-        month = part2.toInt();
-        day = part3.toInt();
-      }
-      else
-      {
-        // DD-MM-YYYY format
-        day = part1.toInt();
-        month = part2.toInt();
-        year = part3.toInt();
-      }
-      parsed = true;
-    }
+    // ISO format: YYYY-MM-DD or DD-MM-YYYY
+    parsed = true;
   }
-  else if (customDate.indexOf('/') != -1)
+  else if (sscanf(customDate.c_str(), "%d/%d/%d", &day, &month, &year) == 3)
   {
-    // Handle DD/MM/YYYY or MM/DD/YYYY
-    int firstSlash = customDate.indexOf('/');
-    int secondSlash = customDate.indexOf('/', firstSlash + 1);
+    // European format: DD/MM/YYYY
+    parsed = true;
+  }
 
-    if (firstSlash > 0 && secondSlash > firstSlash + 1)
+  if (parsed)
+  {
+    // Handle 2-digit years sensibly: 69 and below = 2069+, 70+ = 1970+
+    if (year < 100)
     {
-      int part1 = customDate.substring(0, firstSlash).toInt();
-      int part2 = customDate.substring(firstSlash + 1, secondSlash).toInt();
-      int part3 = customDate.substring(secondSlash + 1).toInt();
+      year += (year <= 69) ? 2000 : 1900;
+    }
 
-      // Try DD/MM/YYYY first, then MM/DD/YYYY if validation fails
-      day = part1;
-      month = part2;
-      year = part3;
+    // Try the parsed format first
+    time_t parsedTime = makeTime(0, 0, 0, day, month, year);
+    if (parsedTime != 0) // makeTime returns 0 for invalid dates
+    {
+      String formatted = myTZ.dateTime(parsedTime, "D, d M Y");
+      Serial.println("Parsed date: " + formatted + " (from input: " + customDate + ")");
+      return formatted;
+    }
 
-      // If DD/MM/YYYY doesn't validate, try MM/DD/YYYY
-      if (!isValidDate(day, month, year))
+    // If European format failed and day <= 12, try US format (MM/DD/YYYY)
+    if (day <= 12 && month <= 31 && day != month)
+    {
+      parsedTime = makeTime(0, 0, 0, month, day, year);
+      if (parsedTime != 0)
       {
-        month = part1;
-        day = part2;
-        year = part3;
+        String formatted = myTZ.dateTime(parsedTime, "D, d M Y");
+        Serial.println("Parsed date: " + formatted + " (from input: " + customDate + " - US format)");
+        return formatted;
       }
-
-      parsed = true;
     }
   }
 
-  // Validate parsed values
-  if (!parsed || !isValidDate(day, month, year))
-  {
-    Serial.println("Invalid date format: '" + customDate + "', using current date");
-    Serial.println("Supported formats: YYYY-MM-DD, DD-MM-YYYY, DD/MM/YYYY, MM/DD/YYYY");
-    return getFormattedDateTime();
-  }
-
-  // Calculate actual day of week
-  int dayOfWeek = calculateDayOfWeek(day, month, year);
-
-  // Format: "Sat, 06 Jun 2025"
-  String formatted = dayNames[dayOfWeek] + ", ";
-  formatted += String(day < 10 ? "0" : "") + String(day) + " ";
-  formatted += monthNames[month - 1] + " ";
-  formatted += String(year);
-
-  Serial.println("Parsed date: " + formatted + " (from input: " + customDate + ")");
-  return formatted;
+  // If all parsing failed, fall back to current time
+  Serial.println("Invalid date format: '" + customDate + "', using current date");
+  Serial.println("Supported formats: YYYY-MM-DD, DD/MM/YYYY, MM/DD/YYYY");
+  return getFormattedDateTime();
 }
 
 // === Printer Functions ===

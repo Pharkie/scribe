@@ -1,5 +1,7 @@
 # Project Scribe
 
+Here's a cool little networked thermal printer for printing whatever you like.
+
 ## 🛠️ This fork by Pharkie
 
 This fork includes the following changes on top of the original repo:
@@ -20,10 +22,20 @@ original and my changes.
 All credit to UrbanCircles for the original concept, 3D model and original code.
 Have fun, makers!
 
----
+Gotchas:
 
-Simple, reliable, distraction free writer to nudge you towards a better life
-story - by surfacing your receipts, one day at a time.
+I could not power the Cashino CSN-A4L via USB, whatever cable or supply I used.
+It appears you can ONLY power the printer via the 3 pin (2 pins used) "POWER"
+connector, and then USB could perhaps be used for serial. I didn't investigate
+that, because we use the TTL 5-pin connection instead which, just to be clear,
+does not provide power (but it does reference ground).
+
+When you first get the printer, you want to check it works, right? Hold down the
+front (only) button as you power on the printer to do a self test. i.e. hold the
+button and attach 5V power to the POWER 3 pin (2 pins used) connector (I did
+this using a bench power supply and crocodile clips).
+
+---
 
 ## Setup Instructions for PlatformIO
 
