@@ -1,20 +1,33 @@
 #ifndef CONFIG_H
 #define CONFIG_H
 
+// === Configuration Settings ===
+// Update these values before flashing firmware to your ESP32-C3
+
 // ********** COPY THIS FILE TO config.h AND UPDATE YOUR VALUES ********
 
-const char *wifiSSID = "Your WIFI name";
-const char *wifiPassword = "Your WIFI password";
-const long utcOffsetInSeconds = 0; // UTC offset in seconds (0 for UTC, 3600 for UTC+1, etc.)
+const char *wifiSSID = "Your_WiFi_Name";
+const char *wifiPassword = "Your_WiFi_Password";
 
-// ********** ESP32-C6 PRINTER PIN CONFIGURATION ********
-const int RX_PIN = 5; // ESP32-C6 RX pin (connects to printer TX)
-const int TX_PIN = 4; // ESP32-C6 TX pin (connects to printer RX)
+// === Timezone Configuration ===
+const char *timezone = "Europe/London"; // Automatically handles GMT/BST transitions
+// Examples: "America/New_York", "Europe/Paris", "Asia/Tokyo", "Australia/Sydney"
 
-// Make sure to connect:
-// - ESP32-C6 GPIO4 (TX_PIN) -> Printer RX
-// - ESP32-C6 GPIO5 (RX_PIN) -> Printer TX
-// - ESP32-C6 GND -> Printer GND
-// - ESP32-C6 5V/3.3V -> Printer VCC (check your printer's voltage requirements)
+// === mDNS Configuration ===
+const char *mdnsHostname = "scribe"; // Device will be accessible at http://scribe.local
+
+// === Web Interface Configuration ===
+const int maxReceiptChars = 200; // Maximum characters per receipt message
+
+// === ESP32-C3 Printer Pin Configuration ===
+const int TX_PIN = 21; // ESP32-C3 TX pin (connects to printer RX) (green)
+
+// === Thermal Printer Power Configuration ===
+// Adjust these values based on your printer model and power supply
+// Lower values = less power consumption, may prevent fade-out on longer inverse text
+// Higher values = blacker text, but may cause fade-out on longer inverse text
+const int heatingDots = 10;      // Number of heating dots (suggest: 7-15)
+const int heatingTime = 150;     // Heating time (suggest: 80-200)
+const int heatingInterval = 250; // Heating interval (suggest: 200-250)
 
 #endif

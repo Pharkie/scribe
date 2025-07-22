@@ -5,28 +5,25 @@
 #include <ESPmDNS.h>
 #include <esp_task_wdt.h>
 #include <ezTime.h>
+#include <vector>
 #include "config.h"
-
-// **** YOU PROBABLY DON'T NEED TO CHANGE ANYTHING BELOW HERE *****
+#include "character_mapping.h"
+#include "web_server.h"
 
 // === Function Declarations ===
 void validateConfig();
 void connectToWiFi();
 void setupmDNS();
-void setupWebServer();
-void handleRoot();
-void handleSubmit();
-void handleStatus();
-void handle404();
 String getFormattedDateTime();
 String formatCustomDate(String customDate);
 void initializePrinter();
 void printReceipt();
 void printServerInfo();
 void setInverse(bool enable);
-void printLine(String line);
 void advancePaper(int lines);
-void printWrappedUpsideDown(String text);
+void printWrapped(String text);
+void printWithHeader(String headerText, String bodyText);
+void printCharacterTest();
 
 // === Timezone ===
 Timezone myTZ;
@@ -37,16 +34,6 @@ WebServer server(80);
 // === Printer Setup ===
 HardwareSerial printer(1); // Use UART1 on ESP32-C3
 const int maxCharsPerLine = 32;
-
-// === Storage for form data ===
-struct Receipt
-{
-  String message;
-  String timestamp;
-  bool hasData;
-};
-
-Receipt currentReceipt = {"", "", false};
 
 // === WiFi Reconnection Variables ===
 unsigned long lastReconnectAttempt = 0;
@@ -88,7 +75,7 @@ void setup()
   Serial.println("Current time: " + myTZ.dateTime());
 
   // Setup web server routes
-  setupWebServer();
+  setupWebServerRoutes(maxReceiptChars);
 
   // Start the server
   server.begin();
@@ -156,11 +143,6 @@ void validateConfig()
     Serial.println("ERROR: mDNS hostname not configured!");
   }
 
-  if (RX_PIN == TX_PIN)
-  {
-    Serial.println("ERROR: RX and TX pins cannot be the same!");
-  }
-
   Serial.println("Configuration validation complete");
 }
 
@@ -212,223 +194,13 @@ void setupmDNS()
   }
 }
 
-// === Web Server Setup ===
-void setupWebServer()
-{
-  // Serve the main page
-  server.on("/", HTTP_GET, handleRoot);
-
-  // Handle form submission
-  server.on("/submit", HTTP_POST, handleSubmit);
-
-  // Also handle submission via URL
-  server.on("/submit", HTTP_GET, handleSubmit);
-
-  // System status endpoint
-  server.on("/status", HTTP_GET, handleStatus);
-
-  // Handle 404
-  server.onNotFound(handle404);
-
-  Serial.println("Web server routes configured");
-}
-
-// === Web Server Handlers ===
-void handleRoot()
-{
-  String html = R"rawliteral(
-<!DOCTYPE html>
-<html lang="en" class="bg-gray-50 text-gray-900">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Life Receipt</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
-  <script defer>
-    const MAX_CHARS = )rawliteral" +
-                String(maxReceiptChars) + R"rawliteral(; // Character limit from config
-    
-    function updateCharCounter(textarea) {
-      const counter = document.getElementById('char-counter');
-      const remaining = MAX_CHARS - textarea.value.length;
-      counter.textContent = `${remaining} characters left`;
-      counter.classList.toggle('text-red-500', remaining <= 20);
-    }
-    
-    function handleInput(el) {
-      updateCharCounter(el);
-    }
-    
-    function handleSubmit(e) {
-      e.preventDefault();
-      const formData = new FormData(e.target);
-      fetch('/submit', {
-        method: 'POST',
-        body: formData
-      }).then(() => {
-        const form = document.getElementById('receipt-form');
-        const message = document.getElementById('thank-you');
-        form.classList.add('hidden');
-        message.classList.remove('hidden');
-        confetti({
-          particleCount: 100,
-          spread: 70,
-          origin: { y: 0.6 },
-        });
-      });
-    }
-    
-    function handleKeyPress(e) {
-      if (e.key === 'Enter' && !e.shiftKey) {
-        e.preventDefault();
-        document.getElementById('receipt-form').dispatchEvent(new Event('submit'));
-      }
-    }
-    
-    function newReceipt() {
-      const form = document.getElementById('receipt-form');
-      const message = document.getElementById('thank-you');
-      const textarea = document.querySelector('textarea[name="message"]');
-      
-      // Reset form
-      textarea.value = '';
-      updateCharCounter(textarea); // Use the same function for consistency
-      
-      // Show form, hide thank you message
-      form.classList.remove('hidden');
-      message.classList.add('hidden');
-      
-      // Focus on textarea
-      textarea.focus();
-    }
-  </script>
-</head>
-<body class="flex flex-col min-h-screen justify-between items-center py-12 px-4 font-sans">
-  <main class="w-full max-w-md text-center">
-    <h1 class="text-3xl font-semibold mb-10 text-gray-900 tracking-tight">Life Receipt</h1>
-    <form id="receipt-form" onsubmit="handleSubmit(event)" action="/submit" method="post" class="bg-white shadow-2xl rounded-3xl p-8 space-y-6 border border-gray-100">
-      <textarea
-        name="message"
-        maxlength=")rawliteral" +
-                String(maxReceiptChars) + R"rawliteral("
-        oninput="handleInput(this)"
-        onkeypress="handleKeyPress(event)"
-        placeholder="Type your receipt…"
-        class="w-full p-4 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:border-transparent resize-none text-gray-800 placeholder-gray-400"
-        rows="4"
-        required
-        autofocus
-      ></textarea>
-      <div id="char-counter" class="text-sm text-gray-500 text-right"></div>
-      <button type="submit" class="w-full bg-gray-900 hover:bg-gray-800 text-white py-3 rounded-xl font-medium transition-all duration-200 hover:scale-[1.02] hover:shadow-lg">
-        Send
-      </button>
-    </form>
-    <div id="thank-you" class="hidden text-gray-700 font-semibold text-xl mt-8 animate-fade-in">
-      🎉 Receipt submitted. You did it!
-      <button onclick="newReceipt()" class="mt-4 w-full bg-gray-900 hover:bg-gray-800 text-white py-3 rounded-xl font-medium transition-all duration-200 hover:scale-[1.02] hover:shadow-lg">
-        New Receipt
-      </button>
-    </div>
-  </main>
-  <footer class="text-sm text-gray-400 mt-16">
-    Designed with love by <a href="https://urbancircles.club" target="_blank" class="text-gray-500 hover:text-gray-700 transition-colors duration-200 underline decoration-gray-300 hover:decoration-gray-500 underline-offset-2">Peter / Urban Circles</a>
-  </footer>
-  <style>
-    @keyframes fade-in {
-      from { opacity: 0; transform: translateY(8px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-    .animate-fade-in {
-      animation: fade-in 0.6s ease-out forwards;
-    }
-  </style>
-  <script>
-    // Initialize character counter on page load
-    document.addEventListener('DOMContentLoaded', function() {
-      const textarea = document.querySelector('textarea[name="message"]');
-      updateCharCounter(textarea);
-    });
-  </script>
-</body>
-</html>
-)rawliteral";
-
-  server.send(200, "text/html", html);
-}
-
-void handleSubmit()
-{
-  if (server.hasArg("message"))
-  {
-    currentReceipt.message = server.arg("message");
-
-    // Check if a custom date was provided
-    if (server.hasArg("date"))
-    {
-      String customDate = server.arg("date");
-      currentReceipt.timestamp = formatCustomDate(customDate);
-      Serial.println("Using custom date: " + customDate);
-    }
-    else
-    {
-      currentReceipt.timestamp = getFormattedDateTime();
-      Serial.println("Using current date");
-    }
-
-    currentReceipt.hasData = true;
-
-    Serial.println("=== New Receipt Received ===");
-    Serial.println("Message: " + currentReceipt.message);
-    Serial.println("Time: " + currentReceipt.timestamp);
-    Serial.println("============================");
-
-    server.send(200, "text/plain", "Receipt received and will be printed!");
-  }
-  else
-  {
-    server.send(400, "text/plain", "Missing message parameter");
-  }
-}
-
-void handleStatus()
-{
-  String json = "{";
-  json += "\"wifi_connected\":" + String(WiFi.status() == WL_CONNECTED ? "true" : "false") + ",";
-  json += "\"ip_address\":\"" + WiFi.localIP().toString() + "\",";
-  json += "\"mdns_hostname\":\"" + String(mdnsHostname) + "\",";
-  json += "\"uptime\":" + String(millis()) + ",";
-  json += "\"free_heap\":" + String(ESP.getFreeHeap());
-  json += "}";
-
-  server.send(200, "application/json", json);
-}
-
-void handle404()
-{
-  String uri = server.uri();
-  String method = (server.method() == HTTP_GET) ? "GET" : "POST";
-
-  Serial.println("=== 404 Error ===");
-  Serial.println("Method: " + method);
-  Serial.println("URI: " + uri);
-  Serial.println("Args: " + String(server.args()));
-  for (int i = 0; i < server.args(); i++)
-  {
-    Serial.println("  " + server.argName(i) + ": " + server.arg(i));
-  }
-  Serial.println("================");
-
-  server.send(404, "text/plain", "Page not found: " + method + " " + uri);
-}
-
 // === Time Utilities ===
 String getFormattedDateTime()
 {
   // Use ezTime for automatic timezone handling
-  // Format: "Tue, 22 Jul 2025"
-  return myTZ.dateTime("D, d M Y");
+  // Format: "Tue 22 Jul 2025 14:30"
+  String dateTime = myTZ.dateTime("D d M Y H:i");
+  return dateTime;
 }
 
 String formatCustomDate(String customDate)
@@ -463,7 +235,7 @@ String formatCustomDate(String customDate)
     time_t parsedTime = makeTime(0, 0, 0, day, month, year);
     if (parsedTime != 0) // makeTime returns 0 for invalid dates
     {
-      String formatted = myTZ.dateTime(parsedTime, "D, d M Y");
+      String formatted = myTZ.dateTime(parsedTime, "D d M Y H:i");
       Serial.println("Parsed date: " + formatted + " (from input: " + customDate + ")");
       return formatted;
     }
@@ -474,7 +246,7 @@ String formatCustomDate(String customDate)
       parsedTime = makeTime(0, 0, 0, month, day, year);
       if (parsedTime != 0)
       {
-        String formatted = myTZ.dateTime(parsedTime, "D, d M Y");
+        String formatted = myTZ.dateTime(parsedTime, "D d M Y H:i");
         Serial.println("Parsed date: " + formatted + " (from input: " + customDate + " - US format)");
         return formatted;
       }
@@ -490,8 +262,8 @@ String formatCustomDate(String customDate)
 // === Printer Functions ===
 void initializePrinter()
 {
-  // Initialize UART1 with user-configurable pins
-  printer.begin(9600, SERIAL_8N1, RX_PIN, TX_PIN); // baud, config, RX pin, TX pin
+  // Initialize UART1 for TX only (one-way communication to printer)
+  printer.begin(9600, SERIAL_8N1, -1, TX_PIN); // baud, config, RX pin (-1 = not used), TX pin
   delay(500);
 
   // Initialise
@@ -499,12 +271,12 @@ void initializePrinter()
   printer.write('@'); // ESC @
   delay(50);
 
-  // Set stronger black fill (print density/heat)
+  // Set printer heating parameters from config
   printer.write(0x1B);
   printer.write('7');
-  printer.write(15);  // Heating dots (max 15)
-  printer.write(150); // Heating time
-  printer.write(250); // Heating interval
+  printer.write(heatingDots);     // Heating dots from config
+  printer.write(heatingTime);     // Heating time from config
+  printer.write(heatingInterval); // Heating interval from config
 
   // Enable 180° rotation (which also reverses the line order)
   printer.write(0x1B);
@@ -518,16 +290,7 @@ void printReceipt()
 {
   Serial.println("Printing receipt...");
 
-  // Print wrapped message first (appears at bottom after rotation)
-  printWrappedUpsideDown(currentReceipt.message);
-
-  // Print header last (appears at top after rotation)
-  setInverse(true);
-  printLine(currentReceipt.timestamp);
-  setInverse(false);
-
-  // Advance paper
-  advancePaper(2);
+  printWithHeader(currentReceipt.timestamp, currentReceipt.message);
 
   Serial.println("Receipt printed successfully");
 }
@@ -540,30 +303,18 @@ void printServerInfo()
   Serial.println("Access the form at: http://" + WiFi.localIP().toString() + " or http://" + String(mdnsHostname) + ".local");
   Serial.println("==================");
 
-  // Also print server info on the thermal printer
   Serial.println("Printing server info on thermal printer...");
 
   String serverInfo = "Server: " + String(mdnsHostname) + ".local or " + WiFi.localIP().toString();
-  printWrappedUpsideDown(serverInfo);
-
-  setInverse(true);
-  printLine("PRINTER SERVER READY");
-  setInverse(false);
-
-  advancePaper(3);
+  advancePaper(1);
+  printWithHeader("SCRIBE READY", serverInfo);
 }
 
-// === Original Printer Helper Functions ===
 void setInverse(bool enable)
 {
   printer.write(0x1D);
   printer.write('B');
   printer.write(enable ? 1 : 0); // GS B n
-}
-
-void printLine(String line)
-{
-  printer.println(line);
 }
 
 void advancePaper(int lines)
@@ -574,10 +325,9 @@ void advancePaper(int lines)
   }
 }
 
-void printWrappedUpsideDown(String text)
+void printWrapped(String text)
 {
-  String lines[100];
-  int lineCount = 0;
+  std::vector<String> lines;
 
   // Split text by newlines first
   while (text.length() > 0)
@@ -603,7 +353,7 @@ void printWrappedUpsideDown(String text)
     {
       if (currentLine.length() <= maxCharsPerLine)
       {
-        lines[lineCount++] = currentLine;
+        lines.push_back(currentLine);
         break;
       }
 
@@ -611,15 +361,82 @@ void printWrappedUpsideDown(String text)
       if (lastSpace == -1)
         lastSpace = maxCharsPerLine;
 
-      lines[lineCount++] = currentLine.substring(0, lastSpace);
+      lines.push_back(currentLine.substring(0, lastSpace));
       currentLine = currentLine.substring(lastSpace);
       currentLine.trim();
     }
   }
 
-  // Print lines in reverse order (upside down)
-  for (int i = lineCount - 1; i >= 0; i--)
+  // Print lines in reverse order to compensate for 180° printer rotation
+  for (int i = lines.size() - 1; i >= 0; i--)
   {
-    printLine(lines[i]);
+    printer.println(lines[i]);
   }
+}
+
+void printWithHeader(String headerText, String bodyText)
+{
+  // Clean both header and body text before printing
+  String cleanHeaderText = cleanString(headerText);
+  String cleanBodyText = cleanString(bodyText);
+
+  // Print body text first (appears at bottom after rotation)
+  printWrapped(cleanBodyText);
+
+  // Print header last (appears at top after rotation)
+  setInverse(true);
+  printWrapped(cleanHeaderText);
+  setInverse(false);
+
+  advancePaper(2);
+}
+
+void printCharacterTest()
+{
+  Serial.println("Printing character test...");
+
+  String testContent = "CHARACTER TEST\n\n";
+
+  // Basic ASCII test
+  testContent += "ASCII: Hello World 123!@#\n\n";
+
+  // Accented vowels
+  testContent += "A variants: À Á Â Ã Ä Å\n";
+  testContent += "a variants: à á â ã ä å\n";
+  testContent += "E variants: È É Ê Ë\n";
+  testContent += "e variants: è é ê ë\n";
+  testContent += "I variants: Ì Í Î Ï\n";
+  testContent += "i variants: ì í î ï\n";
+  testContent += "O variants: Ò Ó Ô Õ Ö\n";
+  testContent += "o variants: ò ó ô õ ö\n";
+  testContent += "U variants: Ù Ú Û Ü\n";
+  testContent += "u variants: ù ú û ü\n\n";
+
+  // Special characters
+  testContent += "Special: Ñ ñ Ç ç\n";
+  testContent += "Nordic: Æ æ Ø ø Å å\n";
+  testContent += "German: ß Ü ü Ö ö Ä ä\n";
+  testContent += "French: É é È è Ê ê\n\n";
+
+  // Punctuation variants
+  testContent += "Quotes: \"double\" and 'single' quotes\n";
+  testContent += "Dashes: en–dash em—dash\n";
+  testContent += "Apostrophes: don't won't\n\n";
+
+  // Real-world examples
+  testContent += "Examples:\n";
+  testContent += "* Za'atar (Arabic spice)\n";
+  testContent += "* Café au lait\n";
+  testContent += "* Naïve approach\n";
+  testContent += "* Piñata party\n";
+  testContent += "* Müller family\n";
+  testContent += "* Björk concert\n";
+  testContent += "* Señorita María\n";
+  testContent += "* Crème brûlée\n";
+  testContent += "* Jalapeño peppers\n";
+  testContent += "* São Paulo\n";
+
+  printWithHeader("CHARACTER TEST", testContent);
+
+  Serial.println("Character test printed successfully");
 }
