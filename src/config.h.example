@@ -1,0 +1,20 @@
+#ifndef CONFIG_H
+#define CONFIG_H
+
+// ********** COPY THIS FILE TO config.h AND UPDATE YOUR VALUES ********
+
+const char *wifiSSID = "Your WIFI name";
+const char *wifiPassword = "Your WIFI password";
+const long utcOffsetInSeconds = 0; // UTC offset in seconds (0 for UTC, 3600 for UTC+1, etc.)
+
+// ********** ESP32-C6 PRINTER PIN CONFIGURATION ********
+const int RX_PIN = 5; // ESP32-C6 RX pin (connects to printer TX)
+const int TX_PIN = 4; // ESP32-C6 TX pin (connects to printer RX)
+
+// Make sure to connect:
+// - ESP32-C6 GPIO4 (TX_PIN) -> Printer RX
+// - ESP32-C6 GPIO5 (RX_PIN) -> Printer TX
+// - ESP32-C6 GND -> Printer GND
+// - ESP32-C6 5V/3.3V -> Printer VCC (check your printer's voltage requirements)
+
+#endif

@@ -3,6 +3,29 @@
 Simple, reliable, distraction free writer to nudge you towards a better life
 story - by surfacing your receipts, one day at a time.
 
+## Setup Instructions for PlatformIO
+
+### 1. Configuration Setup
+
+Before building the project, you need to create your configuration file:
+
+1. Copy `src/config.h.example` to `src/config.h`
+2. Edit `src/config.h` with your WiFi credentials and settings
+3. The `config.h` file is ignored by git to keep your credentials safe
+
+```bash
+cp src/config.h.example src/config.h
+# Edit src/config.h with your WiFi credentials
+```
+
+### 2. Build and Upload
+
+```bash
+pio run                    # Build the project
+pio run --target upload    # Upload to ESP32-C6
+pio device monitor         # Monitor serial output
+```
+
 > [!TIP]  
 > This is the base configuration of Scribe, to serve one straight forward,
 > important use case: it turns the Scribe platform into a simple and reliable
@@ -74,8 +97,7 @@ help for the project).
 If you're so inclined, feel free to use the following affiliate links. They help
 out the project :)
 
-> [!NOTE]
-> The components might be slightly different as listings always change
+> [!NOTE] The components might be slightly different as listings always change
 > silently - always check. If you notice any issues, please ping me to update
 > the readme.
 
@@ -85,20 +107,18 @@ out the project :)
 | Thermal Printer (CSN-A4L)         | https://amzn.to/4kr5ksq | -                       | https://s.click.aliexpress.com/e/_opjoNrw |
 | Paper Rolls, BPA-free (57.5x30mm) | https://amzn.to/4kpOREP | https://amzn.to/44nqGCg | -                                         |
 
-> [!IMPORTANT]
-> Do your own due diligence regarding thermal paper types - the thermal paper we
-> handle everyday (e.g. through receipts from the grocery store, restaurants,
-> takeaway, taxis, etc.) will contain BPA. When choosing your rolls for this,
-> you should definitely go for BPA-free paper just to be on the safer side - the
-> links provided are for BPA-free paper. If you can, go a step further and look
-> for “phenol-free” paper. Three types that do not contain BPA or BPS and are
-> competitively priced contain either ascorbic acid (vitamin C), urea-based
-> Pergafast 201, or a technology without developers, Blue4est.
+> [!IMPORTANT] Do your own due diligence regarding thermal paper types - the
+> thermal paper we handle everyday (e.g. through receipts from the grocery
+> store, restaurants, takeaway, taxis, etc.) will contain BPA. When choosing
+> your rolls for this, you should definitely go for BPA-free paper just to be on
+> the safer side - the links provided are for BPA-free paper. If you can, go a
+> step further and look for “phenol-free” paper. Three types that do not contain
+> BPA or BPS and are competitively priced contain either ascorbic acid (vitamin
+> C), urea-based Pergafast 201, or a technology without developers, Blue4est.
 
-> [!NOTE]
-> Some thermal paper is treated against fading - can last e.g. 35+ years. If
-> you're planning on using Scribe for archival purposes, consider ink fading
-> when picking up the right rolls.
+> [!NOTE] Some thermal paper is treated against fading - can last e.g. 35+
+> years. If you're planning on using Scribe for archival purposes, consider ink
+> fading when picking up the right rolls.
 
 ## Pin-out/ wiring during operation
 
@@ -116,9 +136,8 @@ hardware serial pins free.
 Wires not listed in the table (e.g. TTL NC/ DTR) are unused andcan be removed.
 Fewer wires => less clutter which is hugely helpful.
 
-> [!IMPORTANT]
-> Never power the printer directly from/ through the D1 Mini! You'll burn your
-> microcontroller!
+> [!IMPORTANT] Never power the printer directly from/ through the D1 Mini!
+> You'll burn your microcontroller!
 >
 > **Only power the D1 Mini via one source** - either via USB during firmware
 > flashing, or via the 5V pin during normal operation from the shared power

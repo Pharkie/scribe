@@ -1,0 +1,20 @@
+# PlatformIO files
+.pio/
+.vscode/
+
+# Configuration with sensitive data
+src/config.h
+
+# Build artifacts
+*.bin
+*.elf
+*.map
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Backup files
+*~
+*.bak
+*.tmp

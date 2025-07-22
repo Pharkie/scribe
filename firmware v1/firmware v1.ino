@@ -4,14 +4,6 @@
 #include <NTPClient.h>
 #include <SoftwareSerial.h>
 
-// ********** UPDATE THESE VALUES BEFORE FLASHING FIRMWARE ********
-
-const char* wifiSSID = "Your WIFI name";
-const char* wifiPassword = "Your WIFI password";
-const long utcOffsetInSeconds = 0; // UTC offset in seconds (0 for UTC, 3600 for UTC+1, etc.)
-
-// **** YOU PROBABLY DON'T NEED TO CHANGE ANYTHING BELOW HERE *****
-
 // === Function Declarations ===
 void connectToWiFi();
 void setupWebServer();
@@ -28,7 +20,12 @@ void printLine(String line);
 void advancePaper(int lines);
 void printWrappedUpsideDown(String text);
 
-// === NTP Client ===
+// === WiFi Configuration ===
+const char *ssid = "Your WIFI name";
+const char *password = "Your WIFI password";
+
+// === Time Configuration ===
+const long utcOffsetInSeconds = 0; // UTC offset in seconds (0 for UTC, 3600 for UTC+1, etc.)
 WiFiUDP ntpUDP;
 NTPClient timeClient(ntpUDP, "pool.ntp.org", utcOffsetInSeconds, 60000);
 
@@ -40,7 +37,8 @@ SoftwareSerial printer(D4, D3); // Use D4 (TX, GPIO2), D3 (RX, GPIO0)
 const int maxCharsPerLine = 32;
 
 // === Storage for form data ===
-struct Receipt {
+struct Receipt
+{
   String message;
   String timestamp;
   bool hasData;
@@ -48,91 +46,101 @@ struct Receipt {
 
 Receipt currentReceipt = {"", "", false};
 
-void setup() {
+void setup()
+{
   Serial.begin(115200);
   Serial.println("\n=== Thermal Printer Server Starting ===");
-  
+
   // Initialize printer
   initializePrinter();
-  
+
   // Connect to WiFi
   connectToWiFi();
-  
+
   // Initialize time client
   timeClient.begin();
   Serial.println("Time client initialized");
-  
+
   // Setup web server routes
   setupWebServer();
-  
+
   // Start the server
   server.begin();
   Serial.println("Web server started");
-  
+
   // Print server info
   printServerInfo();
-  
+
   Serial.println("=== Setup Complete ===");
 }
 
-void loop() {
+void loop()
+{
   // Handle web server requests
   server.handleClient();
-  
+
   // Update time client
   timeClient.update();
-  
+
   // Check if we have a new receipt to print
-  if (currentReceipt.hasData) {
+  if (currentReceipt.hasData)
+  {
     printReceipt();
     currentReceipt.hasData = false; // Reset flag
   }
-  
+
   delay(10); // Small delay to prevent excessive CPU usage
 }
 
 // === WiFi Connection ===
-void connectToWiFi() {
+void connectToWiFi()
+{
   Serial.print("Connecting to WiFi: ");
-  Serial.println(wifiSSID);
+  Serial.println(ssid);
 
-  WiFi.begin(wifiSSID, wifiPassword);
-  
+  WiFi.begin(ssid, password);
+
   int attempts = 0;
-  while (WiFi.status() != WL_CONNECTED && attempts < 30) {
+  while (WiFi.status() != WL_CONNECTED && attempts < 30)
+  {
     delay(1000);
     Serial.print(".");
     attempts++;
   }
-  
-  if (WiFi.status() == WL_CONNECTED) {
+
+  if (WiFi.status() == WL_CONNECTED)
+  {
     Serial.println();
     Serial.println("WiFi connected successfully!");
     Serial.print("IP address: ");
     Serial.println(WiFi.localIP());
-  } else {
+  }
+  else
+  {
     Serial.println();
     Serial.println("Failed to connect to WiFi");
   }
 }
 
 // === Web Server Setup ===
-void setupWebServer() {
+void setupWebServer()
+{
   // Serve the main page
   server.on("/", HTTP_GET, handleRoot);
-  
+
   // Handle form submission
   server.on("/submit", HTTP_POST, handleSubmit);
 
   // ADD THIS LINE to also handle submission via URL
   server.on("/submit", HTTP_GET, handleSubmit);
-  
+
   // Handle 404
   server.onNotFound(handle404);
 }
 
 // === Web Server Handlers ===
-void handleRoot() {
+void handleRoot()
+{
   String html = R"rawliteral(
 <!DOCTYPE html>
 <html lang="en" class="bg-gray-50 text-gray-900">
@@ -214,213 +222,245 @@ void handleRoot() {
 </body>
 </html>
 )rawliteral";
-  
+
   server.send(200, "text/html", html);
 }
 
-void handleSubmit() {
-  if (server.hasArg("message")) {
+void handleSubmit()
+{
+  if (server.hasArg("message"))
+  {
     currentReceipt.message = server.arg("message");
-    
+
     // Check if a custom date was provided
-    if (server.hasArg("date")) {
+    if (server.hasArg("date"))
+    {
       String customDate = server.arg("date");
       currentReceipt.timestamp = formatCustomDate(customDate);
       Serial.println("Using custom date: " + customDate);
-    } else {
+    }
+    else
+    {
       currentReceipt.timestamp = getFormattedDateTime();
       Serial.println("Using current date");
     }
-    
+
     currentReceipt.hasData = true;
-    
+
     Serial.println("=== New Receipt Received ===");
     Serial.println("Message: " + currentReceipt.message);
     Serial.println("Time: " + currentReceipt.timestamp);
     Serial.println("============================");
-    
+
     server.send(200, "text/plain", "Receipt received and will be printed!");
-  } else {
+  }
+  else
+  {
     server.send(400, "text/plain", "Missing message parameter");
   }
 }
 
-void handle404() {
+void handle404()
+{
   server.send(404, "text/plain", "Page not found");
 }
 
 // === Time Utilities ===
-String getFormattedDateTime() {
+String getFormattedDateTime()
+{
   timeClient.update();
-  
+
   // Get epoch time
   unsigned long epochTime = timeClient.getEpochTime();
-  
+
   // Convert to struct tm
   time_t rawTime = epochTime;
-  struct tm * timeInfo = gmtime(&rawTime);
-  
+  struct tm *timeInfo = gmtime(&rawTime);
+
   // Day names and month names
   String dayNames[] = {"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"};
   String monthNames[] = {"Jan", "Feb", "Mar", "Apr", "May", "Jun",
-                        "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
-  
+                         "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
+
   // Format: "Sat, 06 Jun 2025"
   String formatted = dayNames[timeInfo->tm_wday] + ", ";
   formatted += String(timeInfo->tm_mday < 10 ? "0" : "") + String(timeInfo->tm_mday) + " ";
   formatted += monthNames[timeInfo->tm_mon] + " ";
   formatted += String(timeInfo->tm_year + 1900);
-  
+
   return formatted;
 }
 
-String formatCustomDate(String customDate) {
+String formatCustomDate(String customDate)
+{
   // Expected format: YYYY-MM-DD or DD/MM/YYYY or similar
   // This function will try to parse common date formats and return formatted string
-  
+
   String dayNames[] = {"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"};
   String monthNames[] = {"Jan", "Feb", "Mar", "Apr", "May", "Jun",
-                        "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
-  
+                         "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
+
   int day = 0, month = 0, year = 0;
-  
+
   // Try to parse YYYY-MM-DD format
-  if (customDate.indexOf('-') != -1) {
+  if (customDate.indexOf('-') != -1)
+  {
     int firstDash = customDate.indexOf('-');
     int secondDash = customDate.indexOf('-', firstDash + 1);
-    
-    if (firstDash != -1 && secondDash != -1) {
+
+    if (firstDash != -1 && secondDash != -1)
+    {
       year = customDate.substring(0, firstDash).toInt();
       month = customDate.substring(firstDash + 1, secondDash).toInt();
       day = customDate.substring(secondDash + 1).toInt();
     }
   }
   // Try to parse DD/MM/YYYY format
-  else if (customDate.indexOf('/') != -1) {
+  else if (customDate.indexOf('/') != -1)
+  {
     int firstSlash = customDate.indexOf('/');
     int secondSlash = customDate.indexOf('/', firstSlash + 1);
-    
-    if (firstSlash != -1 && secondSlash != -1) {
+
+    if (firstSlash != -1 && secondSlash != -1)
+    {
       day = customDate.substring(0, firstSlash).toInt();
       month = customDate.substring(firstSlash + 1, secondSlash).toInt();
       year = customDate.substring(secondSlash + 1).toInt();
     }
   }
-  
+
   // Validate parsed values
-  if (day < 1 || day > 31 || month < 1 || month > 12 || year < 1900 || year > 2100) {
+  if (day < 1 || day > 31 || month < 1 || month > 12 || year < 1900 || year > 2100)
+  {
     Serial.println("Invalid date format, using current date");
     return getFormattedDateTime();
   }
-  
+
   // Calculate day of week (simplified algorithm - may not be 100% accurate for all dates)
   // For a more accurate calculation, you might want to use a proper date library
   int dayOfWeek = 0; // Default to Sunday if we can't calculate
-  
+
   // Format: "Sat, 06 Jun 2025"
   String formatted = dayNames[dayOfWeek] + ", ";
   formatted += String(day < 10 ? "0" : "") + String(day) + " ";
   formatted += monthNames[month - 1] + " ";
   formatted += String(year);
-  
+
   return formatted;
 }
 
 // === Printer Functions ===
-void initializePrinter() {
+void initializePrinter()
+{
   printer.begin(9600);
   delay(500);
-  
+
   // Initialise
-  printer.write(0x1B); printer.write('@'); // ESC @
+  printer.write(0x1B);
+  printer.write('@'); // ESC @
   delay(50);
-  
+
   // Set stronger black fill (print density/heat)
-  printer.write(0x1B); printer.write('7');
-  printer.write(15); // Heating dots (max 15)
+  printer.write(0x1B);
+  printer.write('7');
+  printer.write(15);  // Heating dots (max 15)
   printer.write(150); // Heating time
   printer.write(250); // Heating interval
-  
+
   // Enable 180° rotation (which also reverses the line order)
-  printer.write(0x1B); printer.write('{'); printer.write(0x01); // ESC { 1
-  
+  printer.write(0x1B);
+  printer.write('{');
+  printer.write(0x01); // ESC { 1
+
   Serial.println("Printer initialized");
 }
 
-void printReceipt() {
+void printReceipt()
+{
   Serial.println("Printing receipt...");
-  
+
   // Print wrapped message first (appears at bottom after rotation)
   printWrappedUpsideDown(currentReceipt.message);
-  
+
   // Print header last (appears at top after rotation)
   setInverse(true);
   printLine(currentReceipt.timestamp);
   setInverse(false);
-  
+
   // Advance paper
   advancePaper(2);
-  
+
   Serial.println("Receipt printed successfully");
 }
 
-void printServerInfo() {
+void printServerInfo()
+{
   Serial.println("=== Server Info ===");
   Serial.print("Local IP: ");
   Serial.println(WiFi.localIP());
   Serial.print("Access the form at: http://");
   Serial.println(WiFi.localIP());
   Serial.println("==================");
-  
+
   // Also print server info on the thermal printer
   Serial.println("Printing server info on thermal printer...");
-  
+
   String serverInfo = "Server started at " + WiFi.localIP().toString();
   printWrappedUpsideDown(serverInfo);
-  
+
   setInverse(true);
   printLine("PRINTER SERVER READY");
   setInverse(false);
-  
+
   advancePaper(3);
 }
 
 // === Original Printer Helper Functions ===
-void setInverse(bool enable) {
-  printer.write(0x1D); printer.write('B');
+void setInverse(bool enable)
+{
+  printer.write(0x1D);
+  printer.write('B');
   printer.write(enable ? 1 : 0); // GS B n
 }
 
-void printLine(String line) {
+void printLine(String line)
+{
   printer.println(line);
 }
 
-void advancePaper(int lines) {
-  for (int i = 0; i < lines; i++) {
+void advancePaper(int lines)
+{
+  for (int i = 0; i < lines; i++)
+  {
     printer.write(0x0A); // LF
   }
 }
 
-void printWrappedUpsideDown(String text) {
+void printWrappedUpsideDown(String text)
+{
   String lines[100];
   int lineCount = 0;
-  
-  while (text.length() > 0) {
+
+  while (text.length() > 0)
+  {
     int breakIndex = maxCharsPerLine;
-    if (text.length() <= maxCharsPerLine) {
+    if (text.length() <= maxCharsPerLine)
+    {
       lines[lineCount++] = text;
       break;
     }
-    
+
     int lastSpace = text.lastIndexOf(' ', maxCharsPerLine);
-    if (lastSpace == -1) lastSpace = maxCharsPerLine;
-    
+    if (lastSpace == -1)
+      lastSpace = maxCharsPerLine;
+
     lines[lineCount++] = text.substring(0, lastSpace);
     text = text.substring(lastSpace);
     text.trim();
   }
-  
-  for (int i = lineCount - 1; i >= 0; i--) {
+
+  for (int i = lineCount - 1; i >= 0; i--)
+  {
     printLine(lines[i]);
   }
 }
