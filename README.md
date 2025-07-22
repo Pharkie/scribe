@@ -1,5 +1,27 @@
 # Project Scribe
 
+## 🛠️ This fork by Pharkie
+
+This fork includes the following changes on top of the original repo:
+
+- **ESP32-C3 support** - Changed from the from ESP8266 D1 Mini to ESP32-C3 with
+  GPIO20/21 pins (and hardware serial not software)
+- **Configuration centralization** - All settings e.g. wifi password moved to
+  `src/config.h`, where they can be kept out of the Git repo (.gitignore)
+- **mDNS integration** - Device accessible at http://scribe.local, not just IP
+- **Automatic timezone handling** - timezone handling inc daylight savings via
+  ezTime library, and improved date handling elsewhere
+- **Enhanced robustness** - WiFi reconnection, watchdog timer, status monitoring
+- **Improved UI** - 'New Receipt' button, better text wrapping algorithm
+
+I've modified the below to reflect these changes, and it's now a mix of the
+original and my changes.
+
+All credit to UrbanCircles for the original concept, 3D model and original code.
+Have fun, makers!
+
+---
+
 Simple, reliable, distraction free writer to nudge you towards a better life
 story - by surfacing your receipts, one day at a time.
 
