@@ -6,6 +6,7 @@
 #include <esp_task_wdt.h>
 #include <ezTime.h>
 #include <vector>
+#include <LittleFS.h>
 #include "config.h"
 #include "character_mapping.h"
 #include "web_server.h"
@@ -58,6 +59,16 @@ void setup()
 
   // Log initial memory status
   Serial.println("Free heap: " + String(ESP.getFreeHeap()) + " bytes");
+
+  // Initialize LittleFS for file system access
+  if (!LittleFS.begin(true)) // true = format if mount fails
+  {
+    Serial.println("LittleFS Mount Failed - continuing without file system");
+  }
+  else
+  {
+    Serial.println("LittleFS mounted successfully");
+  }
 
   // Initialize printer
   initializePrinter();

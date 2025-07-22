@@ -63,6 +63,12 @@ void handleStatus();
 void handleCharacterTest();
 
 /**
+ * @brief Handle requests to /riddle endpoint
+ * Prints a random riddle from riddles.json to the thermal printer
+ */
+void handleRiddle();
+
+/**
  * @brief Handle 404 errors for unmatched routes
  */
 void handleNotFound();

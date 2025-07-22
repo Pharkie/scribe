@@ -2,7 +2,7 @@
 
 String getWebAppHTML(int maxReceiptChars)
 {
-    String html = R"rawliteral(
+  String html = R"rawliteral(
 <!DOCTYPE html>
 <html lang="en" class="bg-gray-50 text-gray-900">
 <head>
@@ -13,7 +13,7 @@ String getWebAppHTML(int maxReceiptChars)
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
   <script defer>
     const MAX_CHARS = )rawliteral" +
-                  String(maxReceiptChars) + R"rawliteral(; // Character limit from config
+                String(maxReceiptChars) + R"rawliteral(; // Character limit from config
     
     function updateCharCounter(textarea) {
       const counter = document.getElementById('char-counter');
@@ -79,6 +79,40 @@ String getWebAppHTML(int maxReceiptChars)
       }
     }
     
+    function printRandomRiddle() {
+      console.log('printRandomRiddle() called');
+      
+      fetch('/riddle', {
+        method: 'POST',
+      })
+      .then(response => {
+        console.log('Response received:', response.status, response.statusText);
+        return response.text().then(data => {
+          if (!response.ok) {
+            throw new Error(`Server error (${response.status}): ${data}`);
+          }
+          return data;
+        });
+      })
+      .then(data => {
+        console.log('Response data:', data);
+        
+        // Confetti effect
+        confetti({
+          particleCount: 100,
+          spread: 70,
+          origin: { y: 0.6 },
+        });
+        
+        // Show temporary "Receipt printed" message
+        showReceiptPrintedMessage();
+      })
+      .catch(error => {
+        console.error('Error occurred:', error);
+        alert('Failed to print riddle. Please try again. Error: ' + error.message);
+      });
+    }
+    
     function setupEventListeners() {
       // Add keypress listener to document to catch Enter key globally
       document.removeEventListener('keypress', handleKeyPress);
@@ -93,7 +127,7 @@ String getWebAppHTML(int maxReceiptChars)
       <textarea
         name="message"
         maxlength=")rawliteral" +
-                  String(maxReceiptChars) + R"rawliteral("
+                String(maxReceiptChars) + R"rawliteral("
         oninput="handleInput(this)"
         placeholder="Type your receipt…"
         class="w-full p-4 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:border-transparent resize-none text-gray-800 placeholder-gray-400"
@@ -106,6 +140,12 @@ String getWebAppHTML(int maxReceiptChars)
         Send
       </button>
     </form>
+    
+    <!-- Riddle Button -->
+    <button onclick="printRandomRiddle()" class="mt-2 w-auto px-3 py-1.5 bg-purple-400 hover:bg-purple-500 text-white text-xs rounded-md font-normal transition-all duration-200">
+      🧩 Random Riddle
+    </button>
+    
     <div id="receipt-printed-message" class="hidden text-green-600 font-semibold text-lg mt-4">
       ✅ Receipt printed!
     </div>
@@ -141,5 +181,5 @@ String getWebAppHTML(int maxReceiptChars)
 </html>
 )rawliteral";
 
-    return html;
+  return html;
 }
