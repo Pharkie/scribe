@@ -308,7 +308,7 @@ void handleRoot()
 </head>
 <body class="flex flex-col min-h-screen justify-between items-center py-12 px-4 font-sans">
   <main class="w-full max-w-md text-center">
-    <h1 class="text-3xl font-semibold mb-10 text-gray-900 tracking-tight">Life Receipt:</h1>
+    <h1 class="text-3xl font-semibold mb-10 text-gray-900 tracking-tight">Life Receipt</h1>
     <form id="receipt-form" onsubmit="handleSubmit(event)" action="/submit" method="post" class="bg-white shadow-2xl rounded-3xl p-8 space-y-6 border border-gray-100">
       <textarea
         name="message"
