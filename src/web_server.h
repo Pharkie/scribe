@@ -100,11 +100,4 @@ void handleNotFound();
  */
 bool serveFileFromLittleFS(const String &path, const String &contentType);
 
-/**
- * @brief Helper function to open a file from LittleFS with error handling
- * @param path The file path to open
- * @return File object (check with file.available() before using)
- */
-File openFileFromLittleFS(const String &path);
-
 #endif // WEB_SERVER_H

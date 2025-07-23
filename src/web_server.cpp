@@ -208,7 +208,6 @@ void handleRiddle()
 
         if (current == target)
         {
-            // Use DynamicJsonDocument for better memory handling
             DynamicJsonDocument doc(1024);
             DeserializationError error = deserializeJson(doc, line);
 
