@@ -4,9 +4,11 @@
 #include <ESPmDNS.h>
 #include <LittleFS.h>
 #include <ArduinoJson.h>
+#include <PubSubClient.h>
 
 // External variable declarations
 extern WebServer server;
+extern PubSubClient mqttClient;
 
 // External function declarations
 extern String getFormattedDateTime();
@@ -78,6 +80,9 @@ void setupWebServerRoutes(int maxChars)
     // System status endpoint
     server.on("/status", HTTP_GET, handleStatus);
 
+    // MQTT send endpoint for remote printing
+    server.on("/mqtt-send", HTTP_POST, handleMQTTSend);
+
     // Handle 404
     server.onNotFound(handleNotFound);
 
@@ -103,7 +108,24 @@ void handleConfig()
 {
     String json = "{";
     json += "\"maxReceiptChars\":" + String(localMaxReceiptChars);
+    json += ",\"remotePrinters\":[";
+
+    // Add local printer first (for self-sending)
+    json += "{";
+    json += "\"name\":\"" + String(localPrinter[0]) + "\",";
+    json += "\"topic\":\"" + String(localPrinter[1]) + "\"";
     json += "}";
+
+    // Add other printers from config
+    for (int i = 0; i < numOtherPrinters; i++)
+    {
+        json += ",{";
+        json += "\"name\":\"" + String(otherPrinters[i][0]) + "\",";
+        json += "\"topic\":\"" + String(otherPrinters[i][1]) + "\"";
+        json += "}";
+    }
+
+    json += "]}";
 
     server.send(200, "application/json", json);
 }
@@ -229,4 +251,61 @@ void handleRiddle()
     // Print the riddle
     printWithHeader("RIDDLE #" + String(target + 1), riddleText);
     server.send(200, "text/plain", "Riddle printed successfully!");
+}
+
+void handleMQTTSend()
+{
+    if (!mqttClient.connected())
+    {
+        server.send(503, "text/plain", "MQTT client not connected");
+        return;
+    }
+
+    // Parse JSON body
+    String body = server.arg("plain");
+    if (body.length() == 0)
+    {
+        server.send(400, "text/plain", "No JSON body provided");
+        return;
+    }
+
+    // Parse the JSON
+    DynamicJsonDocument doc(1024);
+    DeserializationError error = deserializeJson(doc, body);
+
+    if (error)
+    {
+        server.send(400, "text/plain", "Invalid JSON: " + String(error.c_str()));
+        return;
+    }
+
+    // Extract topic and message
+    if (!doc.containsKey("topic") || !doc.containsKey("message"))
+    {
+        server.send(400, "text/plain", "JSON must contain 'topic' and 'message' fields");
+        return;
+    }
+
+    String topic = doc["topic"].as<String>();
+    String message = doc["message"].as<String>();
+
+    // Create the MQTT payload as JSON
+    DynamicJsonDocument payloadDoc(512);
+    payloadDoc["message"] = message;
+
+    String payload;
+    serializeJson(payloadDoc, payload);
+
+    // Publish to MQTT
+    if (mqttClient.publish(topic.c_str(), payload.c_str()))
+    {
+        Serial.println("MQTT message sent to topic: " + topic);
+        Serial.println("Payload: " + payload);
+        server.send(200, "text/plain", "Message sent successfully!");
+    }
+    else
+    {
+        Serial.println("Failed to send MQTT message to topic: " + topic);
+        server.send(500, "text/plain", "Failed to send MQTT message");
+    }
 }

@@ -8,30 +8,49 @@ async function loadConfig() {
     const config = await response.json();
     MAX_CHARS = config.maxReceiptChars;
     
-    // Set the maxlength attribute on the textarea
-    const textarea = document.getElementById('message-textarea');
-    textarea.setAttribute('maxlength', MAX_CHARS);
+    // Set the maxlength attribute on both textareas
+    const localTextarea = document.getElementById('local-textarea');
+    const remoteTextarea = document.getElementById('remote-textarea');
+    localTextarea.setAttribute('maxlength', MAX_CHARS);
+    remoteTextarea.setAttribute('maxlength', MAX_CHARS);
     
-    // Update the character counter
-    updateCharCounter(textarea);
+    // Populate remote printer dropdown
+    const topicSelect = document.getElementById('remote-topic');
+    topicSelect.innerHTML = ''; // Clear existing options
+    
+    config.remotePrinters.forEach((printer, index) => {
+      const option = document.createElement('option');
+      option.value = printer.topic;
+      // Add "(local)" to the first printer name
+      option.textContent = index === 0 ? `${printer.name} (local)` : printer.name;
+      topicSelect.appendChild(option);
+    });
+    
+    // Update both character counters
+    updateCharCounter(localTextarea, 'local-char-counter');
+    updateCharCounter(remoteTextarea, 'remote-char-counter');
   } catch (error) {
     console.error('Failed to load config:', error);
   }
 }
 
-function updateCharCounter(textarea) {
-  const counter = document.getElementById('char-counter');
+function updateCharCounter(textarea, counterId) {
+  const counter = document.getElementById(counterId);
   const remaining = MAX_CHARS - textarea.value.length;
   counter.textContent = `${remaining} characters left`;
   counter.classList.toggle('text-red-500', remaining <= 20);
 }
 
-function handleInput(el) {
-  updateCharCounter(el);
+function handleLocalInput(el) {
+  updateCharCounter(el, 'local-char-counter');
 }
 
-function showReceiptPrintedMessage() {
-  const messageEl = document.getElementById('receipt-printed-message');
+function handleRemoteInput(el) {
+  updateCharCounter(el, 'remote-char-counter');
+}
+
+function showLocalPrintedMessage() {
+  const messageEl = document.getElementById('local-printed-message');
   messageEl.classList.remove('hidden');
   messageEl.classList.add('animate-fade-in');
   
@@ -41,14 +60,29 @@ function showReceiptPrintedMessage() {
     setTimeout(() => {
       messageEl.classList.add('hidden');
       messageEl.classList.remove('animate-fade-in', 'animate-fade-out');
-    }, 600); // Wait for fade-out animation to complete
+    }, 600);
   }, 3000);
 }
 
-function handleSubmit(e) {
+function showRemoteSentMessage() {
+  const messageEl = document.getElementById('remote-sent-message');
+  messageEl.classList.remove('hidden');
+  messageEl.classList.add('animate-fade-in');
+  
+  // Fade out after 3 seconds
+  setTimeout(() => {
+    messageEl.classList.add('animate-fade-out');
+    setTimeout(() => {
+      messageEl.classList.add('hidden');
+      messageEl.classList.remove('animate-fade-in', 'animate-fade-out');
+    }, 600);
+  }, 3000);
+}
+
+function handleLocalSubmit(e) {
   e.preventDefault();
   const formData = new FormData(e.target);
-  const textarea = document.querySelector('textarea[name="message"]');
+  const textarea = document.querySelector('#local-textarea');
   
   fetch('/submit', {
     method: 'POST',
@@ -56,30 +90,84 @@ function handleSubmit(e) {
   }).then(() => {
     // Clear the textarea and update counter
     textarea.value = '';
-    updateCharCounter(textarea);
+    updateCharCounter(textarea, 'local-char-counter');
     
     // Show confetti
     confetti({
       particleCount: 100,
       spread: 70,
       origin: { y: 0.6 },
+      colors: ['#2563eb', '#1d4ed8', '#3b82f6']
     });
     
     // Show temporary "Receipt printed" message
-    showReceiptPrintedMessage();
+    showLocalPrintedMessage();
     
     // Focus back on textarea for next message
     textarea.focus();
+  }).catch(error => {
+    console.error('Error occurred:', error);
+  });
+}
+
+function handleRemoteSubmit(e) {
+  e.preventDefault();
+  const textarea = document.querySelector('#remote-textarea');
+  const topicSelect = document.querySelector('#remote-topic');
+  const message = textarea.value;
+  const topic = topicSelect.value;
+  
+  fetch('/mqtt-send', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      topic: topic,
+      message: message
+    })
+  }).then(response => {
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    return response.text();
+  }).then(() => {
+    // Clear the textarea and update counter
+    textarea.value = '';
+    updateCharCounter(textarea, 'remote-char-counter');
+    
+    // Show confetti
+    confetti({
+      particleCount: 100,
+      spread: 70,
+      origin: { y: 0.6 },
+      colors: ['#ea580c', '#dc2626', '#f97316']
+    });
+    
+    // Show temporary "Message sent" message
+    showRemoteSentMessage();
+    
+    // Focus back on textarea for next message
+    textarea.focus();
+  }).catch(error => {
+    console.error('Error sending remote message:', error);
+    alert('Failed to send remote message. Please try again. Error: ' + error.message);
   });
 }
 
 function handleKeyPress(e) {
   if (e.key === 'Enter' && !e.shiftKey) {
     e.preventDefault();
-    const form = document.getElementById('receipt-form');
     
-    // Always submit the form (no second screen logic needed)
-    form.dispatchEvent(new Event('submit', { bubbles: true }));
+    // Determine which form to submit based on the focused element
+    const activeElement = document.activeElement;
+    if (activeElement.id === 'local-textarea') {
+      const localForm = document.getElementById('local-form');
+      localForm.dispatchEvent(new Event('submit', { bubbles: true }));
+    } else if (activeElement.id === 'remote-textarea') {
+      const remoteForm = document.getElementById('remote-form');
+      remoteForm.dispatchEvent(new Event('submit', { bubbles: true }));
+    }
   }
 }
 
@@ -109,7 +197,7 @@ function printRandomRiddle() {
     });
     
     // Show temporary "Receipt printed" message
-    showReceiptPrintedMessage();
+    showLocalPrintedMessage();
   })
   .catch(error => {
     console.error('Error occurred:', error);
@@ -134,7 +222,7 @@ function printCharacterTest() {
     });
     
     // Show temporary success message
-    showReceiptPrintedMessage();
+    showLocalPrintedMessage();
   })
   .catch(error => {
     console.error('Error occurred:', error);
@@ -188,8 +276,13 @@ function setupEventListeners() {
 // Initialize when DOM is loaded
 document.addEventListener('DOMContentLoaded', function() {
   loadConfig().then(() => {
-    const textarea = document.querySelector('textarea[name="message"]');
-    updateCharCounter(textarea);
+    const localTextarea = document.getElementById('local-textarea');
+    const remoteTextarea = document.getElementById('remote-textarea');
+    updateCharCounter(localTextarea, 'local-char-counter');
+    updateCharCounter(remoteTextarea, 'remote-char-counter');
     setupEventListeners();
+    
+    // Focus on local textarea by default
+    localTextarea.focus();
   });
 });

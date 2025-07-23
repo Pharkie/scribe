@@ -4,48 +4,86 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Print Receipt</title>
+    <title>Scribe Printer Control</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <link rel="stylesheet" href="/styles.css">
 </head>
 
-<body class="flex flex-col min-h-screen justify-between items-center py-12 px-4 font-sans">
-    <main class="w-full max-w-md text-center">
-        <h1 class="text-3xl font-semibold mb-10 text-gray-900 tracking-tight">Print Receipt</h1>
-        <form id="receipt-form" onsubmit="handleSubmit(event)" action="/submit" method="post"
-            class="bg-white shadow-2xl rounded-3xl p-8 space-y-6 border border-gray-100">
-            <textarea name="message" id="message-textarea" oninput="handleInput(this)" placeholder="Type your receipt…"
-                class="w-full p-4 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:border-transparent resize-none text-gray-800 placeholder-gray-400"
-                rows="4" required autofocus></textarea>
-            <div id="char-counter" class="text-sm text-gray-500 text-right"></div>
-            <button type="submit"
-                class="w-full bg-gray-900 hover:bg-gray-800 text-white py-3 rounded-xl font-medium transition-all duration-200 hover:scale-[1.02] hover:shadow-lg">
-                Send
-            </button>
-        </form>
+<body class="flex flex-col min-h-screen justify-between items-center py-8 px-4 font-sans">
+    <main class="w-full max-w-5xl">
+        <h1 class="text-4xl font-semibold mb-8 text-gray-900 tracking-tight text-center">Scribe Printer Control</h1>
 
-        <!-- Action Buttons -->
-        <div class="mt-2 flex flex-wrap gap-2 justify-center">
-            <button onclick="printRandomRiddle()"
-                class="px-3 py-1.5 bg-purple-400 hover:bg-purple-500 text-white text-xs rounded-md font-normal transition-all duration-200">
-                🧩 Random Riddle
-            </button>
-            <button onclick="printCharacterTest()"
-                class="px-3 py-1.5 bg-blue-400 hover:bg-blue-500 text-white text-xs rounded-md font-normal transition-all duration-200">
-                🔤 Character Test
-            </button>
-            <button onclick="showSystemStatus()"
-                class="px-3 py-1.5 bg-green-400 hover:bg-green-500 text-white text-xs rounded-md font-normal transition-all duration-200">
-                📊 System Status
-            </button>
-        </div>
+        <!-- Dual Panel Layout -->
+        <div class="grid md:grid-cols-2 gap-8">
 
-        <div id="receipt-printed-message" class="hidden text-green-600 font-semibold text-lg mt-4">
-            ✅ Receipt printed!
+            <!-- Local Printing Panel (Left) -->
+            <div class="bg-white shadow-2xl rounded-3xl p-8 border border-gray-100">
+                <h2 class="text-2xl font-semibold mb-6 text-gray-900 text-center">🖨️ Local Printer</h2>
+                <form id="local-form" onsubmit="handleLocalSubmit(event)" action="/submit" method="post"
+                    class="space-y-6">
+                    <textarea name="message" id="local-textarea" oninput="handleLocalInput(this)"
+                        placeholder="Type your receipt…"
+                        class="w-full p-4 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent resize-none text-gray-800 placeholder-gray-400"
+                        rows="4" required></textarea>
+                    <div id="local-char-counter" class="text-sm text-gray-500 text-right"></div>
+                    <button type="submit"
+                        class="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl font-medium transition-all duration-200 hover:scale-[1.02] hover:shadow-lg">
+                        🖨️ Print Local
+                    </button>
+                </form>
+
+                <!-- Local Action Buttons -->
+                <div class="mt-4 flex flex-wrap gap-2 justify-center">
+                    <button onclick="printRandomRiddle()"
+                        class="px-3 py-1.5 bg-purple-400 hover:bg-purple-500 text-white text-xs rounded-md font-normal transition-all duration-200">
+                        🧩 Random Riddle
+                    </button>
+                    <button onclick="printCharacterTest()"
+                        class="px-3 py-1.5 bg-blue-400 hover:bg-blue-500 text-white text-xs rounded-md font-normal transition-all duration-200">
+                        🔤 Character Test
+                    </button>
+                    <button onclick="showSystemStatus()"
+                        class="px-3 py-1.5 bg-green-400 hover:bg-green-500 text-white text-xs rounded-md font-normal transition-all duration-200">
+                        📊 System Status
+                    </button>
+                </div>
+
+                <div id="local-printed-message" class="hidden text-green-600 font-semibold text-lg mt-4 text-center">
+                    ✅ Receipt printed locally!
+                </div>
+            </div>
+
+            <!-- Remote MQTT Panel (Right) -->
+            <div class="bg-white shadow-2xl rounded-3xl p-8 border border-gray-100">
+                <h2 class="text-2xl font-semibold mb-6 text-gray-900 text-center">📡 Remote Printer</h2>
+                <form id="remote-form" onsubmit="handleRemoteSubmit(event)" class="space-y-6">
+                    <div class="space-y-4">
+                        <select id="remote-topic"
+                            class="w-full p-4 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-transparent text-gray-800">
+                            <!-- Options will be populated dynamically from config -->
+                        </select>
+                        <textarea name="message" id="remote-textarea" oninput="handleRemoteInput(this)"
+                            placeholder="Type message for remote printer…"
+                            class="w-full p-4 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-transparent resize-none text-gray-800 placeholder-gray-400"
+                            rows="4" required></textarea>
+                    </div>
+                    <div id="remote-char-counter" class="text-sm text-gray-500 text-right"></div>
+                    <button type="submit"
+                        class="w-full bg-orange-600 hover:bg-orange-700 text-white py-3 rounded-xl font-medium transition-all duration-200 hover:scale-[1.02] hover:shadow-lg">
+                        📡 Send Remote
+                    </button>
+                </form>
+
+                <div id="remote-sent-message" class="hidden text-green-600 font-semibold text-lg mt-4 text-center">
+                    ✅ Message sent to remote printer!
+                </div>
+            </div>
+
         </div>
     </main>
-    <footer class="text-sm text-gray-400 mt-16">
+
+    <footer class="text-sm text-gray-400 mt-8 text-center">
         Designed with love by <a href="https://urbancircles.club" target="_blank"
             class="text-gray-500 hover:text-gray-700 transition-colors duration-200 underline decoration-gray-300 hover:decoration-gray-500 underline-offset-2">Peter
             / Urban Circles</a>

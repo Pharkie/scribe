@@ -495,7 +495,7 @@ void setupMQTT()
   mqttClient.setCallback(mqttCallback);
 
   Serial.println("MQTT server configured: " + String(mqttServer) + ":" + String(mqttPort));
-  Serial.println("MQTT topic: " + String(mqttTopic));
+  Serial.println("MQTT inbox topic: " + String(localPrinter[1]));
   Serial.println("TLS mode: Insecure (no certificate verification)");
 
   // Initial connection attempt
@@ -532,13 +532,13 @@ void connectToMQTT()
     Serial.println("MQTT connected successfully!");
 
     // Subscribe to the inbox topic
-    if (mqttClient.subscribe(mqttTopic))
+    if (mqttClient.subscribe(localPrinter[1]))
     {
-      Serial.println("Subscribed to topic: " + String(mqttTopic));
+      Serial.println("Subscribed to topic: " + String(localPrinter[1]));
     }
     else
     {
-      Serial.println("Failed to subscribe to topic: " + String(mqttTopic));
+      Serial.println("Failed to subscribe to topic: " + String(localPrinter[1]));
     }
   }
   else

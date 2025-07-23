@@ -91,6 +91,12 @@ void handleConfig();
  */
 void handleNotFound();
 
+/**
+ * @brief Handle MQTT send requests from the web interface
+ * Publishes JSON messages to specified MQTT topics for remote printing
+ */
+void handleMQTTSend();
+
 // Helper functions for file operations
 /**
  * @brief Helper function to serve files from LittleFS filesystem
