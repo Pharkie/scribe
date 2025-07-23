@@ -7,14 +7,18 @@ Here's a cool little networked thermal printer for printing whatever you like.
 This fork includes the following changes on top of the original repo:
 
 - **ESP32-C3 support** - Changed from the from ESP8266 D1 Mini to ESP32-C3 with
-  GPIO20/21 pins (and hardware serial not software)
+  GPIO20/21 pins. Uses hardware serial not software, unlike the original.
 - **Configuration centralization** - All settings e.g. wifi password moved to
   `src/config.h`, where they can be kept out of the Git repo (.gitignore)
-- **mDNS integration** - Device accessible at http://scribe.local, not just IP
-- **Automatic timezone handling** - timezone handling inc daylight savings via
-  ezTime library, and improved date handling elsewhere
-- **Enhanced robustness** - WiFi reconnection, watchdog timer, status monitoring
-- **Improved UI** - 'New Receipt' button, better text wrapping algorithm
+- **mDNS integration** - Device accessible at http://scribe.local, as well as IP
+  address.
+- **Automatic timezone handling** - timezone handling inc automatic daylight
+  savings and improved date handling elsewhere via the ezTime library.
+- **Enhanced robustness** - new text wrapping algorithm, WiFi reconnection,
+  watchdog timer, status monitoring at /status.
+- **Improved UI** - You can write on receipt after another more easily, now.
+- **Fun buttons** - Added a Random Riddle button, plus Character test and System
+  status.
 
 I've modified the below to reflect these changes, and it's now a mix of the
 original and my changes.
@@ -320,6 +324,26 @@ as expected, this may be because of several reasons, e.g.:
 
 Thermal Printer Manual, in case you need to look into things further:
 https://www.manualslib.com/manual/3035820/Cashino-Csn-A4l.html
+
+## Credits and Acknowledgments
+
+### Riddles Collection
+
+The riddles feature uses a collection of riddles curated by **Nikhil Mohite**
+from the [riddles-api](https://github.com/nkilm/riddles-api) project. This
+collection is provided under the MIT License.
+
+- **Original Repository:** https://github.com/nkilm/riddles-api
+- **Author:** Nikhil Mohite
+- **License:** MIT License
+
+We thank Nikhil for making this wonderful collection of riddles available to the
+open source community.
+
+### Original Project
+
+All credit to **UrbanCircles** for the original Project Scribe concept, 3D
+model, and initial codebase that made this ESP32-C3 thermal printer possible.
 
 ## Disclaimer
 

@@ -3,6 +3,7 @@
 
 #include <WebServer.h>
 #include <Arduino.h>
+#include <LittleFS.h>
 
 /**
  * @file web_server.h
@@ -30,7 +31,6 @@ struct Receipt
 // Forward declarations
 extern WebServer server;
 extern Receipt currentReceipt;
-extern const char *mdnsHostname;
 
 /**
  * @brief Setup all web server routes and handlers
@@ -69,8 +69,42 @@ void handleCharacterTest();
 void handleRiddle();
 
 /**
+ * @brief Handle requests to /styles.css endpoint
+ * Serves the CSS stylesheet from filesystem
+ */
+void handleCSS();
+
+/**
+ * @brief Handle requests to /app.js endpoint
+ * Serves the JavaScript file from filesystem
+ */
+void handleJS();
+
+/**
+ * @brief Handle requests to /config endpoint
+ * Returns JSON configuration including maxReceiptChars
+ */
+void handleConfig();
+
+/**
  * @brief Handle 404 errors for unmatched routes
  */
 void handleNotFound();
+
+// Helper functions for file operations
+/**
+ * @brief Helper function to serve files from LittleFS filesystem
+ * @param path The file path to serve (e.g., "/index.html")
+ * @param contentType The MIME content type (e.g., "text/html")
+ * @return true if file was served successfully, false otherwise
+ */
+bool serveFileFromLittleFS(const String &path, const String &contentType);
+
+/**
+ * @brief Helper function to open a file from LittleFS with error handling
+ * @param path The file path to open
+ * @return File object (check with file.available() before using)
+ */
+File openFileFromLittleFS(const String &path);
 
 #endif // WEB_SERVER_H

@@ -6,28 +6,31 @@
 
 // ********** COPY THIS FILE TO config.h AND UPDATE YOUR VALUES ********
 
-const char *wifiSSID = "Your_WiFi_Name";
-const char *wifiPassword = "Your_WiFi_Password";
+static const char *wifiSSID = "Your_WiFi_Name";
+static const char *wifiPassword = "Your_WiFi_Password";
 
 // === Timezone Configuration ===
-const char *timezone = "Europe/London"; // Automatically handles GMT/BST transitions
+static const char *timezone = "Europe/London"; // Automatically handles GMT/BST transitions
 // Examples: "America/New_York", "Europe/Paris", "Asia/Tokyo", "Australia/Sydney"
 
 // === mDNS Configuration ===
-const char *mdnsHostname = "scribe"; // Device will be accessible at http://scribe.local
+static const char *mdnsHostname = "scribe"; // Device will be accessible at http://scribe.local
 
 // === Web Interface Configuration ===
-const int maxReceiptChars = 200; // Maximum characters per receipt message
+static const int maxReceiptChars = 200; // Maximum characters per receipt message
+
+// === Riddle Configuration ===
+static const int totalRiddles = 545; // Total number of riddles in riddles.ndjson (update when file changes)
 
 // === ESP32-C3 Printer Pin Configuration ===
-const int TX_PIN = 21; // ESP32-C3 TX pin (connects to printer RX) (green)
+static const int TX_PIN = 21; // ESP32-C3 TX pin (connects to printer RX) (green)
 
 // === Thermal Printer Power Configuration ===
 // Adjust these values based on your printer model and power supply
 // Lower values = less power consumption, may prevent fade-out on longer inverse text
 // Higher values = blacker text, but may cause fade-out on longer inverse text
-const int heatingDots = 10;      // Number of heating dots (suggest: 7-15)
-const int heatingTime = 150;     // Heating time (suggest: 80-200)
-const int heatingInterval = 250; // Heating interval (suggest: 200-250)
+static const int heatingDots = 10;      // Number of heating dots (suggest: 7-15)
+static const int heatingTime = 150;     // Heating time (suggest: 80-200)
+static const int heatingInterval = 250; // Heating interval (suggest: 200-250)
 
 #endif
