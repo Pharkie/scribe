@@ -17,7 +17,6 @@ void stabilizePrinterPin()
 
 void initializePrinter()
 {
-    delay(500); // Wait for printer to stabilize before sending commands on TX
     // Initialize UART1 for TX only (one-way communication to printer)
     printer.begin(9600, SERIAL_8N1, -1, TX_PIN); // baud, config, RX pin (-1 = not used), TX pin
     delay(500);
