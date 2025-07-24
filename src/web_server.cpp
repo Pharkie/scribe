@@ -231,10 +231,9 @@ void handleCharacterTest()
         testContent += "* Jalapeño peppers\n";
         testContent += "* São Paulo\n";
 
-        // Return JSON response for remote sending with timestamp format
-        DynamicJsonDocument response(2048); // Larger buffer for character test content
-        String timestamp = getFormattedDateTime();
-        response["content"] = timestamp + "\n\nCHARACTER TEST\n\n" + testContent;
+        // Return JSON response for remote sending WITHOUT timestamp (MQTT handler will add it)
+        DynamicJsonDocument response(2048);
+        response["content"] = "CHARACTER TEST\n\n" + testContent;
         response["type"] = "character_test";
 
         String jsonString;
@@ -243,8 +242,42 @@ void handleCharacterTest()
     }
     else
     {
-        // Default mode - print locally
-        printCharacterTest();
+        // Default mode - print locally with timestamp header (like riddle and dad joke)
+        String timestamp = getFormattedDateTime();
+
+        // Generate the same test content
+        String testContent = "";
+        testContent += "ASCII: Hello World 123!@#\n\n";
+        testContent += "A variants: À Á Â Ã Ä Å\n";
+        testContent += "a variants: à á â ã ä å\n";
+        testContent += "E variants: È É Ê Ë\n";
+        testContent += "e variants: è é ê ë\n";
+        testContent += "I variants: Ì Í Î Ï\n";
+        testContent += "i variants: ì í î ï\n";
+        testContent += "O variants: Ò Ó Ô Õ Ö\n";
+        testContent += "o variants: ò ó ô õ ö\n";
+        testContent += "U variants: Ù Ú Û Ü\n";
+        testContent += "u variants: ù ú û ü\n\n";
+        testContent += "Special: Ñ ñ Ç ç\n";
+        testContent += "Nordic: Æ æ Ø ø Å å\n";
+        testContent += "German: ß Ü ü Ö ö Ä ä\n";
+        testContent += "French: É é È è Ê ê\n\n";
+        testContent += "Quotes: \"double\" and 'single' quotes\n";
+        testContent += "Dashes: en–dash em—dash\n";
+        testContent += "Apostrophes: don't won't\n\n";
+        testContent += "Examples:\n";
+        testContent += "* Za'atar (Arabic spice)\n";
+        testContent += "* Café au lait\n";
+        testContent += "* Naïve approach\n";
+        testContent += "* Piñata party\n";
+        testContent += "* Müller family\n";
+        testContent += "* Björk concert\n";
+        testContent += "* Señorita María\n";
+        testContent += "* Crème brûlée\n";
+        testContent += "* Jalapeño peppers\n";
+        testContent += "* São Paulo\n";
+
+        printWithHeader(timestamp, "CHARACTER TEST\n\n" + testContent);
         server.send(200, "text/plain", "Character test printed to thermal printer!");
     }
 }
@@ -331,10 +364,9 @@ void handleRiddle()
 
     file.close();
 
-    // Check mode parameter to determine response type
     if (remoteMode)
     {
-        // Return JSON response for remote sending
+        // Return JSON response for remote sending WITHOUT timestamp (MQTT handler will add it)
         DynamicJsonDocument response(1024);
         response["content"] = "RIDDLE #" + String(target + 1) + "\n\n" + riddleText;
         response["type"] = "riddle";
@@ -396,10 +428,9 @@ void handleDadJoke()
         http.end();
     }
 
-    // Check mode parameter to determine response type
     if (remoteMode)
     {
-        // Return JSON response for remote sending with timestamp format
+        // Return JSON response for remote sending WITHOUT timestamp (MQTT handler will add it)
         DynamicJsonDocument response(1024);
         response["content"] = "DAD JOKE\n\n" + dadJoke;
         response["type"] = "dad_joke";
