@@ -57,26 +57,30 @@ void handleSubmit();
 void handleStatus();
 
 /**
+ * @brief Generate character test content for thermal printer
+ * Creates a comprehensive test of various character encodings and special characters
+ * @return String containing the test content
+ */
+String generateCharacterTestContent();
+
+/**
  * @brief Handle requests to /test endpoint
- * Prints a comprehensive character test to the thermal printer
- * Use mode=remote parameter to return JSON content for remote sending
- * Default mode prints locally
+ * Generates and returns character test content as plain text
+ * Content should be sent to printer via /print-local or /mqtt-send endpoints
  */
 void handleCharacterTest();
 
 /**
  * @brief Handle requests to /riddle endpoint
- * Prints a random riddle from riddles.json to the thermal printer
- * Use mode=remote parameter to return JSON content for remote sending
- * Default mode prints locally
+ * Generates and returns random riddle content as plain text
+ * Content should be sent to printer via /print-local or /mqtt-send endpoints
  */
 void handleRiddle();
 
 /**
  * @brief Handle requests to /dadjoke endpoint
- * Fetches and prints a random dad joke from icanhazdadjoke.com
- * Use mode=remote parameter to return JSON content for remote sending
- * Default mode prints locally
+ * Fetches and returns random dad joke content as plain text
+ * Content should be sent to printer via /print-local or /mqtt-send endpoints
  */
 void handleDadJoke();
 

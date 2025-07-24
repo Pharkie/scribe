@@ -20,9 +20,13 @@ void setupMQTT()
     mqttClient.setServer(mqttServer, mqttPort);
     mqttClient.setCallback(mqttCallback);
 
+    // Set buffer size for larger messages
+    mqttClient.setBufferSize(4096);
+
     Serial.println("MQTT server configured: " + String(mqttServer) + ":" + String(mqttPort));
     Serial.println("MQTT inbox topic: " + String(localPrinter[1]));
     Serial.println("TLS mode: Insecure (no certificate verification)");
+    Serial.println("MQTT buffer size: 4096 bytes");
 
     // Initial connection attempt
     connectToMQTT();
@@ -95,13 +99,12 @@ void mqttCallback(char *topic, byte *payload, unsigned int length)
 void handleMQTTMessage(String message)
 {
     // Parse JSON message
-    DynamicJsonDocument doc(1024);
+    DynamicJsonDocument doc(4096); // Increased to match MQTT buffer size
     DeserializationError error = deserializeJson(doc, message);
 
     if (error)
     {
         Serial.println("Failed to parse MQTT JSON: " + String(error.c_str()));
-        Serial.println("Raw message: " + message);
         return;
     }
 
@@ -111,17 +114,12 @@ void handleMQTTMessage(String message)
         String printMessage = doc["message"].as<String>();
         String timestamp = getFormattedDateTime();
 
-        Serial.println("Printing MQTT message: " + printMessage);
-
         // Print immediately using the existing printWithHeader function
         printWithHeader(timestamp, printMessage);
-
-        Serial.println("MQTT message printed successfully");
     }
     else
     {
         Serial.println("MQTT JSON missing 'message' field");
-        Serial.println("Expected format: {\"message\": \"Your message here\"}");
     }
 }
 

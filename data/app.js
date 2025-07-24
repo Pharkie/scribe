@@ -17,14 +17,14 @@ async function loadConfig() {
     const printerSelect = document.getElementById('printer-target');
     printerSelect.innerHTML = ''; // Clear existing options
     
-    // Add local direct option (always first)
-    const localDirectOption = document.createElement('option');
-    localDirectOption.value = 'local-direct';
-    localDirectOption.textContent = '🖨️ Local (direct)';
-    printerSelect.appendChild(localDirectOption);
-    
     // Store printer data for later use
     PRINTERS = config.remotePrinters;
+    
+    // Add local direct option (using first printer's name)
+    const localDirectOption = document.createElement('option');
+    localDirectOption.value = 'local-direct';
+    localDirectOption.textContent = `${config.remotePrinters[0].name} (local, direct)`;
+    printerSelect.appendChild(localDirectOption);
     
     // Add local via MQTT and other printers
     config.remotePrinters.forEach((printer, index) => {
@@ -32,7 +32,7 @@ async function loadConfig() {
       option.value = printer.topic;
       // First printer is local via MQTT, others are remote
       option.textContent = index === 0 
-        ? `🖨️ ${printer.name} (local via MQTT)` 
+        ? `${printer.name} (local, via MQTT)` 
         : `📡 ${printer.name} (remote via MQTT)`;
       printerSelect.appendChild(option);
     });
@@ -78,7 +78,7 @@ function handleSubmit(event) {
 }
 
 // Print message to local printer
-function printLocalMessage(message) {
+function printLocalMessage(message, action = null) {
   const formData = new FormData();
   formData.append('message', message);
   
@@ -90,16 +90,32 @@ function printLocalMessage(message) {
   .then(data => {
     console.log('Local print response:', data);
     
+    // Action-specific confetti colors
+    let colors, successMessage;
+    if (action === 'riddle') {
+      colors = ['#a855f7', '#7c3aed', '#c084fc']; // Purple
+      successMessage = 'Riddle printed locally!';
+    } else if (action === 'dadjoke') {
+      colors = ['#f97316', '#ea580c', '#fb923c']; // Orange
+      successMessage = 'Dad joke printed locally!';
+    } else if (action === 'chartest') {
+      colors = ['#22c55e', '#16a34a', '#4ade80']; // Green
+      successMessage = 'Character test printed locally!';
+    } else {
+      colors = ['#3b82f6', '#1e40af', '#60a5fa']; // Blue (default)
+      successMessage = 'Message printed locally!';
+    }
+    
     // Confetti effect
     confetti({
       particleCount: 50,
       spread: 60,
       origin: { y: 0.6 },
-      colors: ['#3b82f6', '#1e40af', '#60a5fa']
+      colors: colors
     });
     
     // Show success message
-    showSuccessMessage('Message printed locally!');
+    showSuccessMessage(successMessage);
     
     // Clear the form
     document.getElementById('message-textarea').value = '';
@@ -112,7 +128,7 @@ function printLocalMessage(message) {
 }
 
 // Send message via MQTT
-function sendMQTTMessage(topic, message) {
+function sendMQTTMessage(topic, message, action = null) {
   const payload = {
     topic: topic,
     message: message
@@ -127,19 +143,33 @@ function sendMQTTMessage(topic, message) {
   })
   .then(response => response.text())
   .then(data => {
-    console.log('MQTT send response:', data);
+    // Action-specific confetti colors
+    let colors, actionName;
+    if (action === 'riddle') {
+      colors = ['#a855f7', '#7c3aed', '#c084fc']; // Purple
+      actionName = 'Riddle';
+    } else if (action === 'dadjoke') {
+      colors = ['#f97316', '#ea580c', '#fb923c']; // Orange
+      actionName = 'Dad joke';
+    } else if (action === 'chartest') {
+      colors = ['#22c55e', '#16a34a', '#4ade80']; // Green
+      actionName = 'Character test';
+    } else {
+      colors = ['#3b82f6', '#1e40af', '#60a5fa']; // Blue (default)
+      actionName = 'Message';
+    }
     
     // Confetti effect
     confetti({
       particleCount: 100,
       spread: 70,
       origin: { y: 0.6 },
-      colors: ['#f97316', '#ea580c', '#fb923c']
+      colors: colors
     });
     
     // Show success message
     const printerName = getPrinterName(topic);
-    showSuccessMessage(`Message sent to ${printerName}!`);
+    showSuccessMessage(`${actionName} sent to ${printerName}!`);
     
     // Clear the form
     document.getElementById('message-textarea').value = '';
@@ -175,56 +205,27 @@ function sendQuickAction(action) {
     return;
   }
   
-  if (printerTarget === 'local-direct') {
-    // Print directly to local printer
-    fetch(endpoint, {
-      method: action === 'chartest' ? 'GET' : 'POST'
-    })
-    .then(response => response.text())
-    .then(data => {
-      console.log(`Local ${action} response:`, data);
-      
-      // Confetti effect
-      confetti({
-        particleCount: 50,
-        spread: 60,
-        origin: { y: 0.6 },
-        colors: action === 'riddle' ? ['#a855f7', '#7c3aed', '#c084fc'] : 
-               action === 'dadjoke' ? ['#f97316', '#ea580c', '#fb923c'] :
-               ['#22c55e', '#16a34a', '#4ade80'] // Green colors for character test
-      });
-      
-      const actionName = action === 'riddle' ? 'Riddle' : 
-                        action === 'dadjoke' ? 'Dad joke' : 'Character test';
-      showSuccessMessage(`${actionName} printed locally!`);
-    })
-    .catch(error => {
-      console.error('Error occurred:', error);
-      alert(`Failed to print ${action}. Please try again. Error: ` + error.message);
-    });
-  } else {
-    // Get content and send via MQTT
-    fetch(endpoint, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-      },
-      body: 'mode=remote'
-    })
-    .then(response => response.json())
-    .then(contentData => {
-      console.log(`${action} content received:`, contentData);
-      
-      // Send via MQTT
-      return sendMQTTMessage(printerTarget, contentData.content);
-    })
-    .catch(error => {
-      console.error('Error occurred:', error);
-      const actionName = action === 'riddle' ? 'riddle' : 
-                        action === 'dadjoke' ? 'dad joke' : 'character test';
-      alert(`Failed to send ${actionName}. Please try again. Error: ` + error.message);
-    });
-  }
+  // Step 1: Get content from the content endpoint
+  fetch(endpoint, {
+    method: 'POST'
+  })
+  .then(response => response.text())
+  .then(content => {
+    // Step 2: Send content via appropriate channel with action type
+    if (printerTarget === 'local-direct') {
+      // Send to local printer with action type for correct colors
+      printLocalMessage(content, action);
+    } else {
+      // Send via MQTT with action type for correct colors
+      sendMQTTMessage(printerTarget, content, action);
+    }
+  })
+  .catch(error => {
+    console.error('Error occurred:', error);
+    const actionName = action === 'riddle' ? 'riddle' : 
+                      action === 'dadjoke' ? 'dad joke' : 'character test';
+    alert(`Failed to get ${actionName} content. Please try again. Error: ` + error.message);
+  });
 }
 
 // Show success message
@@ -251,20 +252,35 @@ function showSystemStatus() {
     .then(data => {
       const uptimeHours = Math.floor(data.uptime / (1000 * 60 * 60));
       const uptimeMinutes = Math.floor((data.uptime % (1000 * 60 * 60)) / (1000 * 60));
+      const memoryUsedPercent = Math.round((1 - (data.free_heap / data.total_heap)) * 100);
+      const flashUsedPercent = data.flash_total > 0 ? Math.round((data.flash_used / data.flash_total) * 100) : 0;
+      const flashFree = data.flash_total - data.flash_used;
       
-      const status = `System Status:
+      const status = `📊 Scribe Printer Diagnostics
 
-WiFi Connected: ${data.wifi_connected ? 'Yes' : 'No'}
-IP Address: ${data.ip_address}
-Hostname: ${data.mdns_hostname}.local
-Uptime: ${uptimeHours}h ${uptimeMinutes}m
-Free Memory: ${Math.round(data.free_heap / 1024)}KB`;
+🌐 Network Status:
+• WiFi: ${data.wifi_connected ? '✅ Connected' : '❌ Disconnected'}
+• Network: ${data.wifi_ssid || 'Unknown'}
+• IP Address: ${data.ip_address}
+• Hostname: ${data.mdns_hostname}.local
+
+📡 MQTT Status:
+• Broker: ${data.mqtt_connected ? '✅ Connected' : '❌ Disconnected'}
+• Server: ${data.mqtt_server}
+• Topic: ${data.local_topic}
+
+💾 System Resources:
+• RAM: ${Math.round(data.free_heap / 1024)}KB free / ${Math.round(data.total_heap / 1024)}KB total (${memoryUsedPercent}% used)
+• Flash: ${Math.round(flashFree / 1024)}KB free / ${Math.round(data.flash_total / 1024)}KB total (${flashUsedPercent}% used)
+• Uptime: ${uptimeHours}h ${uptimeMinutes}m
+• Chip: ${data.chip_model}
+• CPU: ${data.cpu_freq}MHz`;
       
       alert(status);
     })
     .catch(error => {
       console.error('Error fetching status:', error);
-      alert('Failed to fetch system status');
+      alert('Failed to fetch system diagnostics');
     });
 }
 

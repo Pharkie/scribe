@@ -73,7 +73,6 @@ void setupWebServerRoutes(int maxChars)
     server.on("/print-local", HTTP_GET, handleSubmit);
 
     // Character test endpoint (supports both local print and remote content modes)
-    server.on("/character-test", HTTP_GET, handleCharacterTest);
     server.on("/character-test", HTTP_POST, handleCharacterTest);
 
     // Riddle endpoint (supports both local print and remote content modes)
@@ -171,115 +170,89 @@ void handleSubmit()
 
 void handleStatus()
 {
+    // Get flash storage information
+    size_t totalBytes = 0;
+    size_t usedBytes = 0;
+    if (LittleFS.begin())
+    {
+        totalBytes = LittleFS.totalBytes();
+        usedBytes = LittleFS.usedBytes();
+    }
+
     String json = "{";
     json += "\"wifi_connected\":" + String(WiFi.status() == WL_CONNECTED ? "true" : "false") + ",";
     json += "\"ip_address\":\"" + WiFi.localIP().toString() + "\",";
     json += "\"mdns_hostname\":\"" + String(mdnsHostname) + "\",";
     json += "\"uptime\":" + String(millis()) + ",";
-    json += "\"free_heap\":" + String(ESP.getFreeHeap());
+    json += "\"free_heap\":" + String(ESP.getFreeHeap()) + ",";
+    json += "\"mqtt_connected\":" + String(mqttClient.connected() ? "true" : "false") + ",";
+    json += "\"mqtt_server\":\"" + String(mqttServer) + "\",";
+    json += "\"wifi_ssid\":\"" + String(WiFi.SSID()) + "\",";
+    json += "\"local_topic\":\"" + String(localPrinter[1]) + "\",";
+    json += "\"total_heap\":" + String(ESP.getHeapSize()) + ",";
+    json += "\"chip_model\":\"" + String(ESP.getChipModel()) + "\",";
+    json += "\"cpu_freq\":" + String(ESP.getCpuFreqMHz()) + ",";
+    json += "\"flash_total\":" + String(totalBytes) + ",";
+    json += "\"flash_used\":" + String(usedBytes);
     json += "}";
 
     server.send(200, "application/json", json);
 }
 
+String generateCharacterTestContent()
+{
+    String testContent = "";
+
+    // Basic ASCII test
+    testContent += "ASCII: Hello World 123!@#\n\n";
+
+    // Accented vowels
+    testContent += "A variants: À Á Â Ã Ä Å\n";
+    testContent += "a variants: à á â ã ä å\n";
+    testContent += "E variants: È É Ê Ë\n";
+    testContent += "e variants: è é ê ë\n";
+    testContent += "I variants: Ì Í Î Ï\n";
+    testContent += "i variants: ì í î ï\n";
+    testContent += "O variants: Ò Ó Ô Õ Ö\n";
+    testContent += "o variants: ò ó ô õ ö\n";
+    testContent += "U variants: Ù Ú Û Ü\n";
+    testContent += "u variants: ù ú û ü\n\n";
+
+    // Special characters
+    testContent += "Special: Ñ ñ Ç ç\n";
+    testContent += "Nordic: Æ æ Ø ø Å å\n";
+    testContent += "German: ß Ü ü Ö ö Ä ä\n";
+    testContent += "French: É é È è Ê ê\n\n";
+
+    // Punctuation variants
+    testContent += "Quotes: \"double\" and 'single' quotes\n";
+    testContent += "Dashes: en–dash em—dash\n";
+    testContent += "Apostrophes: don't won't\n\n";
+
+    // Real-world examples
+    testContent += "Examples:\n";
+    testContent += "* Za'atar (Arabic spice)\n";
+    testContent += "* Café au lait\n";
+    testContent += "* Naïve approach\n";
+    testContent += "* Piñata party\n";
+    testContent += "* Müller family\n";
+    testContent += "* Björk concert\n";
+    testContent += "* Señorita María\n";
+    testContent += "* Crème brûlée\n";
+    testContent += "* Jalapeño peppers\n";
+    testContent += "* São Paulo\n";
+
+    return testContent;
+}
+
 void handleCharacterTest()
 {
-    // Check if this is a request for remote content
-    bool remoteMode = server.hasArg("mode") && server.arg("mode") == "remote";
+    // Generate character test content
+    String testContent = generateCharacterTestContent();
+    String fullContent = "CHARACTER TEST\n\n" + testContent;
 
-    if (remoteMode)
-    {
-        // Generate character test content for remote sending
-        String testContent = "";
-
-        // Basic ASCII test
-        testContent += "ASCII: Hello World 123!@#\n\n";
-
-        // Accented vowels
-        testContent += "A variants: À Á Â Ã Ä Å\n";
-        testContent += "a variants: à á â ã ä å\n";
-        testContent += "E variants: È É Ê Ë\n";
-        testContent += "e variants: è é ê ë\n";
-        testContent += "I variants: Ì Í Î Ï\n";
-        testContent += "i variants: ì í î ï\n";
-        testContent += "O variants: Ò Ó Ô Õ Ö\n";
-        testContent += "o variants: ò ó ô õ ö\n";
-        testContent += "U variants: Ù Ú Û Ü\n";
-        testContent += "u variants: ù ú û ü\n\n";
-
-        // Special characters
-        testContent += "Special: Ñ ñ Ç ç\n";
-        testContent += "Nordic: Æ æ Ø ø Å å\n";
-        testContent += "German: ß Ü ü Ö ö Ä ä\n";
-        testContent += "French: É é È è Ê ê\n\n";
-
-        // Punctuation variants
-        testContent += "Quotes: \"double\" and 'single' quotes\n";
-        testContent += "Dashes: en–dash em—dash\n";
-        testContent += "Apostrophes: don't won't\n\n";
-
-        // Real-world examples
-        testContent += "Examples:\n";
-        testContent += "* Za'atar (Arabic spice)\n";
-        testContent += "* Café au lait\n";
-        testContent += "* Naïve approach\n";
-        testContent += "* Piñata party\n";
-        testContent += "* Müller family\n";
-        testContent += "* Björk concert\n";
-        testContent += "* Señorita María\n";
-        testContent += "* Crème brûlée\n";
-        testContent += "* Jalapeño peppers\n";
-        testContent += "* São Paulo\n";
-
-        // Return JSON response for remote sending WITHOUT timestamp (MQTT handler will add it)
-        DynamicJsonDocument response(2048);
-        response["content"] = "CHARACTER TEST\n\n" + testContent;
-        response["type"] = "character_test";
-
-        String jsonString;
-        serializeJson(response, jsonString);
-        server.send(200, "application/json", jsonString);
-    }
-    else
-    {
-        // Default mode - print locally with timestamp header (like riddle and dad joke)
-        String timestamp = getFormattedDateTime();
-
-        // Generate the same test content
-        String testContent = "";
-        testContent += "ASCII: Hello World 123!@#\n\n";
-        testContent += "A variants: À Á Â Ã Ä Å\n";
-        testContent += "a variants: à á â ã ä å\n";
-        testContent += "E variants: È É Ê Ë\n";
-        testContent += "e variants: è é ê ë\n";
-        testContent += "I variants: Ì Í Î Ï\n";
-        testContent += "i variants: ì í î ï\n";
-        testContent += "O variants: Ò Ó Ô Õ Ö\n";
-        testContent += "o variants: ò ó ô õ ö\n";
-        testContent += "U variants: Ù Ú Û Ü\n";
-        testContent += "u variants: ù ú û ü\n\n";
-        testContent += "Special: Ñ ñ Ç ç\n";
-        testContent += "Nordic: Æ æ Ø ø Å å\n";
-        testContent += "German: ß Ü ü Ö ö Ä ä\n";
-        testContent += "French: É é È è Ê ê\n\n";
-        testContent += "Quotes: \"double\" and 'single' quotes\n";
-        testContent += "Dashes: en–dash em—dash\n";
-        testContent += "Apostrophes: don't won't\n\n";
-        testContent += "Examples:\n";
-        testContent += "* Za'atar (Arabic spice)\n";
-        testContent += "* Café au lait\n";
-        testContent += "* Naïve approach\n";
-        testContent += "* Piñata party\n";
-        testContent += "* Müller family\n";
-        testContent += "* Björk concert\n";
-        testContent += "* Señorita María\n";
-        testContent += "* Crème brûlée\n";
-        testContent += "* Jalapeño peppers\n";
-        testContent += "* São Paulo\n";
-
-        printWithHeader(timestamp, "CHARACTER TEST\n\n" + testContent);
-        server.send(200, "text/plain", "Character test printed to thermal printer!");
-    }
+    // Return the content as plain text
+    server.send(200, "text/plain", fullContent);
 }
 
 void handleNotFound()
@@ -302,20 +275,10 @@ void handleNotFound()
 
 void handleRiddle()
 {
-    // Check if this is a request for remote content
-    bool remoteMode = server.hasArg("mode") && server.arg("mode") == "remote";
-
     // Ensure LittleFS is mounted
     if (!LittleFS.begin())
     {
-        if (remoteMode)
-        {
-            server.send(500, "application/json", "{\"error\": \"Failed to mount LittleFS\"}");
-        }
-        else
-        {
-            server.send(500, "text/plain", "Failed to mount LittleFS");
-        }
+        server.send(500, "text/plain", "Failed to mount LittleFS");
         return;
     }
 
@@ -323,14 +286,7 @@ void handleRiddle()
     File file = LittleFS.open("/riddles.ndjson", "r");
     if (!file)
     {
-        if (remoteMode)
-        {
-            server.send(500, "application/json", "{\"error\": \"Failed to open riddles file\"}");
-        }
-        else
-        {
-            server.send(500, "text/plain", "Failed to open riddles file");
-        }
+        server.send(500, "text/plain", "Failed to open riddles file");
         return;
     }
 
@@ -364,31 +320,14 @@ void handleRiddle()
 
     file.close();
 
-    if (remoteMode)
-    {
-        // Return JSON response for remote sending WITHOUT timestamp (MQTT handler will add it)
-        DynamicJsonDocument response(1024);
-        response["content"] = "RIDDLE #" + String(target + 1) + "\n\n" + riddleText;
-        response["type"] = "riddle";
+    String fullContent = "RIDDLE #" + String(target + 1) + "\n\n" + riddleText;
 
-        String jsonString;
-        serializeJson(response, jsonString);
-        server.send(200, "application/json", jsonString);
-    }
-    else
-    {
-        // Default mode - print locally with timestamp header
-        String timestamp = getFormattedDateTime();
-        printWithHeader(timestamp, "RIDDLE #" + String(target + 1) + "\n\n" + riddleText);
-        server.send(200, "text/plain", "Riddle printed successfully!");
-    }
+    // Return the content as plain text
+    server.send(200, "text/plain", fullContent);
 }
 
 void handleDadJoke()
 {
-    // Check if this is a request for remote content
-    bool remoteMode = server.hasArg("mode") && server.arg("mode") == "remote";
-
     // Start with fallback joke
     String dadJoke = "Why don't scientists trust atoms? Because they make up everything!";
 
@@ -428,24 +367,10 @@ void handleDadJoke()
         http.end();
     }
 
-    if (remoteMode)
-    {
-        // Return JSON response for remote sending WITHOUT timestamp (MQTT handler will add it)
-        DynamicJsonDocument response(1024);
-        response["content"] = "DAD JOKE\n\n" + dadJoke;
-        response["type"] = "dad_joke";
+    String fullContent = "DAD JOKE\n\n" + dadJoke;
 
-        String jsonString;
-        serializeJson(response, jsonString);
-        server.send(200, "application/json", jsonString);
-    }
-    else
-    {
-        // Default mode - print locally with timestamp header
-        String timestamp = getFormattedDateTime();
-        printWithHeader(timestamp, "DAD JOKE\n\n" + dadJoke);
-        server.send(200, "text/plain", "Dad joke printed successfully!");
-    }
+    // Return the content as plain text
+    server.send(200, "text/plain", fullContent);
 }
 
 void handleMQTTSend()
@@ -465,7 +390,7 @@ void handleMQTTSend()
     }
 
     // Parse the JSON
-    DynamicJsonDocument doc(1024);
+    DynamicJsonDocument doc(4096); // Increased to match MQTT buffer size
     DeserializationError error = deserializeJson(doc, body);
 
     if (error)
@@ -484,9 +409,9 @@ void handleMQTTSend()
     String topic = doc["topic"].as<String>();
     String message = doc["message"].as<String>();
 
-    // Create the MQTT payload as JSON
-    DynamicJsonDocument payloadDoc(512);
-    payloadDoc["message"] = message;
+    // Create the MQTT payload as JSON with proper escaping
+    DynamicJsonDocument payloadDoc(4096); // Increased to match MQTT buffer size
+    payloadDoc["message"] = message;      // ArduinoJson handles escaping automatically
 
     String payload;
     serializeJson(payloadDoc, payload);
@@ -495,7 +420,6 @@ void handleMQTTSend()
     if (mqttClient.publish(topic.c_str(), payload.c_str()))
     {
         Serial.println("MQTT message sent to topic: " + topic);
-        Serial.println("Payload: " + payload);
         server.send(200, "text/plain", "Message sent successfully!");
     }
     else
