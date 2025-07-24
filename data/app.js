@@ -1,5 +1,6 @@
 // Global variables - will be set by the server
 let MAX_CHARS = 200; // Default value, will be updated by config endpoint
+let PRINTERS = []; // Will store all available printers
 
 // Fetch configuration from server
 async function loadConfig() {
@@ -8,210 +9,86 @@ async function loadConfig() {
     const config = await response.json();
     MAX_CHARS = config.maxReceiptChars;
     
-    // Set the maxlength attribute on both textareas
-    const localTextarea = document.getElementById('local-textarea');
-    const remoteTextarea = document.getElementById('remote-textarea');
-    localTextarea.setAttribute('maxlength', MAX_CHARS);
-    remoteTextarea.setAttribute('maxlength', MAX_CHARS);
+    // Set the maxlength attribute on textarea
+    const textarea = document.getElementById('message-textarea');
+    textarea.setAttribute('maxlength', MAX_CHARS);
     
-    // Populate remote printer dropdown
-    const topicSelect = document.getElementById('remote-topic');
-    topicSelect.innerHTML = ''; // Clear existing options
+    // Populate printer dropdown
+    const printerSelect = document.getElementById('printer-target');
+    printerSelect.innerHTML = ''; // Clear existing options
     
+    // Add local direct option (always first)
+    const localDirectOption = document.createElement('option');
+    localDirectOption.value = 'local-direct';
+    localDirectOption.textContent = '🖨️ Local (direct)';
+    printerSelect.appendChild(localDirectOption);
+    
+    // Store printer data for later use
+    PRINTERS = config.remotePrinters;
+    
+    // Add local via MQTT and other printers
     config.remotePrinters.forEach((printer, index) => {
       const option = document.createElement('option');
       option.value = printer.topic;
-      // Add "(local)" to the first printer name
-      option.textContent = index === 0 ? `${printer.name} (local)` : printer.name;
-      topicSelect.appendChild(option);
+      // First printer is local via MQTT, others are remote
+      option.textContent = index === 0 
+        ? `🖨️ ${printer.name} (local via MQTT)` 
+        : `📡 ${printer.name} (remote via MQTT)`;
+      printerSelect.appendChild(option);
     });
     
-    // Update both character counters
-    updateCharCounter(localTextarea, 'local-char-counter');
-    updateCharCounter(remoteTextarea, 'remote-char-counter');
+    // Update character counter
+    updateCharCounter();
   } catch (error) {
     console.error('Failed to load config:', error);
   }
 }
 
-function updateCharCounter(textarea, counterId) {
-  const counter = document.getElementById(counterId);
+function updateCharCounter() {
+  const textarea = document.getElementById('message-textarea');
+  const counter = document.getElementById('char-counter');
   const remaining = MAX_CHARS - textarea.value.length;
   counter.textContent = `${remaining} characters left`;
   counter.classList.toggle('text-red-500', remaining <= 20);
 }
 
-function handleLocalInput(el) {
-  updateCharCounter(el, 'local-char-counter');
+function handleInput(el) {
+  updateCharCounter();
 }
 
-function handleRemoteInput(el) {
-  updateCharCounter(el, 'remote-char-counter');
-}
-
-function showLocalPrintedMessage() {
-  const messageEl = document.getElementById('local-printed-message');
-  messageEl.classList.remove('hidden');
-  messageEl.classList.add('animate-fade-in');
+// Unified form submission handler
+function handleSubmit(event) {
+  event.preventDefault();
   
-  // Fade out after 3 seconds
-  setTimeout(() => {
-    messageEl.classList.add('animate-fade-out');
-    setTimeout(() => {
-      messageEl.classList.add('hidden');
-      messageEl.classList.remove('animate-fade-in', 'animate-fade-out');
-    }, 600);
-  }, 3000);
-}
-
-function showRemoteSentMessage() {
-  const messageEl = document.getElementById('remote-sent-message');
-  messageEl.classList.remove('hidden');
-  messageEl.classList.add('animate-fade-in');
+  const printerTarget = document.getElementById('printer-target').value;
+  const message = document.getElementById('message-textarea').value;
   
-  // Fade out after 3 seconds
-  setTimeout(() => {
-    messageEl.classList.add('animate-fade-out');
-    setTimeout(() => {
-      messageEl.classList.add('hidden');
-      messageEl.classList.remove('animate-fade-in', 'animate-fade-out');
-    }, 600);
-  }, 3000);
-}
-
-function handleLocalSubmit(e) {
-  e.preventDefault();
-  const formData = new FormData(e.target);
-  const textarea = document.querySelector('#local-textarea');
+  if (!message.trim()) {
+    alert('Please enter a message');
+    return;
+  }
   
-  fetch('/submit', {
-    method: 'POST',
-    body: formData
-  }).then(() => {
-    // Clear the textarea and update counter
-    textarea.value = '';
-    updateCharCounter(textarea, 'local-char-counter');
-    
-    // Show confetti
-    confetti({
-      particleCount: 100,
-      spread: 70,
-      origin: { y: 0.6 },
-      colors: ['#2563eb', '#1d4ed8', '#3b82f6']
-    });
-    
-    // Show temporary "Receipt printed" message
-    showLocalPrintedMessage();
-    
-    // Focus back on textarea for next message
-    textarea.focus();
-  }).catch(error => {
-    console.error('Error occurred:', error);
-  });
-}
-
-function handleRemoteSubmit(e) {
-  e.preventDefault();
-  const textarea = document.querySelector('#remote-textarea');
-  const topicSelect = document.querySelector('#remote-topic');
-  const message = textarea.value;
-  const topic = topicSelect.value;
-  
-  fetch('/mqtt-send', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      topic: topic,
-      message: message
-    })
-  }).then(response => {
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-    return response.text();
-  }).then(() => {
-    // Clear the textarea and update counter
-    textarea.value = '';
-    updateCharCounter(textarea, 'remote-char-counter');
-    
-    // Show confetti
-    confetti({
-      particleCount: 100,
-      spread: 70,
-      origin: { y: 0.6 },
-      colors: ['#ea580c', '#dc2626', '#f97316']
-    });
-    
-    // Show temporary "Message sent" message
-    showRemoteSentMessage();
-    
-    // Focus back on textarea for next message
-    textarea.focus();
-  }).catch(error => {
-    console.error('Error sending remote message:', error);
-    alert('Failed to send remote message. Please try again. Error: ' + error.message);
-  });
-}
-
-function handleKeyPress(e) {
-  if (e.key === 'Enter' && !e.shiftKey) {
-    e.preventDefault();
-    
-    // Determine which form to submit based on the focused element
-    const activeElement = document.activeElement;
-    if (activeElement.id === 'local-textarea') {
-      const localForm = document.getElementById('local-form');
-      localForm.dispatchEvent(new Event('submit', { bubbles: true }));
-    } else if (activeElement.id === 'remote-textarea') {
-      const remoteForm = document.getElementById('remote-form');
-      remoteForm.dispatchEvent(new Event('submit', { bubbles: true }));
-    }
+  if (printerTarget === 'local-direct') {
+    // Print directly to local printer
+    printLocalMessage(message);
+  } else {
+    // Send via MQTT to selected printer
+    sendMQTTMessage(printerTarget, message);
   }
 }
 
-function printRandomRiddle() {
-  console.log('printRandomRiddle() called');
+// Print message to local printer
+function printLocalMessage(message) {
+  const formData = new FormData();
+  formData.append('message', message);
   
-  fetch('/riddle', {
+  fetch('/print-local', {
     method: 'POST',
-  })
-  .then(response => {
-    console.log('Response received:', response.status, response.statusText);
-    return response.text().then(data => {
-      if (!response.ok) {
-        throw new Error(`Server error (${response.status}): ${data}`);
-      }
-      return data;
-    });
-  })
-  .then(data => {
-    console.log('Response data:', data);
-    
-    // Confetti effect
-    confetti({
-      particleCount: 100,
-      spread: 70,
-      origin: { y: 0.6 },
-    });
-    
-    // Show temporary "Receipt printed" message
-    showLocalPrintedMessage();
-  })
-  .catch(error => {
-    console.error('Error occurred:', error);
-    alert('Failed to print riddle. Please try again. Error: ' + error.message);
-  });
-}
-
-function printCharacterTest() {
-  fetch('/test', {
-    method: 'GET'
+    body: formData
   })
   .then(response => response.text())
   .then(data => {
-    console.log('Character test response:', data);
+    console.log('Local print response:', data);
     
     // Confetti effect
     confetti({
@@ -221,68 +98,228 @@ function printCharacterTest() {
       colors: ['#3b82f6', '#1e40af', '#60a5fa']
     });
     
-    // Show temporary success message
-    showLocalPrintedMessage();
+    // Show success message
+    showSuccessMessage('Message printed locally!');
+    
+    // Clear the form
+    document.getElementById('message-textarea').value = '';
+    updateCharCounter();
   })
   .catch(error => {
     console.error('Error occurred:', error);
-    alert('Failed to print character test. Please try again. Error: ' + error.message);
+    alert('Failed to print message. Please try again. Error: ' + error.message);
   });
 }
 
-function showSystemStatus() {
-  fetch('/status', {
-    method: 'GET'
+// Send message via MQTT
+function sendMQTTMessage(topic, message) {
+  const payload = {
+    topic: topic,
+    message: message
+  };
+
+  fetch('/mqtt-send', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(payload)
   })
-  .then(response => response.json())
+  .then(response => response.text())
   .then(data => {
-    console.log('System status:', data);
+    console.log('MQTT send response:', data);
     
-    // Format uptime
-    const uptimeMs = data.uptime;
-    const uptimeMinutes = Math.floor(uptimeMs / 60000);
-    const uptimeHours = Math.floor(uptimeMinutes / 60);
-    const uptimeDays = Math.floor(uptimeHours / 24);
+    // Confetti effect
+    confetti({
+      particleCount: 100,
+      spread: 70,
+      origin: { y: 0.6 },
+      colors: ['#f97316', '#ea580c', '#fb923c']
+    });
     
-    let uptimeStr = '';
-    if (uptimeDays > 0) uptimeStr += `${uptimeDays}d `;
-    if (uptimeHours % 24 > 0) uptimeStr += `${uptimeHours % 24}h `;
-    if (uptimeMinutes % 60 > 0) uptimeStr += `${uptimeMinutes % 60}m`;
-    if (!uptimeStr) uptimeStr = '<1m';
+    // Show success message
+    const printerName = getPrinterName(topic);
+    showSuccessMessage(`Message sent to ${printerName}!`);
     
-    // Format free heap
-    const freeHeapKB = Math.round(data.free_heap / 1024);
-    
-    const statusMessage = `🌐 WiFi: ${data.wifi_connected ? 'Connected' : 'Disconnected'}\n` +
-                         `📡 IP: ${data.ip_address}\n` +
-                         `🏷️ Hostname: ${data.mdns_hostname}\n` +
-                         `⏱️ Uptime: ${uptimeStr}\n` +
-                         `💾 Free RAM: ${freeHeapKB}KB`;
-    
-    alert(statusMessage);
+    // Clear the form
+    document.getElementById('message-textarea').value = '';
+    updateCharCounter();
   })
   .catch(error => {
     console.error('Error occurred:', error);
-    alert('Failed to get system status. Please try again. Error: ' + error.message);
+    alert('Failed to send message. Please try again. Error: ' + error.message);
   });
 }
 
-function setupEventListeners() {
-  // Add keypress listener to document to catch Enter key globally
-  document.removeEventListener('keypress', handleKeyPress);
-  document.addEventListener('keypress', handleKeyPress);
+// Helper function to get printer name from topic
+function getPrinterName(topic) {
+  const printer = PRINTERS.find(p => p.topic === topic);
+  return printer ? printer.name : 'remote printer';
 }
 
-// Initialize when DOM is loaded
-document.addEventListener('DOMContentLoaded', function() {
-  loadConfig().then(() => {
-    const localTextarea = document.getElementById('local-textarea');
-    const remoteTextarea = document.getElementById('remote-textarea');
-    updateCharCounter(localTextarea, 'local-char-counter');
-    updateCharCounter(remoteTextarea, 'remote-char-counter');
-    setupEventListeners();
+// Handle quick actions (riddle, dad joke, character test)
+function sendQuickAction(action) {
+  const printerTarget = document.getElementById('printer-target').value;
+  
+  // Map action to endpoint - fail explicitly for unknown actions
+  let endpoint;
+  if (action === 'riddle') {
+    endpoint = '/riddle';
+  } else if (action === 'dadjoke') {
+    endpoint = '/dadjoke';
+  } else if (action === 'chartest') {
+    endpoint = '/character-test';
+  } else {
+    console.error('Unknown action:', action);
+    alert('Unknown action: ' + action);
+    return;
+  }
+  
+  if (printerTarget === 'local-direct') {
+    // Print directly to local printer
+    fetch(endpoint, {
+      method: action === 'chartest' ? 'GET' : 'POST'
+    })
+    .then(response => response.text())
+    .then(data => {
+      console.log(`Local ${action} response:`, data);
+      
+      // Confetti effect
+      confetti({
+        particleCount: 50,
+        spread: 60,
+        origin: { y: 0.6 },
+        colors: action === 'riddle' ? ['#a855f7', '#7c3aed', '#c084fc'] : 
+               action === 'dadjoke' ? ['#f97316', '#ea580c', '#fb923c'] :
+               ['#22c55e', '#16a34a', '#4ade80'] // Green colors for character test
+      });
+      
+      const actionName = action === 'riddle' ? 'Riddle' : 
+                        action === 'dadjoke' ? 'Dad joke' : 'Character test';
+      showSuccessMessage(`${actionName} printed locally!`);
+    })
+    .catch(error => {
+      console.error('Error occurred:', error);
+      alert(`Failed to print ${action}. Please try again. Error: ` + error.message);
+    });
+  } else {
+    // Get content and send via MQTT
+    fetch(endpoint, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: 'mode=remote'
+    })
+    .then(response => response.json())
+    .then(contentData => {
+      console.log(`${action} content received:`, contentData);
+      
+      // Send via MQTT
+      return sendMQTTMessage(printerTarget, contentData.content);
+    })
+    .catch(error => {
+      console.error('Error occurred:', error);
+      const actionName = action === 'riddle' ? 'riddle' : 
+                        action === 'dadjoke' ? 'dad joke' : 'character test';
+      alert(`Failed to send ${actionName}. Please try again. Error: ` + error.message);
+    });
+  }
+}
+
+// Show success message
+function showSuccessMessage(message) {
+  const messageEl = document.getElementById('success-message');
+  messageEl.textContent = '✅ ' + message;
+  messageEl.classList.remove('opacity-0');
+  messageEl.classList.add('opacity-100', 'animate-fade-in');
+  
+  // Fade out after 3 seconds
+  setTimeout(() => {
+    messageEl.classList.remove('opacity-100', 'animate-fade-in');
+    messageEl.classList.add('opacity-0', 'animate-fade-out');
+    setTimeout(() => {
+      messageEl.classList.remove('animate-fade-out');
+    }, 600);
+  }, 3000);
+}
+
+// System status modal functionality
+function showSystemStatus() {
+  fetch('/status')
+    .then(response => response.json())
+    .then(data => {
+      const uptimeHours = Math.floor(data.uptime / (1000 * 60 * 60));
+      const uptimeMinutes = Math.floor((data.uptime % (1000 * 60 * 60)) / (1000 * 60));
+      
+      const status = `System Status:
+
+WiFi Connected: ${data.wifi_connected ? 'Yes' : 'No'}
+IP Address: ${data.ip_address}
+Hostname: ${data.mdns_hostname}.local
+Uptime: ${uptimeHours}h ${uptimeMinutes}m
+Free Memory: ${Math.round(data.free_heap / 1024)}KB`;
+      
+      alert(status);
+    })
+    .catch(error => {
+      console.error('Error fetching status:', error);
+      alert('Failed to fetch system status');
+    });
+}
+
+// Keyboard shortcut handling
+function handleKeyPress(event) {
+  const textarea = document.getElementById('message-textarea');
+  
+  // Only handle if the textarea is focused
+  if (document.activeElement !== textarea) {
+    return;
+  }
+  
+  // Enter key without Shift = Send message
+  if (event.key === 'Enter' && !event.shiftKey) {
+    event.preventDefault(); // Prevent default newline behavior
     
-    // Focus on local textarea by default
-    localTextarea.focus();
-  });
+    // Trigger form submission
+    const form = document.getElementById('printer-form');
+    const submitEvent = new Event('submit', { bubbles: true, cancelable: true });
+    form.dispatchEvent(submitEvent);
+  }
+  
+  // Shift+Enter = Allow default newline behavior (do nothing special)
+}
+
+// Initialize the app when DOM is loaded
+document.addEventListener('DOMContentLoaded', function() {
+  loadConfig();
+  
+  // Add keyboard shortcut listener to the textarea
+  const textarea = document.getElementById('message-textarea');
+  if (textarea) {
+    textarea.addEventListener('keydown', handleKeyPress);
+  }
 });
+
+// Add CSS animations for fade effects
+const style = document.createElement('style');
+style.textContent = `
+  .animate-fade-in {
+    animation: fadeIn 0.6s ease-in-out;
+  }
+  
+  .animate-fade-out {
+    animation: fadeOut 0.6s ease-in-out;
+  }
+  
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  
+  @keyframes fadeOut {
+    from { opacity: 1; transform: translateY(0); }
+    to { opacity: 0; transform: translateY(-10px); }
+  }
+`;
+document.head.appendChild(style);

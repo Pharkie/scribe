@@ -5,6 +5,7 @@
 #include <LittleFS.h>
 #include <ArduinoJson.h>
 #include <PubSubClient.h>
+#include <HTTPClient.h>
 
 // External variable declarations
 extern WebServer server;
@@ -66,16 +67,20 @@ void setupWebServerRoutes(int maxChars)
     server.on("/config", HTTP_GET, handleConfig);
 
     // Handle form submission
-    server.on("/submit", HTTP_POST, handleSubmit);
+    server.on("/print-local", HTTP_POST, handleSubmit);
 
     // Also handle submission via URL
-    server.on("/submit", HTTP_GET, handleSubmit);
+    server.on("/print-local", HTTP_GET, handleSubmit);
 
-    // Character test endpoint
-    server.on("/test", HTTP_GET, handleCharacterTest);
+    // Character test endpoint (supports both local print and remote content modes)
+    server.on("/character-test", HTTP_GET, handleCharacterTest);
+    server.on("/character-test", HTTP_POST, handleCharacterTest);
 
-    // Riddle endpoint
+    // Riddle endpoint (supports both local print and remote content modes)
     server.on("/riddle", HTTP_POST, handleRiddle);
+
+    // Dad joke endpoint (supports both local print and remote content modes)
+    server.on("/dadjoke", HTTP_POST, handleDadJoke);
 
     // System status endpoint
     server.on("/status", HTTP_GET, handleStatus);
@@ -179,8 +184,69 @@ void handleStatus()
 
 void handleCharacterTest()
 {
-    printCharacterTest();
-    server.send(200, "text/plain", "Character test printed to thermal printer!");
+    // Check if this is a request for remote content
+    bool remoteMode = server.hasArg("mode") && server.arg("mode") == "remote";
+
+    if (remoteMode)
+    {
+        // Generate character test content for remote sending
+        String testContent = "";
+
+        // Basic ASCII test
+        testContent += "ASCII: Hello World 123!@#\n\n";
+
+        // Accented vowels
+        testContent += "A variants: À Á Â Ã Ä Å\n";
+        testContent += "a variants: à á â ã ä å\n";
+        testContent += "E variants: È É Ê Ë\n";
+        testContent += "e variants: è é ê ë\n";
+        testContent += "I variants: Ì Í Î Ï\n";
+        testContent += "i variants: ì í î ï\n";
+        testContent += "O variants: Ò Ó Ô Õ Ö\n";
+        testContent += "o variants: ò ó ô õ ö\n";
+        testContent += "U variants: Ù Ú Û Ü\n";
+        testContent += "u variants: ù ú û ü\n\n";
+
+        // Special characters
+        testContent += "Special: Ñ ñ Ç ç\n";
+        testContent += "Nordic: Æ æ Ø ø Å å\n";
+        testContent += "German: ß Ü ü Ö ö Ä ä\n";
+        testContent += "French: É é È è Ê ê\n\n";
+
+        // Punctuation variants
+        testContent += "Quotes: \"double\" and 'single' quotes\n";
+        testContent += "Dashes: en–dash em—dash\n";
+        testContent += "Apostrophes: don't won't\n\n";
+
+        // Real-world examples
+        testContent += "Examples:\n";
+        testContent += "* Za'atar (Arabic spice)\n";
+        testContent += "* Café au lait\n";
+        testContent += "* Naïve approach\n";
+        testContent += "* Piñata party\n";
+        testContent += "* Müller family\n";
+        testContent += "* Björk concert\n";
+        testContent += "* Señorita María\n";
+        testContent += "* Crème brûlée\n";
+        testContent += "* Jalapeño peppers\n";
+        testContent += "* São Paulo\n";
+
+        // Return JSON response for remote sending with timestamp format
+        DynamicJsonDocument response(2048); // Larger buffer for character test content
+        String timestamp = getFormattedDateTime();
+        response["content"] = timestamp + "\n\nCHARACTER TEST\n\n" + testContent;
+        response["type"] = "character_test";
+
+        String jsonString;
+        serializeJson(response, jsonString);
+        server.send(200, "application/json", jsonString);
+    }
+    else
+    {
+        // Default mode - print locally
+        printCharacterTest();
+        server.send(200, "text/plain", "Character test printed to thermal printer!");
+    }
 }
 
 void handleNotFound()
@@ -203,10 +269,20 @@ void handleNotFound()
 
 void handleRiddle()
 {
+    // Check if this is a request for remote content
+    bool remoteMode = server.hasArg("mode") && server.arg("mode") == "remote";
+
     // Ensure LittleFS is mounted
     if (!LittleFS.begin())
     {
-        server.send(500, "text/plain", "Failed to mount LittleFS");
+        if (remoteMode)
+        {
+            server.send(500, "application/json", "{\"error\": \"Failed to mount LittleFS\"}");
+        }
+        else
+        {
+            server.send(500, "text/plain", "Failed to mount LittleFS");
+        }
         return;
     }
 
@@ -214,7 +290,14 @@ void handleRiddle()
     File file = LittleFS.open("/riddles.ndjson", "r");
     if (!file)
     {
-        server.send(500, "text/plain", "Failed to open riddles file");
+        if (remoteMode)
+        {
+            server.send(500, "application/json", "{\"error\": \"Failed to open riddles file\"}");
+        }
+        else
+        {
+            server.send(500, "text/plain", "Failed to open riddles file");
+        }
         return;
     }
 
@@ -248,9 +331,90 @@ void handleRiddle()
 
     file.close();
 
-    // Print the riddle
-    printWithHeader("RIDDLE #" + String(target + 1), riddleText);
-    server.send(200, "text/plain", "Riddle printed successfully!");
+    // Check mode parameter to determine response type
+    if (remoteMode)
+    {
+        // Return JSON response for remote sending
+        DynamicJsonDocument response(1024);
+        response["content"] = "RIDDLE #" + String(target + 1) + "\n\n" + riddleText;
+        response["type"] = "riddle";
+
+        String jsonString;
+        serializeJson(response, jsonString);
+        server.send(200, "application/json", jsonString);
+    }
+    else
+    {
+        // Default mode - print locally with timestamp header
+        String timestamp = getFormattedDateTime();
+        printWithHeader(timestamp, "RIDDLE #" + String(target + 1) + "\n\n" + riddleText);
+        server.send(200, "text/plain", "Riddle printed successfully!");
+    }
+}
+
+void handleDadJoke()
+{
+    // Check if this is a request for remote content
+    bool remoteMode = server.hasArg("mode") && server.arg("mode") == "remote";
+
+    // Start with fallback joke
+    String dadJoke = "Why don't scientists trust atoms? Because they make up everything!";
+
+    // Try to fetch from API if WiFi is connected
+    if (WiFi.status() == WL_CONNECTED)
+    {
+        WiFiClientSecure client;
+        client.setInsecure(); // Skip SSL certificate verification for simplicity
+        HTTPClient http;
+
+        http.begin(client, "https://icanhazdadjoke.com/");
+        http.addHeader("Accept", "application/json");
+        http.addHeader("User-Agent", "Scribe Thermal Printer (https://github.com/Pharkie/scribe)");
+        http.setTimeout(5000); // 5 second timeout
+
+        int httpResponseCode = http.GET();
+
+        if (httpResponseCode == 200)
+        {
+            String response = http.getString();
+
+            // Parse JSON response
+            DynamicJsonDocument doc(1024);
+            DeserializationError error = deserializeJson(doc, response);
+
+            if (!error && doc.containsKey("joke"))
+            {
+                String apiJoke = doc["joke"].as<String>();
+                apiJoke.trim();
+                if (apiJoke.length() > 10) // Ensure it's a real joke, not empty
+                {
+                    dadJoke = apiJoke;
+                }
+            }
+        }
+
+        http.end();
+    }
+
+    // Check mode parameter to determine response type
+    if (remoteMode)
+    {
+        // Return JSON response for remote sending with timestamp format
+        DynamicJsonDocument response(1024);
+        response["content"] = "DAD JOKE\n\n" + dadJoke;
+        response["type"] = "dad_joke";
+
+        String jsonString;
+        serializeJson(response, jsonString);
+        server.send(200, "application/json", jsonString);
+    }
+    else
+    {
+        // Default mode - print locally with timestamp header
+        String timestamp = getFormattedDateTime();
+        printWithHeader(timestamp, "DAD JOKE\n\n" + dadJoke);
+        server.send(200, "text/plain", "Dad joke printed successfully!");
+    }
 }
 
 void handleMQTTSend()

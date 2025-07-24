@@ -57,16 +57,28 @@ void handleSubmit();
 void handleStatus();
 
 /**
- * @brief Handle requests to /character-test endpoint
+ * @brief Handle requests to /test endpoint
  * Prints a comprehensive character test to the thermal printer
+ * Use mode=remote parameter to return JSON content for remote sending
+ * Default mode prints locally
  */
 void handleCharacterTest();
 
 /**
  * @brief Handle requests to /riddle endpoint
  * Prints a random riddle from riddles.json to the thermal printer
+ * Use mode=remote parameter to return JSON content for remote sending
+ * Default mode prints locally
  */
 void handleRiddle();
+
+/**
+ * @brief Handle requests to /dadjoke endpoint
+ * Fetches and prints a random dad joke from icanhazdadjoke.com
+ * Use mode=remote parameter to return JSON content for remote sending
+ * Default mode prints locally
+ */
+void handleDadJoke();
 
 /**
  * @brief Handle requests to /styles.css endpoint

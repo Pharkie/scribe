@@ -4,23 +4,33 @@ Here's a cool little networked thermal printer for printing whatever you like.
 
 ## 🛠️ This fork by Pharkie
 
-This fork includes the following changes on top of the original repo:
+This fork includes the following changes to the original repo:
 
-- **ESP32-C3 support** - Changed from the from ESP8266 D1 Mini to ESP32-C3 with
-  GPIO20/21 pins. Uses hardware serial not software, unlike the original.
+- **ESP32-C3 support** - Changed from the from ESP8266 D1 Mini to ESP32-C3
+  Supermini. Now uses hardware serial not software.
 - **Configuration centralization** - All settings e.g. wifi password moved to
   `src/config.h`, where they can be kept out of the Git repo (.gitignore)
-- **mDNS integration** - Device accessible at http://scribe.local, as well as IP
-  address.
+- **mDNS integration** - Device accessible at http://scribe.local, as well as
+  the IP address.
+- **MQTT remote printing** - Send messages to other Scribe printers over MQTT,
+  supporting both local and remote printers. You'll need your own MQTT broker to
+  use this bit (HiveMQ has a free tier).
 - **Automatic timezone handling** - timezone handling inc automatic daylight
   savings and improved date handling elsewhere via the ezTime library.
+- **Modular code structure** - Refactored from monolithic code into different
+  files for better maintainability and development e.g. HTML, CSS and JS are now
+  separate files.
+- **Fun buttons** - Added Random Riddle, Dad Joke, and Character Test buttons
+  for instant entertainment and printer testing, via local or remote.
+- **Pin stabilization** - Quick stablisation of the TX pin on boot to stop the
+  printer from hanging during initialisation.
 - **Enhanced robustness** - new text wrapping algorithm, WiFi reconnection,
-  watchdog timer, status monitoring at /status.
+  watchdog timer, and device status monitoring.
+- **Character mapping resilience** - Better handling of Unicode and special
+  characters, so more resilient to character encoding issues.
 - **Improved UI** - You can write on receipt after another more easily, now.
-- **Fun buttons** - Added a Random Riddle button, plus Character test and System
-  status.
 
-I've modified the below to reflect these changes, and it's now a mix of the
+I've modified the below text to reflect these changes, so it's now a mix of the
 original and my changes.
 
 All credit to UrbanCircles for the original concept, 3D model and original code.
@@ -176,6 +186,57 @@ Fewer wires => less clutter which is hugely helpful.
 > **Only power the ESP32-C3 via one source** - either via USB during firmware
 > flashing, or via the 5V pin during normal operation from the shared power
 > supply.
+
+## MQTT Remote Printing
+
+This fork includes MQTT support for networked printing between multiple Scribe
+devices:
+
+### Features
+
+- **Multiple printer support** - Configure multiple remote Scribe printers in
+  `config.h`
+- **Unified interface** - Single web UI supports local direct, local via MQTT,
+  and remote printing
+- **Secure connection** - Uses TLS encryption (port 8883) for secure MQTT
+  communication
+- **Cloud MQTT broker** - Pre-configured for HiveMQ Cloud (configurable in
+  `config.h`)
+
+### Configuration
+
+1. Set up your MQTT broker credentials in `src/config.h`:
+
+   ```cpp
+   static const char *mqttServer = "your-broker.hivemq.cloud";
+   static const char *mqttUsername = "your-username";
+   static const char *mqttPassword = "your-password";
+   ```
+
+2. Configure printer topics:
+
+   ```cpp
+   // This device's MQTT configuration
+   static const char *localPrinter[2] = {"Your Printer", "scribeprinter/yourname/inbox"};
+
+   // Other printer configurations
+   static const char *otherPrinters[][2] = {
+       {"Friend's Printer", "scribeprinter/friend/inbox"}
+   };
+   ```
+
+### Quick Action Buttons
+
+The web interface includes three fun buttons that work with any selected
+printer:
+
+- **🧩 Random Riddle** - Prints a random riddle from the built-in collection
+- **😂 Dad Joke** - Fetches and prints a random dad joke from an online API
+- **🔤 Character Test** - Prints a comprehensive character set test for printer
+  calibration
+
+All quick actions include timestamps and work seamlessly with both local and
+remote printing.
 
 ## Microcontroller firmware
 
