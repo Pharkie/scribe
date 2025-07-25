@@ -73,7 +73,7 @@ void setupWebServerRoutes(int maxChars)
     server.on("/print-local", HTTP_GET, handleSubmit);
 
     // Test print endpoint (supports both local print and remote content modes)
-    server.on("/test-print", HTTP_POST, handleCharacterTest);
+    server.on("/test-print", HTTP_POST, handlePrintTest);
 
     // Riddle endpoint (supports both local print and remote content modes)
     server.on("/riddle", HTTP_POST, handleRiddle);
@@ -167,9 +167,9 @@ void handleSubmit()
 
         currentReceipt.hasData = true;
 
-        LOG_VERBOSE("WEB", "New receipt received | Message: %s | Time: %s", currentReceipt.message.c_str(), currentReceipt.timestamp.c_str());
+        LOG_VERBOSE("WEB", "Scribing message: %s", currentReceipt.message.c_str());
 
-        server.send(200, "text/plain", "Receipt received and will be printed!");
+        server.send(200, "text/plain", "Receipt received and sent to printer");
     }
     else
     {
@@ -218,17 +218,17 @@ void handleStatus()
     server.send(200, "application/json", response);
 }
 
-String loadCharacterTestContent()
+String loadPrintTestContent()
 {
     if (!LittleFS.begin())
     {
-        return "Failed to mount LittleFS for character test";
+        return "Failed to mount LittleFS for print test";
     }
 
-    File file = LittleFS.open("/character-test.txt", "r");
+    File file = LittleFS.open("/print-test.txt", "r");
     if (!file)
     {
-        return "ASCII: Hello World 123!@#\n\nFailed to load character test file";
+        return "ASCII: Hello World 123!@#\n\nFailed to load print test file";
     }
 
     String content = file.readString();
@@ -305,11 +305,11 @@ String replaceTemplate(String templateStr, const String &placeholder, const Stri
     return templateStr;
 }
 
-void handleCharacterTest()
+void handlePrintTest()
 {
-    // Load character test content from file
-    String testContent = loadCharacterTestContent();
-    String fullContent = "CHARACTER TEST\n\n" + testContent;
+    // Load print test content from file
+    String testContent = loadPrintTestContent();
+    String fullContent = "PRINT TEST\n\n" + testContent + "\n\n";
 
     // Return the content as plain text
     server.send(200, "text/plain", fullContent);

@@ -30,13 +30,13 @@ void setupLogging();
 /**
  * @brief ESP32-style component logging functions with structured logging support
  */
-void logWithComponent(const char *component, int level, const char *format, ...);
+void structuredLog(const char *component, int level, const char *format, ...);
 
-#define LOG_NOTICE(component, format, ...) logWithComponent(component, LOG_LEVEL_NOTICE, format, ##__VA_ARGS__)
-#define LOG_ERROR(component, format, ...) logWithComponent(component, LOG_LEVEL_ERROR, format, ##__VA_ARGS__)
-#define LOG_WARNING(component, format, ...) logWithComponent(component, LOG_LEVEL_WARNING, format, ##__VA_ARGS__)
-#define LOG_INFO(component, format, ...) logWithComponent(component, LOG_LEVEL_NOTICE, format, ##__VA_ARGS__)
-#define LOG_VERBOSE(component, format, ...) logWithComponent(component, LOG_LEVEL_VERBOSE, format, ##__VA_ARGS__)
+#define LOG_NOTICE(component, format, ...) structuredLog(component, LOG_LEVEL_NOTICE, format, ##__VA_ARGS__)
+#define LOG_ERROR(component, format, ...) structuredLog(component, LOG_LEVEL_ERROR, format, ##__VA_ARGS__)
+#define LOG_WARNING(component, format, ...) structuredLog(component, LOG_LEVEL_WARNING, format, ##__VA_ARGS__)
+#define LOG_INFO(component, format, ...) structuredLog(component, LOG_LEVEL_NOTICE, format, ##__VA_ARGS__)
+#define LOG_VERBOSE(component, format, ...) structuredLog(component, LOG_LEVEL_VERBOSE, format, ##__VA_ARGS__)
 
 /**
  * @brief Log message to file (LittleFS)
@@ -45,34 +45,20 @@ void logWithComponent(const char *component, int level, const char *format, ...)
 void logToFileSystem(const String &message);
 
 /**
- * @brief Log message to MQTT topic
+ * @brief Log message to MQTT topic with optional component metadata
  * @param message The message to log
  * @param level The log level string
+ * @param component The component name (optional)
  */
-void logToMQTTTopic(const String &message, const String &level);
-
-/**
- * @brief Log message to BetterStack
- * @param message The message to log
- * @param level The log level string
- */
-void logToBetterStackService(const String &message, const String &level);
-
-/**
- * @brief Log message to MQTT topic with component metadata
- * @param message The message to log
- * @param level The log level string
- * @param component The component name
- */
-void logToMQTTWithComponent(const String &message, const String &level, const String &component);
+void logToMQTT(const String &message, const String &level, const String &component);
 
 /**
  * @brief Log message to BetterStack with component metadata
  * @param message The message to log
  * @param level The log level string
- * @param component The component name
+ * @param component The component name (empty string will extract from message)
  */
-void logToBetterStackWithComponent(const String &message, const String &level, const String &component);
+void logToBetterStack(const String &message, const String &level, const String &component);
 
 /**
  * @brief Rotate log file if it exceeds maximum size

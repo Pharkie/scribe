@@ -52,10 +52,10 @@ void setup()
   // Log logging system configuration
   LOG_VERBOSE("BOOT", "Logging system initialized (Pre-NTP sync) - Level: %s, Serial: %s, File: %s, MQTT: %s, BetterStack: %s",
               getLogLevelString(logLevel).c_str(),
-              logToSerial ? "ON" : "OFF",
-              logToFile ? "ON" : "OFF",
-              logToMQTT ? "ON" : "OFF",
-              logToBetterStack ? "ON" : "OFF");
+              enableSerialLogging ? "ON" : "OFF",
+              enableFileLogging ? "ON" : "OFF",
+              enableMQTTLogging ? "ON" : "OFF",
+              enableBetterStackLogging ? "ON" : "OFF");
 
   // Enable watchdog timer
   esp_task_wdt_init(8, true);

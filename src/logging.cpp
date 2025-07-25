@@ -24,19 +24,19 @@ size_t MultiOutputPrint::write(const uint8_t *buffer, size_t size)
     }
 
     // Output to Serial if enabled
-    if (logToSerial)
+    if (enableSerialLogging)
     {
         Serial.print(message);
     }
 
     // Output to file if enabled
-    if (logToFile && message.length() > 0)
+    if (enableFileLogging && message.length() > 0)
     {
         logToFileSystem(message);
     }
 
     // Buffer for MQTT output (send complete lines)
-    if (logToMQTT && message.length() > 0)
+    if (enableMQTTLogging && message.length() > 0)
     {
         mqttLogBuffer += message;
         if (message.endsWith("\n") || message.endsWith("\r\n"))
@@ -47,27 +47,15 @@ size_t MultiOutputPrint::write(const uint8_t *buffer, size_t size)
                 // Feed watchdog before potentially slow network operation
                 esp_task_wdt_reset();
 
-                // Extract log level from the message if possible
-                String level = "NOTICE";
-                if (mqttLogBuffer.indexOf("[ERROR]") >= 0)
-                    level = "ERROR";
-                else if (mqttLogBuffer.indexOf("[WARNING]") >= 0)
-                    level = "WARNING";
-                else if (mqttLogBuffer.indexOf("[FATAL]") >= 0)
-                    level = "FATAL";
-                else if (mqttLogBuffer.indexOf("[VERBOSE]") >= 0)
-                    level = "VERBOSE";
-                else if (mqttLogBuffer.indexOf("[TRACE]") >= 0)
-                    level = "TRACE";
-
-                logToMQTTTopic(mqttLogBuffer, level);
+                // Use default notice level for buffered logs
+                logToMQTT(mqttLogBuffer, "NOTICE", "");
                 mqttLogBuffer = "";
             }
         }
     }
 
     // Buffer for BetterStack output (send complete lines)
-    if (logToBetterStack && message.length() > 0)
+    if (enableBetterStackLogging && message.length() > 0)
     {
         betterStackLogBuffer += message;
         if (message.endsWith("\n") || message.endsWith("\r\n"))
@@ -78,20 +66,8 @@ size_t MultiOutputPrint::write(const uint8_t *buffer, size_t size)
                 // Feed watchdog before potentially slow network operation
                 esp_task_wdt_reset();
 
-                // Extract log level from the message if possible
-                String level = "info";
-                if (betterStackLogBuffer.indexOf("[ERROR]") >= 0)
-                    level = "error";
-                else if (betterStackLogBuffer.indexOf("[WARNING]") >= 0)
-                    level = "warn";
-                else if (betterStackLogBuffer.indexOf("[FATAL]") >= 0)
-                    level = "fatal";
-                else if (betterStackLogBuffer.indexOf("[VERBOSE]") >= 0)
-                    level = "debug";
-                else if (betterStackLogBuffer.indexOf("[TRACE]") >= 0)
-                    level = "trace";
-
-                logToBetterStackService(betterStackLogBuffer, level);
+                // Use default info level for buffered logs
+                logToBetterStack(betterStackLogBuffer, "info", "");
                 betterStackLogBuffer = "";
             }
         }
@@ -122,15 +98,13 @@ void setupLogging()
         _logOutput->println(); });
 
     // Create logs directory if logging to file
-    if (logToFile)
+    if (enableFileLogging)
     {
         if (LittleFS.begin())
         {
             LittleFS.mkdir("/logs");
         }
     }
-
-    // Logging system is now ready - initialization message will be logged from main.cpp
 }
 
 void logToFileSystem(const String &message)
@@ -164,38 +138,39 @@ void logToFileSystem(const String &message)
     }
 }
 
-void logToMQTTTopic(const String &message, const String &level)
+void logToMQTT(const String &message, const String &level, const String &component)
 {
     if (mqttClient.connected() && message.length() > 0)
     {
         // Feed watchdog before potentially slow network operation
         esp_task_wdt_reset();
 
-        String logTopic = "scribe/log";
-
         // Create JSON log entry
         DynamicJsonDocument doc(1024);
-        doc["timestamp"] = getFormattedDateTime();
+        doc["device_timestamp"] = getFormattedDateTime();
         doc["device"] = String(mdnsHostname);
         doc["level"] = level;
         doc["message"] = message;
 
+        // Add component if provided
+        if (component.length() > 0)
+        {
+            doc["component"] = component;
+        }
+
         String payload;
         serializeJson(doc, payload);
 
-        mqttClient.publish(logTopic.c_str(), payload.c_str());
+        mqttClient.publish(mqttLogTopic, payload.c_str());
     }
 }
 
-void logToBetterStackService(const String &message, const String &level)
+void logToBetterStack(const String &message, const String &level, const String &component)
 {
     if (strlen(betterStackToken) == 0 || WiFi.status() != WL_CONNECTED)
     {
         return;
     }
-
-    // Feed watchdog before potentially slow network operation
-    esp_task_wdt_reset();
 
     WiFiClientSecure client;
     client.setInsecure();
@@ -205,14 +180,14 @@ void logToBetterStackService(const String &message, const String &level)
     http.addHeader("Content-Type", "application/json");
     http.addHeader("Authorization", "Bearer " + String(betterStackToken));
 
-    // Extract component tag from message if present (format: [COMPONENT] message)
     String cleanMessage = message;
-    String component = "";
+    String finalComponent = component;
 
-    if (message.startsWith("[") && message.indexOf("] ") > 0)
+    // If no component provided, try to extract from message (format: [COMPONENT] message)
+    if (component.length() == 0 && message.startsWith("[") && message.indexOf("] ") > 0)
     {
         int endBracket = message.indexOf("] ");
-        component = message.substring(1, endBracket);
+        finalComponent = message.substring(1, endBracket);
         cleanMessage = message.substring(endBracket + 2);
     }
 
@@ -220,74 +195,13 @@ void logToBetterStackService(const String &message, const String &level)
     DynamicJsonDocument doc(1024);
     doc["message"] = cleanMessage;
     doc["level"] = level;
-    doc["timestamp"] = getFormattedDateTime();
-    doc["hostname"] = String(mdnsHostname);
-    doc["service"] = "scribe-printer";
+    doc["device_timestamp"] = getFormattedDateTime();
 
     // Add component as a structured tag if present
-    if (component.length() > 0)
+    if (finalComponent.length() > 0)
     {
-        doc["component"] = component;
-        // Also add component-specific tags for better filtering
-        String lowerComponent = component;
-        lowerComponent.toLowerCase();
-        doc["tags"] = lowerComponent;
+        doc["component"] = finalComponent;
     }
-
-    String payload;
-    serializeJson(doc, payload);
-
-    http.POST(payload);
-    http.end();
-
-    // Small delay to allow network operation to complete before continuing
-    delay(10);
-}
-
-void logToMQTTWithComponent(const String &message, const String &level, const String &component)
-{
-    if (mqttClient.connected() && message.length() > 0)
-    {
-        String logTopic = "scribe/log";
-
-        // Create JSON log entry with structured component
-        DynamicJsonDocument doc(1024);
-        doc["timestamp"] = getFormattedDateTime();
-        doc["device"] = String(mdnsHostname);
-        doc["level"] = level;
-        doc["message"] = message;
-        doc["component"] = component;
-
-        String payload;
-        serializeJson(doc, payload);
-
-        mqttClient.publish(logTopic.c_str(), payload.c_str());
-    }
-}
-
-void logToBetterStackWithComponent(const String &message, const String &level, const String &component)
-{
-    if (strlen(betterStackToken) == 0 || WiFi.status() != WL_CONNECTED)
-    {
-        return;
-    }
-
-    WiFiClientSecure client;
-    client.setInsecure();
-    HTTPClient http;
-
-    http.begin(client, betterStackEndpoint);
-    http.addHeader("Content-Type", "application/json");
-    http.addHeader("Authorization", "Bearer " + String(betterStackToken));
-
-    // Create BetterStack log entry with proper structured logging
-    DynamicJsonDocument doc(1024);
-    doc["message"] = message;
-    doc["level"] = level;
-    doc["timestamp"] = getFormattedDateTime();
-    doc["hostname"] = String(mdnsHostname);
-    doc["service"] = "scribe-printer";
-    doc["component"] = component;
 
     String payload;
     serializeJson(doc, payload);
@@ -340,7 +254,7 @@ String getLogLevelString(int level)
     }
 }
 
-void logWithComponent(const char *component, int level, const char *format, ...)
+void structuredLog(const char *component, int level, const char *format, ...)
 {
     // Check if this log level should be processed
     if (level > logLevel)
@@ -359,7 +273,7 @@ void logWithComponent(const char *component, int level, const char *format, ...)
     String levelStr = getLogLevelString(level);
 
     // Log to Serial/File with component tag (if enabled)
-    if (logToSerial || logToFile)
+    if (enableSerialLogging || enableFileLogging)
     {
         String formattedMessage = "[" + String(component) + "] " + message;
 
@@ -381,14 +295,14 @@ void logWithComponent(const char *component, int level, const char *format, ...)
         }
     }
 
-    // Send structured logs directly to MQTT/BetterStack (without component prefix)
-    if (logToMQTT && mqttClient.connected())
+    // Send structured logs to MQTT/BetterStack
+    if (enableMQTTLogging && mqttClient.connected())
     {
-        logToMQTTWithComponent(message, levelStr, component);
+        logToMQTT(message, levelStr, component);
     }
 
-    if (logToBetterStack && WiFi.status() == WL_CONNECTED)
+    if (enableBetterStackLogging && WiFi.status() == WL_CONNECTED)
     {
-        logToBetterStackWithComponent(message, levelStr, component);
+        logToBetterStack(message, levelStr, component);
     }
 }

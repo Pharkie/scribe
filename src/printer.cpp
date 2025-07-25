@@ -94,43 +94,64 @@ void advancePaper(int lines)
 void printWrapped(String text)
 {
     std::vector<String> lines;
+    lines.reserve(20); // Reserve space to avoid frequent reallocations
 
-    // Split text by newlines first
-    while (text.length() > 0)
+    int startPos = 0;
+    int textLength = text.length();
+
+    // Process text character by character to handle newlines efficiently
+    while (startPos < textLength)
     {
-        int newlineIndex = text.indexOf('\n');
-        String currentLine;
+        // Find next newline or end of string
+        int newlinePos = text.indexOf('\n', startPos);
+        if (newlinePos == -1)
+            newlinePos = textLength;
 
-        if (newlineIndex != -1)
+        // Extract current line (may be empty)
+        String currentLine = text.substring(startPos, newlinePos);
+
+        // Word wrap the current line if needed
+        if (currentLine.length() == 0)
         {
-            // Found a newline - extract line up to newline
-            currentLine = text.substring(0, newlineIndex);
-            text = text.substring(newlineIndex + 1);
+            // Empty line - preserve it for spacing
+            lines.push_back("");
         }
         else
         {
-            // No more newlines - process remaining text
-            currentLine = text;
-            text = "";
-        }
-
-        // Process current line with word wrapping
-        while (currentLine.length() > 0)
-        {
-            if (currentLine.length() <= maxCharsPerLine)
+            // Process line with word wrapping
+            int lineStart = 0;
+            while (lineStart < currentLine.length())
             {
-                lines.push_back(currentLine);
-                break;
+                int lineEnd = lineStart + maxCharsPerLine;
+
+                if (lineEnd >= currentLine.length())
+                {
+                    // Rest of line fits
+                    lines.push_back(currentLine.substring(lineStart));
+                    break;
+                }
+
+                // Find word boundary to break at
+                int breakPoint = currentLine.lastIndexOf(' ', lineEnd);
+                if (breakPoint <= lineStart)
+                {
+                    // No space found - break at character limit
+                    breakPoint = lineEnd;
+                }
+
+                lines.push_back(currentLine.substring(lineStart, breakPoint));
+
+                // Skip any leading spaces on next line
+                lineStart = breakPoint;
+                while (lineStart < currentLine.length() && currentLine.charAt(lineStart) == ' ')
+                {
+                    lineStart++;
+                }
             }
-
-            int lastSpace = currentLine.lastIndexOf(' ', maxCharsPerLine);
-            if (lastSpace == -1)
-                lastSpace = maxCharsPerLine;
-
-            lines.push_back(currentLine.substring(0, lastSpace));
-            currentLine = currentLine.substring(lastSpace);
-            currentLine.trim();
         }
+
+        // Move to next line
+        startPos = newlinePos + 1;
     }
 
     // Print lines in reverse order to compensate for 180° printer rotation
