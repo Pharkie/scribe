@@ -291,6 +291,20 @@ String fetchFromAPI(const String &url, const String &userAgent, int timeoutMs)
     return response;
 }
 
+/**
+ * @brief Simple template replacement function
+ * @param templateStr The template string with {{PLACEHOLDER}} markers
+ * @param placeholder The placeholder name (without braces)
+ * @param value The value to replace the placeholder with
+ * @return String with placeholder replaced
+ */
+String replaceTemplate(String templateStr, const String &placeholder, const String &value)
+{
+    String marker = "{{" + placeholder + "}}";
+    templateStr.replace(marker, value);
+    return templateStr;
+}
+
 void handleCharacterTest()
 {
     // Load character test content from file
@@ -306,7 +320,7 @@ void handleNotFound()
     String uri = server.uri();
     String method = (server.method() == HTTP_GET) ? "GET" : "POST";
 
-    // Build comprehensive 404 error message
+    // Build comprehensive 404 error message for logging
     String errorDetails = "=== 404 Error === | Method: " + method + " | URI: " + uri + " | Args: " + String(server.args());
     for (int i = 0; i < server.args(); i++)
     {
@@ -316,7 +330,30 @@ void handleNotFound()
 
     LOG_WARNING("WEB", "%s", errorDetails.c_str());
 
-    server.send(404, "text/plain", "Page not found: " + method + " " + uri);
+    // Load 404 template from LittleFS
+    if (!LittleFS.begin())
+    {
+        server.send(404, "text/plain", "404 - Page not found (template error)");
+        return;
+    }
+
+    File templateFile = LittleFS.open("/404.html", "r");
+    if (!templateFile)
+    {
+        // Fallback if template file doesn't exist
+        server.send(404, "text/plain", "404 - Page not found: " + method + " " + uri);
+        return;
+    }
+
+    String template404 = templateFile.readString();
+    templateFile.close();
+
+    // Replace template placeholders with dynamic content
+    template404 = replaceTemplate(template404, "METHOD", method);
+    template404 = replaceTemplate(template404, "URI", uri);
+    template404 = replaceTemplate(template404, "HOSTNAME", String(mdnsHostname));
+
+    server.send(404, "text/html; charset=UTF-8", template404);
 }
 
 String reverseString(const String &str)

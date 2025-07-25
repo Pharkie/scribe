@@ -32,7 +32,7 @@ This fork includes the following changes to the original repo:
   characters, so more resilient to character encoding issues.
 - **Pin stabilization** - Quick stablisation of the TX pin on boot to stop the
   printer from hanging during initialisation.
-- **Favicon** - Favicon included
+- **Web server upgrades** - Favicon and 404 pages included
 
 I've modified the below text to reflect these changes, so it's now a mix of the
 original and my changes.
