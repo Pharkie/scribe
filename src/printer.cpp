@@ -46,11 +46,11 @@ void initializePrinter()
 
 void printReceipt()
 {
-    LOG_NOTICE("PRINTER", "Printing receipt...");
+    LOG_VERBOSE("PRINTER", "Printing receipt...");
 
     printWithHeader(currentReceipt.timestamp, currentReceipt.message);
 
-    LOG_NOTICE("PRINTER", "Receipt printed successfully");
+    LOG_VERBOSE("PRINTER", "Receipt printed successfully");
 }
 
 void printServerInfo()
@@ -59,12 +59,11 @@ void printServerInfo()
     esp_task_wdt_reset();
 
     String serverInfo = "Web interface: " + String(mdnsHostname) + ".local or " + WiFi.localIP().toString();
-    LOG_VERBOSE("PRINTER", "%s", serverInfo.c_str());
 
     // Feed watchdog before thermal printing (can be slow)
     esp_task_wdt_reset();
 
-    LOG_VERBOSE("PRINTER", "Printing server info on thermal printer...");
+    LOG_VERBOSE("PRINTER", "Printing startup message");
 
     advancePaper(1);
 
@@ -75,8 +74,6 @@ void printServerInfo()
 
     // Feed watchdog after thermal printing completes
     esp_task_wdt_reset();
-
-    LOG_VERBOSE("PRINTER", "Server info printed to thermal printer");
 }
 
 void setInverse(bool enable)

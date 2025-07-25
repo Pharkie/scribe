@@ -32,6 +32,7 @@ This fork includes the following changes to the original repo:
   characters, so more resilient to character encoding issues.
 - **Pin stabilization** - Quick stablisation of the TX pin on boot to stop the
   printer from hanging during initialisation.
+- **Favicon** - Favicon included
 
 I've modified the below text to reflect these changes, so it's now a mix of the
 original and my changes.
@@ -242,14 +243,15 @@ devices:
 
 ### Quick Action Buttons
 
-The web interface includes four fun buttons that work with any selected printer:
+The web interface includes quick action buttons that work with any selected
+printer:
 
-- **🧩 Random Riddle** - Prints a random riddle from the built-in collection
-- **😂 Dad Joke** - Fetches and prints a random dad joke from an online API
-- **� Inspirational Quote** - Fetches and prints inspirational quotes from
-  ZenQuotes API
-- **�🔤 Character Test** - Prints a comprehensive character set test for printer
-  calibration
+- **🧩 Riddle** - Prints a random riddle from the built-in collection
+- **😂 Joke** - Fetches and prints a random dad joke from an online API
+- **💭 Quote** - Fetches and prints inspirational quotes from ZenQuotes API
+- **🧠 Quiz** - Fetches and prints trivia questions with multiple choice answers
+- **🔤 Test Print** - Prints a comprehensive character set test for printer
+  calibration (positioned last for optimal UX flow)
 
 All quick actions include timestamps and work seamlessly with both local and
 remote printing.
@@ -277,11 +279,6 @@ library:
   - `LOG_LEVEL_NOTICE` (4) - Notice, warnings, errors, and fatals
   - `LOG_LEVEL_TRACE` (5) - Trace, notice, warnings, errors, and fatals
   - `LOG_LEVEL_VERBOSE` (6) - All output including verbose debug
-
-- **Automatic Log Rotation**: File logs are automatically rotated when they
-  exceed size limits
-- **Professional Formatting**: Timestamps and structured logging for better
-  debugging
 
 ### Configuration
 
@@ -318,6 +315,7 @@ All configuration is handled in `src/config.h` after copying from
 - MQTT broker settings for remote printing
 - Logging system configuration (levels, output destinations)
 - Character limits and other preferences
+- Professional favicon automatically served to prevent 404 errors
 
 ### Development Environment
 

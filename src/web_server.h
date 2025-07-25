@@ -3,7 +3,6 @@
 
 #include <WebServer.h>
 #include <Arduino.h>
-#include <LittleFS.h>
 
 /**
  * @file web_server.h
@@ -94,11 +93,11 @@ void handleCharacterTest();
 void handleRiddle();
 
 /**
- * @brief Handle requests to /dadjoke endpoint
+ * @brief Handle requests to /joke endpoint
  * Fetches and returns random dad joke content as plain text
  * Content should be sent to printer via /print-local or /mqtt-send endpoints
  */
-void handleDadJoke();
+void handleJoke();
 
 /**
  * @brief Handle requests to /quote endpoint
@@ -125,6 +124,12 @@ void handleCSS();
  * Serves the JavaScript file from filesystem
  */
 void handleJS();
+
+/**
+ * @brief Handle requests to /favicon.ico endpoint
+ * Serves the favicon file from filesystem
+ */
+void handleFavicon();
 
 /**
  * @brief Handle requests to /config endpoint

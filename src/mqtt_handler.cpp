@@ -32,7 +32,7 @@ void setupMQTT()
     // Initial connection attempt
     connectToMQTT();
 
-    LOG_VERBOSE("MQTT", "MQTT server configured: %s:%d | Inbox topic: %s | TLS mode: Insecure (no certificate verification) | Buffer size: 4096 bytes", mqttServer, mqttPort, localPrinter[1]);
+    LOG_NOTICE("MQTT", "MQTT server configured: %s:%d | Inbox topic: %s | TLS mode: Insecure (no certificate verification) | Buffer size: 4096 bytes", mqttServer, mqttPort, localPrinter[1]);
 }
 
 void connectToMQTT()
@@ -69,11 +69,7 @@ void connectToMQTT()
     if (connected)
     {
         // Subscribe to the inbox topic
-        if (mqttClient.subscribe(localPrinter[1]))
-        {
-            LOG_VERBOSE("MQTT", "MQTT connected. Subscribed to topic: %s", localPrinter[1]);
-        }
-        else
+        if (!mqttClient.subscribe(localPrinter[1]))
         {
             LOG_ERROR("MQTT", "MQTT connected. Failed to subscribe to topic: %s", localPrinter[1]);
         }

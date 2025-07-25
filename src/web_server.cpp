@@ -61,6 +61,7 @@ void setupWebServerRoutes(int maxChars)
     // Serve static files
     server.on("/styles.css", HTTP_GET, handleCSS);
     server.on("/app.js", HTTP_GET, handleJS);
+    server.on("/favicon.ico", HTTP_GET, handleFavicon);
 
     // Configuration endpoint for JavaScript
     server.on("/config", HTTP_GET, handleConfig);
@@ -71,14 +72,14 @@ void setupWebServerRoutes(int maxChars)
     // Also handle submission via URL
     server.on("/print-local", HTTP_GET, handleSubmit);
 
-    // Character test endpoint (supports both local print and remote content modes)
-    server.on("/character-test", HTTP_POST, handleCharacterTest);
+    // Test print endpoint (supports both local print and remote content modes)
+    server.on("/test-print", HTTP_POST, handleCharacterTest);
 
     // Riddle endpoint (supports both local print and remote content modes)
     server.on("/riddle", HTTP_POST, handleRiddle);
 
-    // Dad joke endpoint (supports both local print and remote content modes)
-    server.on("/dadjoke", HTTP_POST, handleDadJoke);
+    // Joke endpoint (supports both local print and remote content modes)
+    server.on("/joke", HTTP_POST, handleJoke);
 
     // Quote endpoint (supports both local print and remote content modes)
     server.on("/quote", HTTP_POST, handleQuote);
@@ -109,6 +110,11 @@ void handleCSS()
 void handleJS()
 {
     serveFileFromLittleFS("/app.js", "application/javascript");
+}
+
+void handleFavicon()
+{
+    serveFileFromLittleFS("/favicon.ico", "image/x-icon");
 }
 
 void handleConfig()
@@ -161,7 +167,7 @@ void handleSubmit()
 
         currentReceipt.hasData = true;
 
-        LOG_NOTICE("WEB", "New receipt received | Message: %s | Time: %s", currentReceipt.message.c_str(), currentReceipt.timestamp.c_str());
+        LOG_VERBOSE("WEB", "New receipt received | Message: %s | Time: %s", currentReceipt.message.c_str(), currentReceipt.timestamp.c_str());
 
         server.send(200, "text/plain", "Receipt received and will be printed!");
     }
@@ -241,14 +247,23 @@ String fetchFromAPI(const String &url, const String &userAgent, int timeoutMs)
 {
     if (WiFi.status() != WL_CONNECTED)
     {
+        LOG_WARNING("WEB", "API fetch failed - WiFi not connected");
         return "";
     }
+
+    LOG_VERBOSE("WEB", "Fetching from API: %s", url.c_str());
 
     WiFiClientSecure client;
     client.setInsecure(); // Skip SSL certificate verification for simplicity
     HTTPClient http;
 
-    http.begin(client, url);
+    // Explicitly specify HTTPS connection
+    if (!http.begin(client, url))
+    {
+        LOG_ERROR("WEB", "Failed to begin HTTPS connection");
+        return "";
+    }
+
     http.addHeader("Accept", "application/json");
     http.addHeader("User-Agent", userAgent);
     http.setTimeout(timeoutMs);
@@ -259,6 +274,17 @@ String fetchFromAPI(const String &url, const String &userAgent, int timeoutMs)
     if (httpResponseCode == 200)
     {
         response = http.getString();
+    }
+    else if (httpResponseCode == 301 || httpResponseCode == 302)
+    {
+        // Log redirect information for debugging
+        String location = http.getLocation();
+        LOG_WARNING("WEB", "Unexpected redirect to: %s", location.c_str());
+        LOG_WARNING("WEB", "Original URL: %s", url.c_str());
+    }
+    else
+    {
+        LOG_WARNING("WEB", "API request failed with code: %d", httpResponseCode);
     }
 
     http.end();
@@ -368,13 +394,13 @@ void handleRiddle()
     server.send(200, "text/plain", fullContent);
 }
 
-void handleDadJoke()
+void handleJoke()
 {
     // Start with fallback joke
     String dadJoke = "Why don't scientists trust atoms? Because they make up everything!";
 
     // Try to fetch from API
-    String response = fetchFromAPI("https://icanhazdadjoke.com/", "Scribe Thermal Printer (https://github.com/Pharkie/scribe)");
+    String response = fetchFromAPI("https://icanhazdadjoke.com/", apiUserAgent);
 
     if (response.length() > 0)
     {
@@ -405,7 +431,7 @@ void handleQuote()
     String quote = "\"Your mind is for having ideas, not holding them.\"\n– David Allen";
 
     // Try to fetch from API
-    String response = fetchFromAPI("https://zenquotes.io/api/random/", "Scribe Thermal Printer (https://github.com/Pharkie/scribe)");
+    String response = fetchFromAPI("https://zenquotes.io/api/random", apiUserAgent);
 
     if (response.length() > 0)
     {
@@ -432,7 +458,7 @@ void handleQuote()
         }
     }
 
-    String fullContent = "INSPIRATIONAL QUOTE\n\n" + quote;
+    String fullContent = "QUOTE\n\n" + quote;
 
     // Return the content as plain text
     server.send(200, "text/plain", fullContent);
@@ -446,7 +472,7 @@ void handleQuiz()
     String answers[4] = {"Mars", "Jupiter", "Saturn", "Earth"};
 
     // Try to fetch from API
-    String response = fetchFromAPI("https://the-trivia-api.com/api/questions?categories=general_knowledge&difficulty=medium&limit=1", "Scribe Thermal Printer (https://github.com/Pharkie/scribe)");
+    String response = fetchFromAPI("https://the-trivia-api.com/api/questions?categories=general_knowledge&difficulty=medium&limit=1", apiUserAgent);
 
     if (response.length() > 0)
     {

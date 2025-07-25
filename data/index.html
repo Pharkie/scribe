@@ -5,6 +5,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Scribe</title>
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <link rel="stylesheet" href="/styles.css">
@@ -40,7 +41,7 @@
                         rows="4" required></textarea>
                     <div id="char-counter" class="text-sm text-gray-500 text-right"></div>
                 </div>
-                q
+
                 <!-- Submit Button -->
                 <button type="submit" id="submit-button"
                     class="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl font-medium transition-all duration-200 hover:scale-[1.02] hover:shadow-lg">
@@ -55,13 +56,9 @@
                         class="px-4 py-2 bg-purple-500 hover:bg-purple-600 text-white text-sm rounded-lg font-medium transition-all duration-200 hover:scale-105">
                         🧩 Riddle
                     </button>
-                    <button onclick="sendQuickAction('dadjoke')"
+                    <button onclick="sendQuickAction('joke')"
                         class="px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white text-sm rounded-lg font-medium transition-all duration-200 hover:scale-105">
                         😂 Joke
-                    </button>
-                    <button onclick="sendQuickAction('chartest')"
-                        class="px-4 py-2 bg-green-500 hover:bg-green-600 text-white text-sm rounded-lg font-medium transition-all duration-200 hover:scale-105">
-                        🔤 Test Print
                     </button>
                     <button onclick="sendQuickAction('quote')"
                         class="px-4 py-2 bg-teal-500 hover:bg-teal-600 text-white text-sm rounded-lg font-medium transition-all duration-200 hover:scale-105">
@@ -70,6 +67,10 @@
                     <button onclick="sendQuickAction('quiz')"
                         class="px-4 py-2 bg-yellow-500 hover:bg-yellow-600 text-white text-sm rounded-lg font-medium transition-all duration-200 hover:scale-105">
                         🧠 Quiz
+                    </button>
+                    <button onclick="sendQuickAction('test-print')"
+                        class="px-4 py-2 bg-green-500 hover:bg-green-600 text-white text-sm rounded-lg font-medium transition-all duration-200 hover:scale-105">
+                        🔤 Test Print
                     </button>
                 </div>
             </div>

@@ -77,6 +77,24 @@ function handleSubmit(event) {
   }
 }
 
+// Helper function to get action colors and name
+function getActionConfig(action) {
+  switch (action) {
+    case 'riddle':
+      return { colors: ['#a855f7', '#7c3aed', '#c084fc'], name: 'Riddle' }; // Purple
+    case 'joke':
+      return { colors: ['#f97316', '#ea580c', '#fb923c'], name: 'Joke' }; // Orange
+    case 'test-print':
+      return { colors: ['#22c55e', '#16a34a', '#4ade80'], name: 'Test print' }; // Green
+    case 'quote':
+      return { colors: ['#14b8a6', '#0f766e', '#5eead4'], name: 'Quote' }; // Teal
+    case 'quiz':
+      return { colors: ['#eab308', '#ca8a04', '#fde047'], name: 'Quiz' }; // Yellow
+    default:
+      return { colors: ['#3b82f6', '#1e40af', '#60a5fa'], name: 'Message' }; // Blue (default)
+  }
+}
+
 // Print message to local printer
 function printLocalMessage(message, action = null) {
   const formData = new FormData();
@@ -90,38 +108,19 @@ function printLocalMessage(message, action = null) {
   .then(data => {
     console.log('Local print response:', data);
     
-    // Action-specific confetti colors
-    let colors, successMessage;
-    if (action === 'riddle') {
-      colors = ['#a855f7', '#7c3aed', '#c084fc']; // Purple
-      successMessage = 'Riddle printed locally!';
-    } else if (action === 'dadjoke') {
-      colors = ['#f97316', '#ea580c', '#fb923c']; // Orange
-      successMessage = 'Dad joke printed locally!';
-    } else if (action === 'chartest') {
-      colors = ['#22c55e', '#16a34a', '#4ade80']; // Green
-      successMessage = 'Character test printed locally!';
-    } else if (action === 'quote') {
-      colors = ['#14b8a6', '#0f766e', '#5eead4']; // Teal
-      successMessage = 'Quote printed locally!';
-    } else if (action === 'quiz') {
-      colors = ['#eab308', '#ca8a04', '#fde047']; // Yellow
-      successMessage = 'Quiz printed locally!';
-    } else {
-      colors = ['#3b82f6', '#1e40af', '#60a5fa']; // Blue (default)
-      successMessage = 'Message printed locally!';
-    }
+    // Get action-specific confetti colors and name
+    const actionConfig = getActionConfig(action);
     
     // Confetti effect
     confetti({
       particleCount: 50,
       spread: 60,
       origin: { y: 0.6 },
-      colors: colors
+      colors: actionConfig.colors
     });
     
     // Show success message
-    showSuccessMessage(successMessage);
+    showSuccessMessage(`${actionConfig.name} scribed`);
     
     // Clear the form
     document.getElementById('message-textarea').value = '';
@@ -149,39 +148,20 @@ function sendMQTTMessage(topic, message, action = null) {
   })
   .then(response => response.text())
   .then(data => {
-    // Action-specific confetti colors
-    let colors, actionName;
-    if (action === 'riddle') {
-      colors = ['#a855f7', '#7c3aed', '#c084fc']; // Purple
-      actionName = 'Riddle';
-    } else if (action === 'dadjoke') {
-      colors = ['#f97316', '#ea580c', '#fb923c']; // Orange
-      actionName = 'Dad joke';
-    } else if (action === 'chartest') {
-      colors = ['#22c55e', '#16a34a', '#4ade80']; // Green
-      actionName = 'Character test';
-    } else if (action === 'quote') {
-      colors = ['#14b8a6', '#0f766e', '#5eead4']; // Teal
-      actionName = 'Quote';
-    } else if (action === 'quiz') {
-      colors = ['#eab308', '#ca8a04', '#fde047']; // Yellow
-      actionName = 'Quiz';
-    } else {
-      colors = ['#3b82f6', '#1e40af', '#60a5fa']; // Blue (default)
-      actionName = 'Message';
-    }
+    // Get action-specific confetti colors and name
+    const actionConfig = getActionConfig(action);
     
     // Confetti effect
     confetti({
       particleCount: 100,
       spread: 70,
       origin: { y: 0.6 },
-      colors: colors
+      colors: actionConfig.colors
     });
     
     // Show success message
     const printerName = getPrinterName(topic);
-    showSuccessMessage(`${actionName} sent to ${printerName}!`);
+    showSuccessMessage(`${actionConfig.name} scribed`);
     
     // Clear the form
     document.getElementById('message-textarea').value = '';
@@ -205,20 +185,26 @@ function sendQuickAction(action) {
   
   // Map action to endpoint - fail explicitly for unknown actions
   let endpoint;
-  if (action === 'riddle') {
-    endpoint = '/riddle';
-  } else if (action === 'dadjoke') {
-    endpoint = '/dadjoke';
-  } else if (action === 'chartest') {
-    endpoint = '/character-test';
-  } else if (action === 'quote') {
-    endpoint = '/quote';
-  } else if (action === 'quiz') {
-    endpoint = '/quiz';
-  } else {
-    console.error('Unknown action:', action);
-    alert('Unknown action: ' + action);
-    return;
+  switch (action) {
+    case 'riddle':
+      endpoint = '/riddle';
+      break;
+    case 'joke':
+      endpoint = '/joke';
+      break;
+    case 'test-print':
+      endpoint = '/test-print';
+      break;
+    case 'quote':
+      endpoint = '/quote';
+      break;
+    case 'quiz':
+      endpoint = '/quiz';
+      break;
+    default:
+      console.error('Unknown action:', action);
+      alert('Unknown action: ' + action);
+      return;
   }
   
   // Step 1: Get content from the content endpoint
@@ -238,10 +224,8 @@ function sendQuickAction(action) {
   })
   .catch(error => {
     console.error('Error occurred:', error);
-    const actionName = action === 'riddle' ? 'riddle' : 
-                      action === 'dadjoke' ? 'dad joke' : 
-                      action === 'quote' ? 'quote' : 'character test';
-    alert(`Failed to get ${actionName} content. Please try again. Error: ` + error.message);
+    const actionConfig = getActionConfig(action);
+    alert(`Failed to get ${actionConfig.name.toLowerCase()} content. Please try again. Error: ` + error.message);
   });
 }
 
@@ -333,26 +317,3 @@ document.addEventListener('DOMContentLoaded', function() {
     textarea.addEventListener('keydown', handleKeyPress);
   }
 });
-
-// Add CSS animations for fade effects
-const style = document.createElement('style');
-style.textContent = `
-  .animate-fade-in {
-    animation: fadeIn 0.6s ease-in-out;
-  }
-  
-  .animate-fade-out {
-    animation: fadeOut 0.6s ease-in-out;
-  }
-  
-  @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(-10px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-  
-  @keyframes fadeOut {
-    from { opacity: 1; transform: translateY(0); }
-    to { opacity: 0; transform: translateY(-10px); }
-  }
-`;
-document.head.appendChild(style);
