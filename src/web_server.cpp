@@ -1,5 +1,6 @@
 #include "web_server.h"
 #include "config.h"
+#include "config_utils.h"
 #include "logging.h"
 #include <WiFi.h>
 #include <ESPmDNS.h>
@@ -129,15 +130,17 @@ void handleConfig()
 
     // Add local printer first (for self-sending)
     JsonObject localPrinter = printers.createNestedObject();
-    localPrinter["name"] = String(::localPrinter[0]);
-    localPrinter["topic"] = String(::localPrinter[1]);
+    localPrinter["name"] = String(getLocalPrinterName());
+    localPrinter["topic"] = String(getLocalPrinterTopic());
 
     // Add other printers from config
-    for (int i = 0; i < numOtherPrinters; i++)
+    const char *others[10][2]; // Max 10 other printers
+    int numOthers = getOtherPrinters(others, 10);
+    for (int i = 0; i < numOthers; i++)
     {
         JsonObject printer = printers.createNestedObject();
-        printer["name"] = String(otherPrinters[i][0]);
-        printer["topic"] = String(otherPrinters[i][1]);
+        printer["name"] = String(others[i][0]);
+        printer["topic"] = String(others[i][1]);
     }
 
     // Serialize and send
@@ -199,7 +202,7 @@ void handleStatus()
     // MQTT information
     doc["mqtt_connected"] = mqttClient.connected();
     doc["mqtt_server"] = String(mqttServer);
-    doc["local_topic"] = String(localPrinter[1]);
+    doc["local_topic"] = String(getLocalPrinterTopic());
 
     // System information
     doc["uptime"] = millis();

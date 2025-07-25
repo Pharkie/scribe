@@ -8,6 +8,8 @@
 #include <vector>
 #include <LittleFS.h>
 #include <PubSubClient.h>
+#include "config.h"
+#include "config_utils.h"
 #include <ArduinoJson.h>
 #include <WiFiClientSecure.h>
 
@@ -33,12 +35,14 @@ void setup()
   // Stabilize printer pin as early as possible
   stabilizePrinterPin();
 
-  Serial.begin(115200);
   // Note: We can't use Log.notice() yet as logging isn't initialized
   Serial.println("\n=== Scribe Starting === (Pre-NTP sync)");
 
   // Validate configuration
   validateConfig();
+
+  // Initialize printer configuration lookup functions
+  initializePrinterConfig();
 
   // Connect to WiFi FIRST (required for NTP sync)
   connectToWiFi();

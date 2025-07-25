@@ -56,11 +56,11 @@ void handleSubmit();
 void handleStatus();
 
 /**
- * @brief Load character test content from filesystem
- * Loads the character test content from /character-test.txt file
+ * @brief Load print test content from filesystem
+ * Loads the print test content from /print-test.txt file
  * @return String containing the test content
  */
-String loadCharacterTestContent();
+String loadPrintTestContent();
 
 /**
  * @brief Helper function to reverse a string
@@ -80,10 +80,10 @@ String fetchFromAPI(const String &url, const String &userAgent, int timeoutMs = 
 
 /**
  * @brief Handle requests to /test endpoint
- * Generates and returns character test content as plain text
+ * Generates and returns print test content as plain text
  * Content should be sent to printer via /print-local or /mqtt-send endpoints
  */
-void handleCharacterTest();
+void handlePrintTest();
 
 /**
  * @brief Handle requests to /riddle endpoint

@@ -1,5 +1,6 @@
 #include "network.h"
 #include "logging.h"
+#include "config_utils.h"
 
 // Network status variables
 unsigned long lastReconnectAttempt = 0;
@@ -8,22 +9,81 @@ const unsigned long reconnectInterval = 30000; // 30 seconds
 // === Configuration Validation ===
 void validateConfig()
 {
-    Serial.println("Validating configuration...");
+    Serial.println("=== VALIDATING CONFIGURATION ===");
 
-    if (strlen(wifiSSID) == 0)
+    // Check deviceOwner is set
+    if (!deviceOwner || strlen(deviceOwner) == 0)
     {
-        Serial.println("ERROR: WiFi SSID not configured!");
+        Serial.println("ERROR: deviceOwner not configured!");
+        return;
     }
 
-    if (strlen(mdnsHostname) == 0)
+    Serial.print("Device owner: ");
+    Serial.println(deviceOwner);
+
+    // Check runtime variables are initialized (should be set by initializePrinterConfig)
+    Serial.print("Checking wifiSSID... ");
+    if (!wifiSSID)
+    {
+        Serial.println("ERROR: wifiSSID is NULL! Did initializePrinterConfig() run?");
+        return;
+    }
+    else if (strlen(wifiSSID) == 0)
+    {
+        Serial.println("ERROR: wifiSSID is empty string!");
+        return;
+    }
+    else
+    {
+        Serial.print("OK: ");
+        Serial.println(wifiSSID);
+    }
+
+    Serial.print("Checking wifiPassword... ");
+    if (!wifiPassword)
+    {
+        Serial.println("ERROR: wifiPassword is NULL!");
+        return;
+    }
+    else if (strlen(wifiPassword) == 0)
+    {
+        Serial.println("ERROR: wifiPassword is empty string!");
+        return;
+    }
+    else
+    {
+        Serial.print("OK: ");
+        Serial.println(wifiPassword);
+    }
+
+    // Check local printer configuration
+    if (!getLocalPrinterName() || strlen(getLocalPrinterName()) == 0)
+    {
+        Serial.println("ERROR: Local printer name not configured!");
+        return;
+    }
+
+    if (!getLocalPrinterTopic() || strlen(getLocalPrinterTopic()) == 0)
+    {
+        Serial.println("ERROR: Local printer MQTT topic not configured!");
+        return;
+    }
+
+    Serial.print("Local printer: ");
+    Serial.print(getLocalPrinterName());
+    Serial.print(" -> ");
+    Serial.println(getLocalPrinterTopic()); // Check mDNS hostname
+    if (!mdnsHostname || strlen(mdnsHostname) == 0)
     {
         Serial.println("ERROR: mDNS hostname not configured!");
+        return;
     }
 
-    Serial.println("Configuration validation complete");
-}
+    Serial.print("mDNS hostname: ");
+    Serial.println(mdnsHostname);
 
-// === WiFi Connection ===
+    Serial.println("=== CONFIGURATION VALIDATION COMPLETE - ALL OK ===");
+} // === WiFi Connection ===
 void connectToWiFi()
 {
     Serial.print("Connecting to WiFi: ");

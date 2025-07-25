@@ -2,6 +2,7 @@
 #include "time_utils.h"
 #include "printer.h"
 #include "logging.h"
+#include "config_utils.h"
 #include <WiFi.h>
 #include <esp_task_wdt.h>
 
@@ -32,7 +33,7 @@ void setupMQTT()
     // Initial connection attempt
     connectToMQTT();
 
-    LOG_NOTICE("MQTT", "MQTT server configured: %s:%d | Inbox topic: %s | TLS mode: Insecure (no certificate verification) | Buffer size: 4096 bytes", mqttServer, mqttPort, localPrinter[1]);
+    LOG_NOTICE("MQTT", "MQTT server configured: %s:%d | Inbox topic: %s | TLS mode: Insecure (no certificate verification) | Buffer size: 4096 bytes", mqttServer, mqttPort, getLocalPrinterTopic());
 }
 
 void connectToMQTT()
@@ -69,9 +70,9 @@ void connectToMQTT()
     if (connected)
     {
         // Subscribe to the inbox topic
-        if (!mqttClient.subscribe(localPrinter[1]))
+        if (!mqttClient.subscribe(getLocalPrinterTopic()))
         {
-            LOG_ERROR("MQTT", "MQTT connected. Failed to subscribe to topic: %s", localPrinter[1]);
+            LOG_ERROR("MQTT", "MQTT connected. Failed to subscribe to topic: %s", getLocalPrinterTopic());
         }
     }
     else

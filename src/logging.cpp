@@ -36,7 +36,9 @@ size_t MultiOutputPrint::write(const uint8_t *buffer, size_t size)
     }
 
     // Buffer for MQTT output (send complete lines)
-    if (enableMQTTLogging && message.length() > 0)
+    // Note: Skip buffered MQTT logging since we use structured logging via structuredLog()
+    // This prevents duplicate/malformed log entries
+    if (false && enableMQTTLogging && message.length() > 0)
     {
         mqttLogBuffer += message;
         if (message.endsWith("\n") || message.endsWith("\r\n"))
@@ -55,7 +57,9 @@ size_t MultiOutputPrint::write(const uint8_t *buffer, size_t size)
     }
 
     // Buffer for BetterStack output (send complete lines)
-    if (enableBetterStackLogging && message.length() > 0)
+    // Note: Skip buffered BetterStack logging since we use structured logging via structuredLog()
+    // This prevents duplicate/malformed log entries
+    if (false && enableBetterStackLogging && message.length() > 0)
     {
         betterStackLogBuffer += message;
         if (message.endsWith("\n") || message.endsWith("\r\n"))
