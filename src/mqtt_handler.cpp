@@ -1,7 +1,9 @@
 #include "mqtt_handler.h"
 #include "time_utils.h"
 #include "printer.h"
+#include "logging.h"
 #include <WiFi.h>
+#include <esp_task_wdt.h>
 
 // MQTT objects
 WiFiClientSecure wifiSecureClient;
@@ -12,10 +14,11 @@ const unsigned long mqttReconnectInterval = 5000; // 5 seconds
 // === MQTT Functions ===
 void setupMQTT()
 {
-    Serial.println("Setting up MQTT...");
-
     // Configure TLS for anonymous/insecure connection (no certificate verification)
     wifiSecureClient.setInsecure(); // This allows TLS without certificate verification
+
+    // Feed watchdog after TLS configuration
+    esp_task_wdt_reset();
 
     mqttClient.setServer(mqttServer, mqttPort);
     mqttClient.setCallback(mqttCallback);
@@ -23,13 +26,13 @@ void setupMQTT()
     // Set buffer size for larger messages
     mqttClient.setBufferSize(4096);
 
-    Serial.println("MQTT server configured: " + String(mqttServer) + ":" + String(mqttPort));
-    Serial.println("MQTT inbox topic: " + String(localPrinter[1]));
-    Serial.println("TLS mode: Insecure (no certificate verification)");
-    Serial.println("MQTT buffer size: 4096 bytes");
+    // Feed watchdog before TLS connection attempt
+    esp_task_wdt_reset();
 
     // Initial connection attempt
     connectToMQTT();
+
+    LOG_VERBOSE("MQTT", "MQTT server configured: %s:%d | Inbox topic: %s | TLS mode: Insecure (no certificate verification) | Buffer size: 4096 bytes", mqttServer, mqttPort, localPrinter[1]);
 }
 
 void connectToMQTT()
@@ -45,6 +48,9 @@ void connectToMQTT()
     Serial.print("Attempting MQTT connection as client: ");
     Serial.println(clientId);
 
+    // Feed watchdog before potentially blocking MQTT connection
+    esp_task_wdt_reset();
+
     bool connected = false;
 
     // Try connection with or without credentials
@@ -57,31 +63,30 @@ void connectToMQTT()
         connected = mqttClient.connect(clientId.c_str());
     }
 
+    // Feed watchdog again after connection attempt
+    esp_task_wdt_reset();
+
     if (connected)
     {
-        Serial.println("MQTT connected successfully!");
-
         // Subscribe to the inbox topic
         if (mqttClient.subscribe(localPrinter[1]))
         {
-            Serial.println("Subscribed to topic: " + String(localPrinter[1]));
+            LOG_VERBOSE("MQTT", "MQTT connected. Subscribed to topic: %s", localPrinter[1]);
         }
         else
         {
-            Serial.println("Failed to subscribe to topic: " + String(localPrinter[1]));
+            LOG_ERROR("MQTT", "MQTT connected. Failed to subscribe to topic: %s", localPrinter[1]);
         }
     }
     else
     {
-        Serial.print("MQTT connection failed, state: ");
-        Serial.println(mqttClient.state());
-        Serial.println("Will retry in " + String(mqttReconnectInterval / 1000) + " seconds");
+        LOG_WARNING("MQTT", "MQTT connection failed, state: %d - Will retry in %d seconds", mqttClient.state(), mqttReconnectInterval / 1000);
     }
 }
 
 void mqttCallback(char *topic, byte *payload, unsigned int length)
 {
-    Serial.println("MQTT message received on topic: " + String(topic));
+    LOG_VERBOSE("MQTT", "MQTT message received on topic: %s", topic);
 
     // Convert payload to string
     String message = "";

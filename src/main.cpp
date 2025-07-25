@@ -19,6 +19,7 @@
 #include "printer.h"
 #include "mqtt_handler.h"
 #include "time_utils.h"
+#include "logging.h"
 
 // === Web Server ===
 WebServer server(80);
@@ -33,34 +34,55 @@ void setup()
   stabilizePrinterPin();
 
   Serial.begin(115200);
-  Serial.println("\n=== Thermal Printer Server Starting ===");
+  // Note: We can't use Log.notice() yet as logging isn't initialized
+  Serial.println("\n=== Scribe Starting === (Pre-NTP sync)");
 
   // Validate configuration
   validateConfig();
 
-  // Enable watchdog timer (8 seconds)
+  // Connect to WiFi FIRST (required for NTP sync)
+  connectToWiFi();
+
+  // Initialize logging system (before other components that use logging)
+  setupLogging();
+
+  // Log main startup message immediately after logging is ready
+  LOG_NOTICE("BOOT", "=== Scribe Starting === (Pre-NTP sync)");
+
+  // Log logging system configuration
+  LOG_VERBOSE("BOOT", "Logging system initialized (Pre-NTP sync) - Level: %s, Serial: %s, File: %s, MQTT: %s, BetterStack: %s",
+              getLogLevelString(logLevel).c_str(),
+              logToSerial ? "ON" : "OFF",
+              logToFile ? "ON" : "OFF",
+              logToMQTT ? "ON" : "OFF",
+              logToBetterStack ? "ON" : "OFF");
+
+  // Enable watchdog timer
   esp_task_wdt_init(8, true);
   esp_task_wdt_add(NULL);
-  Serial.println("Watchdog timer enabled (8s timeout)");
+  LOG_VERBOSE("BOOT", "Watchdog timer enabled (8s timeout) (Pre-NTP sync)");
+
+  // Initialize timezone with automatic DST handling (must be after WiFi for NTP sync)
+  setupTimezone();
+
+  // Feed watchdog after potentially slow timezone/NTP operations
+  esp_task_wdt_reset();
 
   // Log initial memory status
-  Serial.println("Free heap: " + String(ESP.getFreeHeap()) + " bytes");
+  LOG_VERBOSE("BOOT", "Free heap: %d bytes", ESP.getFreeHeap());
 
   // Initialize LittleFS for file system access
   if (!LittleFS.begin(true)) // true = format if mount fails
   {
-    Serial.println("LittleFS Mount Failed - continuing without file system");
+    LOG_ERROR("BOOT", "LittleFS Mount Failed");
   }
   else
   {
-    Serial.println("LittleFS mounted successfully");
+    LOG_VERBOSE("BOOT", "LittleFS mounted successfully");
   }
 
   // Initialize printer
   initializePrinter();
-
-  // Connect to WiFi
-  connectToWiFi();
 
   // Setup mDNS
   setupmDNS();
@@ -68,26 +90,26 @@ void setup()
   // Setup MQTT
   setupMQTT();
 
-  // Initialize timezone with automatic DST handling
-  setupTimezone();
-
   // Setup web server routes
   setupWebServerRoutes(maxReceiptChars);
 
   // Start the server
   server.begin();
-  Serial.println("Web server started");
+  LOG_VERBOSE("BOOT", "Web server started");
 
   // Print server info
   printServerInfo();
 
-  Serial.println("=== Setup Complete ===");
+  LOG_NOTICE("BOOT", "=== Scribe Ready ===");
 }
 
 void loop()
 {
   // Feed the watchdog
   esp_task_wdt_reset();
+
+  // Process ezTime events (for timezone updates)
+  events();
 
   // Check WiFi connection and reconnect if needed
   handleWiFiReconnection();
@@ -101,8 +123,6 @@ void loop()
     handleMQTTConnection();
   }
 
-  // ezTime handles NTP updates automatically
-
   // Check if we have a new receipt to print
   if (currentReceipt.hasData)
   {
@@ -113,7 +133,7 @@ void loop()
   // Monitor memory usage periodically
   if (millis() - lastMemCheck > memCheckInterval)
   {
-    Serial.println("Free heap: " + String(ESP.getFreeHeap()) + " bytes");
+    LOG_VERBOSE("SYSTEM", "Free heap: %d bytes", ESP.getFreeHeap());
     lastMemCheck = millis();
   }
 

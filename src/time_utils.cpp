@@ -1,4 +1,6 @@
 #include "time_utils.h"
+#include "logging.h"
+#include <esp_task_wdt.h>
 
 // Timezone object
 Timezone myTZ;
@@ -71,9 +73,35 @@ String formatCustomDate(String customDate)
 // === Timezone Setup ===
 void setupTimezone()
 {
-    // Initialize timezone with automatic DST handling
-    waitForSync();
+    // Set location (this doesn't require NTP sync)
     myTZ.setLocation(timezone);
-    Serial.println("Timezone configured: " + String(timezone));
-    Serial.println("Current time: " + myTZ.dateTime());
+
+    // Log combined timezone and NTP sync start
+    LOG_VERBOSE("TIME", "Timezone set: %s | Waiting for NTP sync (Pre-NTP sync)", timezone);
+
+    // Feed watchdog while waiting for NTP sync
+    int attempts = 0;
+    const int maxAttempts = 60; // 60 seconds maximum wait
+
+    while (timeStatus() != timeSet && attempts < maxAttempts)
+    {
+        events();             // Process ezTime events
+        esp_task_wdt_reset(); // Feed watchdog
+        delay(1000);
+        attempts++;
+
+        if (attempts % 10 == 0) // Log every 10 seconds
+        {
+            LOG_VERBOSE("TIME", "Still waiting for NTP sync... (%d/%d seconds) (Pre-NTP sync)", attempts, maxAttempts);
+        }
+    }
+
+    if (timeStatus() == timeSet)
+    {
+        LOG_NOTICE("TIME", "NTP sync completed successfully | Current time: %s", myTZ.dateTime().c_str());
+    }
+    else
+    {
+        LOG_WARNING("TIME", "NTP sync timeout after %d seconds - continuing with system time | Time-dependent features may not work correctly", maxAttempts);
+    }
 }

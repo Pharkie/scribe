@@ -1,6 +1,8 @@
 #include "printer.h"
 #include "time_utils.h"
+#include "logging.h"
 #include <WiFi.h>
+#include <esp_task_wdt.h>
 
 // Printer object and configuration
 HardwareSerial printer(1); // Use UART1 on ESP32-C3
@@ -12,6 +14,7 @@ void stabilizePrinterPin()
     // Configure TX pin as output and set to idle state (HIGH) as early as possible
     pinMode(TX_PIN, OUTPUT);
     digitalWrite(TX_PIN, HIGH); // UART idle state is HIGH
+    // Note: Using Serial.println here since logging isn't initialized yet
     Serial.println("Printer TX pin stabilized to HIGH (idle state)");
 }
 
@@ -38,31 +41,42 @@ void initializePrinter()
     printer.write('{');
     printer.write(0x01); // ESC { 1
 
-    Serial.println("Printer initialized");
+    LOG_VERBOSE("PRINTER", "Printer initialized");
 }
 
 void printReceipt()
 {
-    Serial.println("Printing receipt...");
+    LOG_NOTICE("PRINTER", "Printing receipt...");
 
     printWithHeader(currentReceipt.timestamp, currentReceipt.message);
 
-    Serial.println("Receipt printed successfully");
+    LOG_NOTICE("PRINTER", "Receipt printed successfully");
 }
 
 void printServerInfo()
 {
-    Serial.println("=== Server Info ===");
-    Serial.print("Local IP: ");
-    Serial.println(WiFi.localIP());
-    Serial.println("Access the form at: http://" + WiFi.localIP().toString() + " or http://" + String(mdnsHostname) + ".local");
-    Serial.println("==================");
+    // Feed watchdog after first log (network logging can be slow)
+    esp_task_wdt_reset();
 
-    Serial.println("Printing server info on thermal printer...");
+    String serverInfo = "Web interface: " + String(mdnsHostname) + ".local or " + WiFi.localIP().toString();
+    LOG_VERBOSE("PRINTER", "%s", serverInfo.c_str());
 
-    String serverInfo = "Server: " + String(mdnsHostname) + ".local or " + WiFi.localIP().toString();
+    // Feed watchdog before thermal printing (can be slow)
+    esp_task_wdt_reset();
+
+    LOG_VERBOSE("PRINTER", "Printing server info on thermal printer...");
+
     advancePaper(1);
+
+    // Feed watchdog before the actual printing
+    esp_task_wdt_reset();
+
     printWithHeader("SCRIBE READY", serverInfo);
+
+    // Feed watchdog after thermal printing completes
+    esp_task_wdt_reset();
+
+    LOG_VERBOSE("PRINTER", "Server info printed to thermal printer");
 }
 
 void setInverse(bool enable)
@@ -135,8 +149,14 @@ void printWithHeader(String headerText, String bodyText)
     String cleanHeaderText = cleanString(headerText);
     String cleanBodyText = cleanString(bodyText);
 
+    // Feed watchdog before starting thermal printing
+    esp_task_wdt_reset();
+
     // Print body text first (appears at bottom after rotation)
     printWrapped(cleanBodyText);
+
+    // Feed watchdog between body and header printing
+    esp_task_wdt_reset();
 
     // Print header last (appears at top after rotation)
     setInverse(true);
@@ -144,54 +164,7 @@ void printWithHeader(String headerText, String bodyText)
     setInverse(false);
 
     advancePaper(2);
-}
 
-void printCharacterTest()
-{
-    Serial.println("Printing character test...");
-
-    String testContent = "CHARACTER TEST\n\n";
-
-    // Basic ASCII test
-    testContent += "ASCII: Hello World 123!@#\n\n";
-
-    // Accented vowels
-    testContent += "A variants: À Á Â Ã Ä Å\n";
-    testContent += "a variants: à á â ã ä å\n";
-    testContent += "E variants: È É Ê Ë\n";
-    testContent += "e variants: è é ê ë\n";
-    testContent += "I variants: Ì Í Î Ï\n";
-    testContent += "i variants: ì í î ï\n";
-    testContent += "O variants: Ò Ó Ô Õ Ö\n";
-    testContent += "o variants: ò ó ô õ ö\n";
-    testContent += "U variants: Ù Ú Û Ü\n";
-    testContent += "u variants: ù ú û ü\n\n";
-
-    // Special characters
-    testContent += "Special: Ñ ñ Ç ç\n";
-    testContent += "Nordic: Æ æ Ø ø Å å\n";
-    testContent += "German: ß Ü ü Ö ö Ä ä\n";
-    testContent += "French: É é È è Ê ê\n\n";
-
-    // Punctuation variants
-    testContent += "Quotes: \"double\" and 'single' quotes\n";
-    testContent += "Dashes: en–dash em—dash\n";
-    testContent += "Apostrophes: don't won't\n\n";
-
-    // Real-world examples
-    testContent += "Examples:\n";
-    testContent += "* Za'atar (Arabic spice)\n";
-    testContent += "* Café au lait\n";
-    testContent += "* Naïve approach\n";
-    testContent += "* Piñata party\n";
-    testContent += "* Müller family\n";
-    testContent += "* Björk concert\n";
-    testContent += "* Señorita María\n";
-    testContent += "* Crème brûlée\n";
-    testContent += "* Jalapeño peppers\n";
-    testContent += "* São Paulo\n";
-
-    printWithHeader("CHARACTER TEST", testContent);
-
-    Serial.println("Character test printed successfully");
+    // Feed watchdog after printing completes
+    esp_task_wdt_reset();
 }

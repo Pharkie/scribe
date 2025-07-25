@@ -101,6 +101,12 @@ function printLocalMessage(message, action = null) {
     } else if (action === 'chartest') {
       colors = ['#22c55e', '#16a34a', '#4ade80']; // Green
       successMessage = 'Character test printed locally!';
+    } else if (action === 'quote') {
+      colors = ['#14b8a6', '#0f766e', '#5eead4']; // Teal
+      successMessage = 'Quote printed locally!';
+    } else if (action === 'quiz') {
+      colors = ['#eab308', '#ca8a04', '#fde047']; // Yellow
+      successMessage = 'Quiz printed locally!';
     } else {
       colors = ['#3b82f6', '#1e40af', '#60a5fa']; // Blue (default)
       successMessage = 'Message printed locally!';
@@ -154,6 +160,12 @@ function sendMQTTMessage(topic, message, action = null) {
     } else if (action === 'chartest') {
       colors = ['#22c55e', '#16a34a', '#4ade80']; // Green
       actionName = 'Character test';
+    } else if (action === 'quote') {
+      colors = ['#14b8a6', '#0f766e', '#5eead4']; // Teal
+      actionName = 'Quote';
+    } else if (action === 'quiz') {
+      colors = ['#eab308', '#ca8a04', '#fde047']; // Yellow
+      actionName = 'Quiz';
     } else {
       colors = ['#3b82f6', '#1e40af', '#60a5fa']; // Blue (default)
       actionName = 'Message';
@@ -199,6 +211,10 @@ function sendQuickAction(action) {
     endpoint = '/dadjoke';
   } else if (action === 'chartest') {
     endpoint = '/character-test';
+  } else if (action === 'quote') {
+    endpoint = '/quote';
+  } else if (action === 'quiz') {
+    endpoint = '/quiz';
   } else {
     console.error('Unknown action:', action);
     alert('Unknown action: ' + action);
@@ -223,7 +239,8 @@ function sendQuickAction(action) {
   .catch(error => {
     console.error('Error occurred:', error);
     const actionName = action === 'riddle' ? 'riddle' : 
-                      action === 'dadjoke' ? 'dad joke' : 'character test';
+                      action === 'dadjoke' ? 'dad joke' : 
+                      action === 'quote' ? 'quote' : 'character test';
     alert(`Failed to get ${actionName} content. Please try again. Error: ` + error.message);
   });
 }

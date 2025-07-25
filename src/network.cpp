@@ -1,4 +1,5 @@
 #include "network.h"
+#include "logging.h"
 
 // Network status variables
 unsigned long lastReconnectAttempt = 0;
@@ -68,6 +69,8 @@ void setupmDNS()
     {
         Serial.println("Error setting up mDNS responder!");
     }
+
+    LOG_VERBOSE("NETWORK", "mDNS set up");
 }
 
 // === WiFi Reconnection Handler ===

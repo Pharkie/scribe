@@ -21,6 +21,5 @@ void setInverse(bool enable);
 void advancePaper(int lines);
 void printWrapped(String text);
 void printWithHeader(String headerText, String bodyText);
-void printCharacterTest();
 
 #endif // PRINTER_H

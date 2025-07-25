@@ -9,7 +9,9 @@ This fork includes the following changes to the original repo:
 - **ESP32-C3 support** - Changed from the from ESP8266 D1 Mini to ESP32-C3
   Supermini. Now uses hardware serial not software.
 - **Configuration centralization** - All settings e.g. wifi password moved to
-  `src/config.h`, where they can be kept out of the Git repo (.gitignore)
+  `src/config.h`, where they can be kept out of the### Credits and
+  Acknowledgments
+- **New UI** - You can write on receipt after another more easily, now.
 - **mDNS integration** - Device accessible at http://scribe.local, as well as
   the IP address.
 - **MQTT remote printing** - Send messages to other Scribe printers over MQTT,
@@ -20,15 +22,16 @@ This fork includes the following changes to the original repo:
 - **Modular code structure** - Refactored from monolithic code into different
   files for better maintainability and development e.g. HTML, CSS and JS are now
   separate files.
-- **Fun buttons** - Added Random Riddle, Dad Joke, and Character Test buttons
-  for instant entertainment and printer testing, via local or remote.
-- **Pin stabilization** - Quick stablisation of the TX pin on boot to stop the
-  printer from hanging during initialisation.
+- **Fun buttons** - Added Riddle, Joke, Quote, and Character Test buttons for
+  entertainment and printer testing, local or remote.
+- **Comprehensive logging system** - System logging with multiple output
+  destinations (Serial, LittleFS file, MQTT, BetterStack).
 - **Enhanced robustness** - new text wrapping algorithm, WiFi reconnection,
   watchdog timer, and device status monitoring.
 - **Character mapping resilience** - Better handling of Unicode and special
   characters, so more resilient to character encoding issues.
-- **Improved UI** - You can write on receipt after another more easily, now.
+- **Pin stabilization** - Quick stablisation of the TX pin on boot to stop the
+  printer from hanging during initialisation.
 
 I've modified the below text to reflect these changes, so it's now a mix of the
 original and my changes.
@@ -36,7 +39,7 @@ original and my changes.
 All credit to UrbanCircles for the original concept, 3D model and original code.
 Have fun, makers!
 
-Gotchas:
+#### Key info
 
 I could not power the Cashino CSN-A4L via USB, whatever cable or supply I used.
 It appears you can ONLY power the printer via the 3 pin (2 pins used) "POWER"
@@ -48,6 +51,18 @@ When you first get the printer, you want to check it works, right? Hold down the
 front (only) button as you power on the printer to do a self test. i.e. hold the
 button and attach 5V power to the POWER 3 pin (2 pins used) connector (I did
 this using a bench power supply and crocodile clips).
+
+### API data sources
+
+The project integrates with several external APIs and local databases for
+enhanced functionality:
+
+- **Dad Jokes**: Powered by [icanhazdadjoke.com](https://icanhazdadjoke.com/) -
+  A free API providing random dad jokes
+- **Inspirational Quotes**: Powered by [ZenQuotes.io](https://zenquotes.io/) -
+  Free inspirational quotes API
+- **Random Riddles**: Local database with 545+ riddles curated by
+  [Nikhil Mohite](https://github.com/nkilm/riddles-api) - stored locally
 
 ---
 
@@ -227,16 +242,68 @@ devices:
 
 ### Quick Action Buttons
 
-The web interface includes three fun buttons that work with any selected
-printer:
+The web interface includes four fun buttons that work with any selected printer:
 
 - **🧩 Random Riddle** - Prints a random riddle from the built-in collection
 - **😂 Dad Joke** - Fetches and prints a random dad joke from an online API
-- **🔤 Character Test** - Prints a comprehensive character set test for printer
+- **� Inspirational Quote** - Fetches and prints inspirational quotes from
+  ZenQuotes API
+- **�🔤 Character Test** - Prints a comprehensive character set test for printer
   calibration
 
 All quick actions include timestamps and work seamlessly with both local and
 remote printing.
+
+## Logging System
+
+This fork includes a comprehensive logging system built on the ArduinoLog
+library:
+
+### Features
+
+- **Multiple Output Destinations**:
+
+  - Serial console for development debugging
+  - LittleFS file storage for persistent logs
+  - MQTT topic publishing for remote monitoring
+  - BetterStack integration for cloud log aggregation
+
+- **Configurable Log Levels**: Uses ArduinoLog's standard levels:
+
+  - `LOG_LEVEL_SILENT` (0) - No output
+  - `LOG_LEVEL_FATAL` (1) - Fatal errors only
+  - `LOG_LEVEL_ERROR` (2) - Errors and fatals
+  - `LOG_LEVEL_WARNING` (3) - Warnings, errors, and fatals
+  - `LOG_LEVEL_NOTICE` (4) - Notice, warnings, errors, and fatals
+  - `LOG_LEVEL_TRACE` (5) - Trace, notice, warnings, errors, and fatals
+  - `LOG_LEVEL_VERBOSE` (6) - All output including verbose debug
+
+- **Automatic Log Rotation**: File logs are automatically rotated when they
+  exceed size limits
+- **Professional Formatting**: Timestamps and structured logging for better
+  debugging
+
+### Configuration
+
+Configure logging in `src/config.h`:
+
+```cpp
+// Set your desired log level
+static const int logLevel = LOG_LEVEL_NOTICE;
+
+// Enable/disable output destinations
+static const bool logToSerial = true;        // Development console
+static const bool logToFile = false;         // LittleFS file (/logs/scribe.log)
+static const bool logToMQTT = false;         // MQTT topic (scribe/log)
+static const bool logToBetterStack = false;  // BetterStack cloud service
+
+// BetterStack configuration (if enabled)
+static const char *betterStackToken = "your-token-here";
+```
+
+The logging system provides detailed information about system operations, WiFi
+connectivity, MQTT messages, printer activity, and API responses, making
+debugging and monitoring much easier.
 
 ## Microcontroller firmware
 
@@ -248,6 +315,8 @@ All configuration is handled in `src/config.h` after copying from
 - WiFi credentials (SSID and password)
 - Timezone settings (automatically handles DST with ezTime library)
 - mDNS hostname (default: "scribe" for http://scribe.local access)
+- MQTT broker settings for remote printing
+- Logging system configuration (levels, output destinations)
 - Character limits and other preferences
 
 ### Development Environment
@@ -260,9 +329,18 @@ experience:
 3. Open the project folder in VS Code
 4. PlatformIO will automatically handle dependencies and board configuration
 
+**Dependencies:** The project uses several libraries automatically managed by
+PlatformIO:
+
+- **ArduinoLog** - Professional logging framework with multiple output support
+- **ArduinoJson** - Robust JSON parsing and generation for API responses
+- **ezTime** - Advanced timezone handling with automatic DST transitions
+- **PubSubClient** - MQTT client for remote printing capabilities
+- **LittleFS** - File system for web assets and log storage
+
 **Alternative:** You can also use the
 [Arduino IDE](https://www.arduino.cc/en/software/) with ESP32 board support,
-though PlatformIO is recommended.
+though PlatformIO is recommended for dependency management.
 
 Ensure that everything is working **before** soldering, and squeezing your
 components into the 3D printed shell!

@@ -57,11 +57,27 @@ void handleSubmit();
 void handleStatus();
 
 /**
- * @brief Generate character test content for thermal printer
- * Creates a comprehensive test of various character encodings and special characters
+ * @brief Load character test content from filesystem
+ * Loads the character test content from /character-test.txt file
  * @return String containing the test content
  */
-String generateCharacterTestContent();
+String loadCharacterTestContent();
+
+/**
+ * @brief Helper function to reverse a string
+ * @param str The string to reverse
+ * @return String containing the reversed string
+ */
+String reverseString(const String &str);
+
+/**
+ * @brief Helper function to make HTTPS API calls with JSON response
+ * @param url The API endpoint URL
+ * @param userAgent User agent string for the request
+ * @param timeoutMs Request timeout in milliseconds (default: 5000)
+ * @return String containing the API response, or empty string on failure
+ */
+String fetchFromAPI(const String &url, const String &userAgent, int timeoutMs = 5000);
 
 /**
  * @brief Handle requests to /test endpoint
@@ -83,6 +99,20 @@ void handleRiddle();
  * Content should be sent to printer via /print-local or /mqtt-send endpoints
  */
 void handleDadJoke();
+
+/**
+ * @brief Handle requests to /quote endpoint
+ * Fetches and returns random inspirational quote content as plain text
+ * Content should be sent to printer via /print-local or /mqtt-send endpoints
+ */
+void handleQuote();
+
+/**
+ * @brief Handle requests to /quiz endpoint
+ * Fetches and returns trivia quiz question with multiple choice answers as plain text
+ * Content should be sent to printer via /print-local or /mqtt-send endpoints
+ */
+void handleQuiz();
 
 /**
  * @brief Handle requests to /styles.css endpoint

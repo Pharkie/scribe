@@ -1,10 +1,10 @@
 #include "web_server.h"
 #include "config.h"
+#include "logging.h"
 #include <WiFi.h>
 #include <ESPmDNS.h>
 #include <LittleFS.h>
 #include <ArduinoJson.h>
-#include <PubSubClient.h>
 #include <HTTPClient.h>
 
 // External variable declarations
@@ -14,7 +14,6 @@ extern PubSubClient mqttClient;
 // External function declarations
 extern String getFormattedDateTime();
 extern String formatCustomDate(String customDate);
-extern void printCharacterTest();
 extern void printWithHeader(String headerText, String bodyText);
 
 // Storage for form data
@@ -81,6 +80,12 @@ void setupWebServerRoutes(int maxChars)
     // Dad joke endpoint (supports both local print and remote content modes)
     server.on("/dadjoke", HTTP_POST, handleDadJoke);
 
+    // Quote endpoint (supports both local print and remote content modes)
+    server.on("/quote", HTTP_POST, handleQuote);
+
+    // Quiz endpoint (supports both local print and remote content modes)
+    server.on("/quiz", HTTP_POST, handleQuiz);
+
     // System status endpoint
     server.on("/status", HTTP_GET, handleStatus);
 
@@ -89,8 +94,6 @@ void setupWebServerRoutes(int maxChars)
 
     // Handle 404
     server.onNotFound(handleNotFound);
-
-    Serial.println("Web server routes configured");
 }
 
 void handleRoot()
@@ -110,28 +113,31 @@ void handleJS()
 
 void handleConfig()
 {
-    String json = "{";
-    json += "\"maxReceiptChars\":" + String(localMaxReceiptChars);
-    json += ",\"remotePrinters\":[";
+    DynamicJsonDocument doc(1024);
+
+    // Set max receipt chars
+    doc["maxReceiptChars"] = localMaxReceiptChars;
+
+    // Create remote printers array
+    JsonArray printers = doc.createNestedArray("remotePrinters");
 
     // Add local printer first (for self-sending)
-    json += "{";
-    json += "\"name\":\"" + String(localPrinter[0]) + "\",";
-    json += "\"topic\":\"" + String(localPrinter[1]) + "\"";
-    json += "}";
+    JsonObject localPrinter = printers.createNestedObject();
+    localPrinter["name"] = String(::localPrinter[0]);
+    localPrinter["topic"] = String(::localPrinter[1]);
 
     // Add other printers from config
     for (int i = 0; i < numOtherPrinters; i++)
     {
-        json += ",{";
-        json += "\"name\":\"" + String(otherPrinters[i][0]) + "\",";
-        json += "\"topic\":\"" + String(otherPrinters[i][1]) + "\"";
-        json += "}";
+        JsonObject printer = printers.createNestedObject();
+        printer["name"] = String(otherPrinters[i][0]);
+        printer["topic"] = String(otherPrinters[i][1]);
     }
 
-    json += "]}";
-
-    server.send(200, "application/json", json);
+    // Serialize and send
+    String response;
+    serializeJson(doc, response);
+    server.send(200, "application/json", response);
 }
 
 void handleSubmit()
@@ -145,20 +151,17 @@ void handleSubmit()
         {
             String customDate = server.arg("date");
             currentReceipt.timestamp = formatCustomDate(customDate);
-            Serial.println("Using custom date: " + customDate);
+            LOG_VERBOSE("WEB", "Using custom date: %s", customDate.c_str());
         }
         else
         {
             currentReceipt.timestamp = getFormattedDateTime();
-            Serial.println("Using current date");
+            LOG_VERBOSE("WEB", "Using current date");
         }
 
         currentReceipt.hasData = true;
 
-        Serial.println("=== New Receipt Received ===");
-        Serial.println("Message: " + currentReceipt.message);
-        Serial.println("Time: " + currentReceipt.timestamp);
-        Serial.println("============================");
+        LOG_NOTICE("WEB", "New receipt received | Message: %s | Time: %s", currentReceipt.message.c_str(), currentReceipt.timestamp.c_str());
 
         server.send(200, "text/plain", "Receipt received and will be printed!");
     }
@@ -179,76 +182,93 @@ void handleStatus()
         usedBytes = LittleFS.usedBytes();
     }
 
-    String json = "{";
-    json += "\"wifi_connected\":" + String(WiFi.status() == WL_CONNECTED ? "true" : "false") + ",";
-    json += "\"ip_address\":\"" + WiFi.localIP().toString() + "\",";
-    json += "\"mdns_hostname\":\"" + String(mdnsHostname) + "\",";
-    json += "\"uptime\":" + String(millis()) + ",";
-    json += "\"free_heap\":" + String(ESP.getFreeHeap()) + ",";
-    json += "\"mqtt_connected\":" + String(mqttClient.connected() ? "true" : "false") + ",";
-    json += "\"mqtt_server\":\"" + String(mqttServer) + "\",";
-    json += "\"wifi_ssid\":\"" + String(WiFi.SSID()) + "\",";
-    json += "\"local_topic\":\"" + String(localPrinter[1]) + "\",";
-    json += "\"total_heap\":" + String(ESP.getHeapSize()) + ",";
-    json += "\"chip_model\":\"" + String(ESP.getChipModel()) + "\",";
-    json += "\"cpu_freq\":" + String(ESP.getCpuFreqMHz()) + ",";
-    json += "\"flash_total\":" + String(totalBytes) + ",";
-    json += "\"flash_used\":" + String(usedBytes);
-    json += "}";
+    DynamicJsonDocument doc(1024);
 
-    server.send(200, "application/json", json);
+    // Network information
+    doc["wifi_connected"] = (WiFi.status() == WL_CONNECTED);
+    doc["ip_address"] = WiFi.localIP().toString();
+    doc["mdns_hostname"] = String(mdnsHostname);
+    doc["wifi_ssid"] = WiFi.SSID();
+
+    // MQTT information
+    doc["mqtt_connected"] = mqttClient.connected();
+    doc["mqtt_server"] = String(mqttServer);
+    doc["local_topic"] = String(localPrinter[1]);
+
+    // System information
+    doc["uptime"] = millis();
+    doc["free_heap"] = ESP.getFreeHeap();
+    doc["total_heap"] = ESP.getHeapSize();
+    doc["chip_model"] = ESP.getChipModel();
+    doc["cpu_freq"] = ESP.getCpuFreqMHz();
+
+    // Flash storage information
+    doc["flash_total"] = totalBytes;
+    doc["flash_used"] = usedBytes;
+
+    // Serialize and send
+    String response;
+    serializeJson(doc, response);
+    server.send(200, "application/json", response);
 }
 
-String generateCharacterTestContent()
+String loadCharacterTestContent()
 {
-    String testContent = "";
+    if (!LittleFS.begin())
+    {
+        return "Failed to mount LittleFS for character test";
+    }
 
-    // Basic ASCII test
-    testContent += "ASCII: Hello World 123!@#\n\n";
+    File file = LittleFS.open("/character-test.txt", "r");
+    if (!file)
+    {
+        return "ASCII: Hello World 123!@#\n\nFailed to load character test file";
+    }
 
-    // Accented vowels
-    testContent += "A variants: À Á Â Ã Ä Å\n";
-    testContent += "a variants: à á â ã ä å\n";
-    testContent += "E variants: È É Ê Ë\n";
-    testContent += "e variants: è é ê ë\n";
-    testContent += "I variants: Ì Í Î Ï\n";
-    testContent += "i variants: ì í î ï\n";
-    testContent += "O variants: Ò Ó Ô Õ Ö\n";
-    testContent += "o variants: ò ó ô õ ö\n";
-    testContent += "U variants: Ù Ú Û Ü\n";
-    testContent += "u variants: ù ú û ü\n\n";
+    String content = file.readString();
+    file.close();
+    return content;
+}
 
-    // Special characters
-    testContent += "Special: Ñ ñ Ç ç\n";
-    testContent += "Nordic: Æ æ Ø ø Å å\n";
-    testContent += "German: ß Ü ü Ö ö Ä ä\n";
-    testContent += "French: É é È è Ê ê\n\n";
+/**
+ * @brief Helper function to make HTTPS API calls with JSON response
+ * @param url The API endpoint URL
+ * @param userAgent User agent string for the request
+ * @param timeoutMs Request timeout in milliseconds
+ * @return String containing the API response, or empty string on failure
+ */
+String fetchFromAPI(const String &url, const String &userAgent, int timeoutMs)
+{
+    if (WiFi.status() != WL_CONNECTED)
+    {
+        return "";
+    }
 
-    // Punctuation variants
-    testContent += "Quotes: \"double\" and 'single' quotes\n";
-    testContent += "Dashes: en–dash em—dash\n";
-    testContent += "Apostrophes: don't won't\n\n";
+    WiFiClientSecure client;
+    client.setInsecure(); // Skip SSL certificate verification for simplicity
+    HTTPClient http;
 
-    // Real-world examples
-    testContent += "Examples:\n";
-    testContent += "* Za'atar (Arabic spice)\n";
-    testContent += "* Café au lait\n";
-    testContent += "* Naïve approach\n";
-    testContent += "* Piñata party\n";
-    testContent += "* Müller family\n";
-    testContent += "* Björk concert\n";
-    testContent += "* Señorita María\n";
-    testContent += "* Crème brûlée\n";
-    testContent += "* Jalapeño peppers\n";
-    testContent += "* São Paulo\n";
+    http.begin(client, url);
+    http.addHeader("Accept", "application/json");
+    http.addHeader("User-Agent", userAgent);
+    http.setTimeout(timeoutMs);
 
-    return testContent;
+    int httpResponseCode = http.GET();
+    String response = "";
+
+    if (httpResponseCode == 200)
+    {
+        response = http.getString();
+    }
+
+    http.end();
+    return response;
 }
 
 void handleCharacterTest()
 {
-    // Generate character test content
-    String testContent = generateCharacterTestContent();
+    // Load character test content from file
+    String testContent = loadCharacterTestContent();
     String fullContent = "CHARACTER TEST\n\n" + testContent;
 
     // Return the content as plain text
@@ -260,17 +280,27 @@ void handleNotFound()
     String uri = server.uri();
     String method = (server.method() == HTTP_GET) ? "GET" : "POST";
 
-    Serial.println("=== 404 Error ===");
-    Serial.println("Method: " + method);
-    Serial.println("URI: " + uri);
-    Serial.println("Args: " + String(server.args()));
+    // Build comprehensive 404 error message
+    String errorDetails = "=== 404 Error === | Method: " + method + " | URI: " + uri + " | Args: " + String(server.args());
     for (int i = 0; i < server.args(); i++)
     {
-        Serial.println("  " + server.argName(i) + ": " + server.arg(i));
+        errorDetails += " | " + server.argName(i) + ": " + server.arg(i);
     }
-    Serial.println("================");
+    errorDetails += " | ================";
+
+    LOG_WARNING("WEB", "%s", errorDetails.c_str());
 
     server.send(404, "text/plain", "Page not found: " + method + " " + uri);
+}
+
+String reverseString(const String &str)
+{
+    String reversed = "";
+    for (int i = str.length() - 1; i >= 0; i--)
+    {
+        reversed += str[i];
+    }
+    return reversed;
 }
 
 void handleRiddle()
@@ -294,6 +324,7 @@ void handleRiddle()
     int target = random(0, totalRiddles);
     int current = 0;
     String riddleText = "What gets wetter the more it dries?"; // fallback
+    String riddleAnswer = "A towel";                           // fallback answer
 
     while (file.available() && current <= target)
     {
@@ -312,6 +343,16 @@ void handleRiddle()
                 {
                     riddleText = extracted;
                 }
+
+                // Also extract the answer if available
+                if (doc.containsKey("answer"))
+                {
+                    String extractedAnswer = doc["answer"].as<String>();
+                    if (extractedAnswer.length() > 0)
+                    {
+                        riddleAnswer = extractedAnswer;
+                    }
+                }
             }
             break;
         }
@@ -320,7 +361,8 @@ void handleRiddle()
 
     file.close();
 
-    String fullContent = "RIDDLE #" + String(target + 1) + "\n\n" + riddleText;
+    String fullContent = "RIDDLE #" + String(target + 1) + "\n\n" + riddleText + "\n\n\n\n\n\n";
+    fullContent += "Answer: " + reverseString(riddleAnswer);
 
     // Return the content as plain text
     server.send(200, "text/plain", fullContent);
@@ -331,43 +373,136 @@ void handleDadJoke()
     // Start with fallback joke
     String dadJoke = "Why don't scientists trust atoms? Because they make up everything!";
 
-    // Try to fetch from API if WiFi is connected
-    if (WiFi.status() == WL_CONNECTED)
+    // Try to fetch from API
+    String response = fetchFromAPI("https://icanhazdadjoke.com/", "Scribe Thermal Printer (https://github.com/Pharkie/scribe)");
+
+    if (response.length() > 0)
     {
-        WiFiClientSecure client;
-        client.setInsecure(); // Skip SSL certificate verification for simplicity
-        HTTPClient http;
+        // Parse JSON response
+        DynamicJsonDocument doc(1024);
+        DeserializationError error = deserializeJson(doc, response);
 
-        http.begin(client, "https://icanhazdadjoke.com/");
-        http.addHeader("Accept", "application/json");
-        http.addHeader("User-Agent", "Scribe Thermal Printer (https://github.com/Pharkie/scribe)");
-        http.setTimeout(5000); // 5 second timeout
-
-        int httpResponseCode = http.GET();
-
-        if (httpResponseCode == 200)
+        if (!error && doc.containsKey("joke"))
         {
-            String response = http.getString();
-
-            // Parse JSON response
-            DynamicJsonDocument doc(1024);
-            DeserializationError error = deserializeJson(doc, response);
-
-            if (!error && doc.containsKey("joke"))
+            String apiJoke = doc["joke"].as<String>();
+            apiJoke.trim();
+            if (apiJoke.length() > 10) // Ensure it's a real joke, not empty
             {
-                String apiJoke = doc["joke"].as<String>();
-                apiJoke.trim();
-                if (apiJoke.length() > 10) // Ensure it's a real joke, not empty
+                dadJoke = apiJoke;
+            }
+        }
+    }
+
+    String fullContent = "JOKE\n\n" + dadJoke;
+
+    // Return the content as plain text
+    server.send(200, "text/plain", fullContent);
+}
+
+void handleQuote()
+{
+    // Start with fallback quote
+    String quote = "\"Your mind is for having ideas, not holding them.\"\n– David Allen";
+
+    // Try to fetch from API
+    String response = fetchFromAPI("https://zenquotes.io/api/random/", "Scribe Thermal Printer (https://github.com/Pharkie/scribe)");
+
+    if (response.length() > 0)
+    {
+        // Parse JSON response (expecting array format)
+        DynamicJsonDocument doc(2048);
+        DeserializationError error = deserializeJson(doc, response);
+
+        if (!error && doc.is<JsonArray>() && doc.size() > 0)
+        {
+            JsonObject quoteObj = doc[0];
+            if (quoteObj.containsKey("q") && quoteObj.containsKey("a"))
+            {
+                String quoteText = quoteObj["q"].as<String>();
+                String author = quoteObj["a"].as<String>();
+
+                quoteText.trim();
+                author.trim();
+
+                if (quoteText.length() > 5 && author.length() > 0) // Ensure valid quote
                 {
-                    dadJoke = apiJoke;
+                    quote = "\"" + quoteText + "\"\n– " + author;
                 }
             }
         }
-
-        http.end();
     }
 
-    String fullContent = "DAD JOKE\n\n" + dadJoke;
+    String fullContent = "INSPIRATIONAL QUOTE\n\n" + quote;
+
+    // Return the content as plain text
+    server.send(200, "text/plain", fullContent);
+}
+
+void handleQuiz()
+{
+    // Start with fallback quiz question
+    String question = "What is the largest planet in our solar system?";
+    String correctAnswer = "Jupiter";
+    String answers[4] = {"Mars", "Jupiter", "Saturn", "Earth"};
+
+    // Try to fetch from API
+    String response = fetchFromAPI("https://the-trivia-api.com/api/questions?categories=general_knowledge&difficulty=medium&limit=1", "Scribe Thermal Printer (https://github.com/Pharkie/scribe)");
+
+    if (response.length() > 0)
+    {
+        // Parse JSON response (expecting array format)
+        DynamicJsonDocument doc(2048);
+        DeserializationError error = deserializeJson(doc, response);
+
+        if (!error && doc.is<JsonArray>() && doc.size() > 0)
+        {
+            JsonObject quizObj = doc[0];
+            if (quizObj.containsKey("question") && quizObj.containsKey("correctAnswer") && quizObj.containsKey("incorrectAnswers"))
+            {
+                String apiQuestion = quizObj["question"].as<String>();
+                String apiCorrectAnswer = quizObj["correctAnswer"].as<String>();
+                JsonArray incorrectAnswers = quizObj["incorrectAnswers"];
+
+                apiQuestion.trim();
+                apiCorrectAnswer.trim();
+
+                if (apiQuestion.length() > 5 && apiCorrectAnswer.length() > 0 && incorrectAnswers.size() >= 3)
+                {
+                    question = apiQuestion;
+                    correctAnswer = apiCorrectAnswer;
+
+                    // Create answer array with correct answer in random position
+                    int correctPosition = random(0, 4);
+                    answers[correctPosition] = correctAnswer;
+
+                    // Fill other positions with incorrect answers
+                    int incorrectIndex = 0;
+                    for (int i = 0; i < 4; i++)
+                    {
+                        if (i != correctPosition && incorrectIndex < incorrectAnswers.size())
+                        {
+                            String incorrectAnswer = incorrectAnswers[incorrectIndex].as<String>();
+                            incorrectAnswer.trim();
+                            answers[i] = incorrectAnswer;
+                            incorrectIndex++;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // Format the quiz content
+    String fullContent = "QUIZ\n\n";
+    fullContent += "Question:\n";
+    fullContent += question + "\n\n";
+
+    fullContent += "[ ] " + answers[0] + "\n";
+    fullContent += "[ ] " + answers[1] + "\n";
+    fullContent += "[ ] " + answers[2] + "\n";
+    fullContent += "[ ] " + answers[3] + "\n\n\n\n\n\n";
+
+    fullContent += "Correct answer: " + reverseString(correctAnswer);
 
     // Return the content as plain text
     server.send(200, "text/plain", fullContent);
@@ -419,12 +554,12 @@ void handleMQTTSend()
     // Publish to MQTT
     if (mqttClient.publish(topic.c_str(), payload.c_str()))
     {
-        Serial.println("MQTT message sent to topic: " + topic);
+        LOG_VERBOSE("WEB", "MQTT message sent to topic: %s", topic.c_str());
         server.send(200, "text/plain", "Message sent successfully!");
     }
     else
     {
-        Serial.println("Failed to send MQTT message to topic: " + topic);
+        LOG_ERROR("WEB", "Failed to send MQTT message to topic: %s", topic.c_str());
         server.send(500, "text/plain", "Failed to send MQTT message");
     }
 }
