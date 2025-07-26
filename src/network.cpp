@@ -11,91 +11,40 @@ void validateConfig()
 {
     Serial.println("=== VALIDATING CONFIGURATION ===");
 
-    // Check deviceOwner is set
-    if (!deviceOwner || strlen(deviceOwner) == 0)
-    {
-        Serial.println("ERROR: deviceOwner not configured!");
-        return;
-    }
+    // Use the new validation framework
+    ValidationResult result = ConfigValidator::validateComplete();
 
-    Serial.print("Device owner: ");
-    Serial.println(deviceOwner);
+    if (result.isValid)
+    {
+        Serial.println("✓ All configuration validation passed");
 
-    // Check runtime variables are initialized (should be set by initializePrinterConfig)
-    Serial.print("Checking wifiSSID... ");
-    if (!getWifiSSID())
-    {
-        Serial.println("ERROR: wifiSSID is NULL! Did initializePrinterConfig() run?");
-        return;
-    }
-    else if (strlen(getWifiSSID()) == 0)
-    {
-        Serial.println("ERROR: wifiSSID is empty string!");
-        return;
-    }
-    else
-    {
-        Serial.print("OK: ");
+        // Display current configuration
+        Serial.print("Device owner: ");
+        Serial.println(deviceOwner);
+        Serial.print("WiFi SSID: ");
         Serial.println(getWifiSSID());
-    }
-
-    Serial.print("Checking wifiPassword... ");
-    if (!getWifiPassword())
-    {
-        Serial.println("ERROR: wifiPassword is NULL!");
-        return;
-    }
-    else if (strlen(getWifiPassword()) == 0)
-    {
-        Serial.println("ERROR: wifiPassword is empty string!");
-        return;
-    }
-    else
-    {
-        Serial.print("OK: ");
-        Serial.println(getWifiPassword());
-    }
-
-    // Check local printer configuration
-    if (!getLocalPrinterName() || strlen(getLocalPrinterName()) == 0)
-    {
-        Serial.println("ERROR: Local printer name not configured!");
-        return;
-    }
-
-    if (!getLocalPrinterTopic() || strlen(getLocalPrinterTopic()) == 0)
-    {
-        Serial.println("ERROR: Local printer MQTT topic not configured!");
-        return;
-    }
-
-    Serial.print("Local printer: ");
-    Serial.print(getLocalPrinterName());
-    Serial.print(" -> ");
-    Serial.println(getLocalPrinterTopic()); // Check mDNS hostname
-    if (!getMdnsHostname() || strlen(getMdnsHostname()) == 0)
-    {
-        Serial.println("ERROR: mDNS hostname not configured!");
-        return;
-    }
-
-    Serial.print("mDNS hostname: ");
-    Serial.println(getMdnsHostname());
-
-    // Check timezone configuration
-    Serial.print("Checking timezone... ");
-    if (!getTimezone() || strlen(getTimezone()) == 0)
-    {
-        Serial.println("ERROR: Timezone not configured!");
-        return;
-    }
-    else
-    {
-        Serial.print("OK: ");
+        Serial.print("Printer name: ");
+        Serial.println(getLocalPrinterName());
+        Serial.print("MQTT topic: ");
+        Serial.println(getLocalPrinterTopic());
+        Serial.print("mDNS hostname: ");
+        Serial.println(getMdnsHostname());
+        Serial.print("Timezone: ");
         Serial.println(getTimezone());
-    }
 
-    Serial.println("=== CONFIGURATION VALIDATION COMPLETE - ALL OK ===");
+        Serial.println("=== CONFIGURATION VALIDATION COMPLETE - ALL OK ===");
+    }
+    else
+    {
+        Serial.println("❌ Configuration validation FAILED:");
+        for (int i = 0; i < result.errorCount; i++)
+        {
+            Serial.print("  ERROR: ");
+            Serial.println(result.errors[i]);
+        }
+        Serial.println("=== CONFIGURATION VALIDATION FAILED ===");
+        // Note: System will continue but may not function correctly
+    }
 } // === WiFi Connection ===
 void connectToWiFi()
 {
@@ -136,7 +85,7 @@ void setupmDNS()
         Serial.println("Access the form at: http://" + String(getMdnsHostname()) + ".local");
 
         // Add service to MDNS-SD
-        MDNS.addService("http", "tcp", 80);
+        MDNS.addService("http", "tcp", webServerPort);
     }
     else
     {

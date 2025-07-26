@@ -21,7 +21,289 @@ extern void printWithHeader(String headerText, String bodyText);
 Receipt currentReceipt = {"", "", false};
 
 // Static variable to store maxReceiptChars value
-static int localMaxReceiptChars = 1000;
+static int localMaxReceiptChars = maxReceiptChars;
+
+// ========================================
+// RATE LIMITING AND SECURITY
+// ========================================
+
+// Simple rate limiting state
+static unsigned long lastRequestTime = 0;
+static unsigned long requestCount = 0;
+static unsigned long rateLimitWindow = 0;
+
+/**
+ * @brief Check if request should be rate limited
+ * @return true if request should be blocked, false if allowed
+ */
+bool isRateLimited()
+{
+    unsigned long currentTime = millis();
+
+    // Basic timing rate limit (prevent rapid-fire requests)
+    if (currentTime - lastRequestTime < minRequestInterval)
+    {
+        return true;
+    }
+
+    // Reset rate limit window every minute
+    if (currentTime - rateLimitWindow > rateLimitWindowMs)
+    {
+        rateLimitWindow = currentTime;
+        requestCount = 0;
+    }
+
+    // Check requests per minute
+    requestCount++;
+    if (requestCount > maxRequestsPerMinute)
+    {
+        LOG_WARNING("WEB", "Rate limit exceeded: %lu requests in current window", requestCount);
+        return true;
+    }
+
+    lastRequestTime = currentTime;
+    return false;
+}
+
+// ========================================
+// INPUT VALIDATION UTILITIES
+// ========================================
+
+/**
+ * @brief Validate message content for printing
+ * @param message The message to validate
+ * @param maxLength Maximum allowed length
+ * @return ValidationResult with validation status and error message
+ */
+ValidationResult validateMessage(const String &message, int maxLength = -1)
+{
+    if (maxLength == -1)
+    {
+        maxLength = localMaxReceiptChars;
+    }
+
+    // Check if message is empty
+    if (message.length() == 0)
+    {
+        return ValidationResult(false, "Message cannot be empty");
+    }
+
+    // Check message length
+    if (message.length() > maxLength)
+    {
+        return ValidationResult(false, "Message too long. Maximum " + String(maxLength) + " characters allowed, got " + String(message.length()));
+    }
+
+    // Check for null bytes (can cause printing issues)
+    if (message.indexOf('\0') != -1)
+    {
+        return ValidationResult(false, "Message contains null bytes which are not allowed");
+    }
+
+    // Check for excessive control characters (except common ones like \n, \r, \t)
+    int controlCharCount = 0;
+    for (unsigned int i = 0; i < message.length(); i++)
+    {
+        char c = message.charAt(i);
+        if (c < 32 && c != '\n' && c != '\r' && c != '\t')
+        {
+            controlCharCount++;
+        }
+    }
+
+    // Allow some control characters but not too many (might indicate binary data)
+    if (controlCharCount > message.length() / maxControlCharPercent)
+    {
+        return ValidationResult(false, "Message contains too many control characters");
+    }
+
+    // Check for potential script injection attempts (basic XSS protection)
+    String messageLower = message;
+    messageLower.toLowerCase();
+    if (messageLower.indexOf("<script") != -1 ||
+        messageLower.indexOf("javascript:") != -1 ||
+        messageLower.indexOf("onload=") != -1 ||
+        messageLower.indexOf("onerror=") != -1)
+    {
+        return ValidationResult(false, "Message contains potentially malicious content");
+    }
+
+    // Check for excessively long lines (might cause formatting issues)
+    int maxLineLengthFound = 0;
+    int currentLineLength = 0;
+    for (unsigned int i = 0; i < message.length(); i++)
+    {
+        if (message.charAt(i) == '\n' || message.charAt(i) == '\r')
+        {
+            if (currentLineLength > maxLineLengthFound)
+            {
+                maxLineLengthFound = currentLineLength;
+            }
+            currentLineLength = 0;
+        }
+        else
+        {
+            currentLineLength++;
+        }
+    }
+    if (currentLineLength > maxLineLengthFound)
+    {
+        maxLineLengthFound = currentLineLength;
+    }
+
+    if (maxLineLengthFound > maxLineLength)
+    { // Reasonable limit for thermal printer
+        return ValidationResult(false, "Message contains lines that are too long (max " + String(maxLineLength) + " chars per line)");
+    }
+
+    return ValidationResult(true);
+}
+
+/**
+ * @brief Validate JSON payload
+ * @param jsonString The JSON string to validate
+ * @param requiredFields Array of required field names
+ * @param fieldCount Number of required fields
+ * @return ValidationResult with validation status and error message
+ */
+ValidationResult validateJSON(const String &jsonString, const char *requiredFields[], int fieldCount)
+{
+    if (jsonString.length() == 0)
+    {
+        return ValidationResult(false, "JSON payload is empty");
+    }
+
+    if (jsonString.length() > maxJsonPayloadSize)
+    { // Reasonable limit for our use case
+        return ValidationResult(false, "JSON payload too large (max " + String(maxJsonPayloadSize / 1024) + "KB)");
+    }
+
+    // Parse JSON
+    DynamicJsonDocument doc(maxJsonPayloadSize / 2); // Use half of max payload size for document buffer
+    DeserializationError error = deserializeJson(doc, jsonString);
+
+    if (error)
+    {
+        return ValidationResult(false, "Invalid JSON format: " + String(error.c_str()));
+    }
+
+    // Check required fields
+    for (int i = 0; i < fieldCount; i++)
+    {
+        if (!doc.containsKey(requiredFields[i]))
+        {
+            return ValidationResult(false, "Missing required field: " + String(requiredFields[i]));
+        }
+    }
+
+    return ValidationResult(true);
+}
+
+/**
+ * @brief Validate MQTT topic format
+ * @param topic The topic to validate
+ * @return ValidationResult with validation status and error message
+ */
+ValidationResult validateMQTTTopic(const String &topic)
+{
+    if (topic.length() == 0)
+    {
+        return ValidationResult(false, "MQTT topic cannot be empty");
+    }
+
+    if (topic.length() > maxMqttTopicLength)
+    { // MQTT topic length limit
+        return ValidationResult(false, "MQTT topic too long (max " + String(maxMqttTopicLength) + " characters)");
+    }
+
+    // Check for valid MQTT topic characters
+    for (unsigned int i = 0; i < topic.length(); i++)
+    {
+        char c = topic.charAt(i);
+        if (c < 32 || c > 126)
+        {
+            return ValidationResult(false, "MQTT topic contains invalid characters");
+        }
+    }
+
+    // Check for MQTT wildcards in publish topics (not allowed)
+    if (topic.indexOf('+') != -1 || topic.indexOf('#') != -1)
+    {
+        return ValidationResult(false, "MQTT topic cannot contain wildcards (+, #) for publishing");
+    }
+
+    return ValidationResult(true);
+}
+
+/**
+ * @brief Validate HTTP parameter
+ * @param param The parameter value to validate
+ * @param paramName The parameter name for error messages
+ * @param maxLength Maximum allowed length
+ * @param allowEmpty Whether empty values are allowed
+ * @return ValidationResult with validation status and error message
+ */
+ValidationResult validateParameter(const String &param, const String &paramName, int maxLength = maxParameterLength, bool allowEmpty = false)
+{
+    if (!allowEmpty && param.length() == 0)
+    {
+        return ValidationResult(false, "Parameter '" + paramName + "' cannot be empty");
+    }
+
+    if (param.length() > maxLength)
+    {
+        return ValidationResult(false, "Parameter '" + paramName + "' too long (max " + String(maxLength) + " characters)");
+    }
+
+    return ValidationResult(true);
+}
+
+/**
+ * @brief Send validation error response
+ * @param result The validation result containing the error
+ * @param statusCode HTTP status code to send (default 400)
+ */
+void sendValidationError(const ValidationResult &result, int statusCode = 400)
+{
+    LOG_WARNING("WEB", "Validation error: %s", result.errorMessage.c_str());
+    server.send(statusCode, "text/plain", "Validation Error: " + result.errorMessage);
+}
+
+/**
+ * @brief Validate optional print mode parameter
+ * @return ValidationResult with validation status and error message
+ */
+ValidationResult validatePrintMode()
+{
+    if (server.hasArg("mode"))
+    {
+        String mode = server.arg("mode");
+        if (mode != "print" && mode != "content")
+        {
+            return ValidationResult(false, "Invalid mode parameter. Must be 'print' or 'content'");
+        }
+    }
+    return ValidationResult(true);
+}
+
+/**
+ * @brief Validate optional remote parameter (for MQTT sending)
+ * @return ValidationResult with validation status and error message
+ */
+ValidationResult validateRemoteParameter()
+{
+    if (server.hasArg("remote"))
+    {
+        String remote = server.arg("remote");
+        ValidationResult paramValidation = validateParameter(remote, "remote", maxRemoteParameterLength, false);
+        if (!paramValidation.isValid)
+        {
+            return paramValidation;
+        }
+        // Could add additional validation for known printer names here
+    }
+    return ValidationResult(true);
+}
 
 /**
  * @brief Helper function to serve files from LittleFS filesystem
@@ -120,7 +402,7 @@ void handleFavicon()
 
 void handleConfig()
 {
-    DynamicJsonDocument doc(1024);
+    DynamicJsonDocument doc(jsonDocumentSize);
 
     // Set max receipt chars
     doc["maxReceiptChars"] = localMaxReceiptChars;
@@ -134,8 +416,8 @@ void handleConfig()
     localPrinter["topic"] = String(getLocalPrinterTopic());
 
     // Add other printers from config
-    const char *others[10][2]; // Max 10 other printers
-    int numOthers = getOtherPrinters(others, 10);
+    const char *others[maxOtherPrinters][2]; // Max other printers from config
+    int numOthers = getOtherPrinters(others, maxOtherPrinters);
     for (int i = 0; i < numOthers; i++)
     {
         JsonObject printer = printers.createNestedObject();
@@ -151,33 +433,57 @@ void handleConfig()
 
 void handleSubmit()
 {
-    if (server.hasArg("message"))
+    // Check rate limiting first
+    if (isRateLimited())
     {
-        currentReceipt.message = server.arg("message");
+        server.send(429, "text/plain", "Rate limit exceeded. Please wait before sending another request.");
+        return;
+    }
 
-        // Check if a custom date was provided
-        if (server.hasArg("date"))
+    // Validate message parameter exists
+    if (!server.hasArg("message"))
+    {
+        sendValidationError(ValidationResult(false, "Missing required parameter 'message'"));
+        return;
+    }
+
+    String message = server.arg("message");
+
+    // Validate message content
+    ValidationResult messageValidation = validateMessage(message);
+    if (!messageValidation.isValid)
+    {
+        sendValidationError(messageValidation);
+        return;
+    }
+
+    // Validate custom date if provided
+    if (server.hasArg("date"))
+    {
+        String customDate = server.arg("date");
+        ValidationResult dateValidation = validateParameter(customDate, "date", 50, false);
+        if (!dateValidation.isValid)
         {
-            String customDate = server.arg("date");
-            currentReceipt.timestamp = formatCustomDate(customDate);
-            LOG_VERBOSE("WEB", "Using custom date: %s", customDate.c_str());
-        }
-        else
-        {
-            currentReceipt.timestamp = getFormattedDateTime();
-            LOG_VERBOSE("WEB", "Using current date");
+            sendValidationError(dateValidation);
+            return;
         }
 
-        currentReceipt.hasData = true;
-
-        LOG_VERBOSE("WEB", "Scribing message: %s", currentReceipt.message.c_str());
-
-        server.send(200, "text/plain", "Receipt received and sent to printer");
+        currentReceipt.timestamp = formatCustomDate(customDate);
+        LOG_VERBOSE("WEB", "Using custom date: %s", customDate.c_str());
     }
     else
     {
-        server.send(400, "text/plain", "Missing message parameter");
+        currentReceipt.timestamp = getFormattedDateTime();
+        LOG_VERBOSE("WEB", "Using current date");
     }
+
+    // All validation passed, process the request
+    currentReceipt.message = message;
+    currentReceipt.hasData = true;
+
+    LOG_NOTICE("WEB", "Valid message received for printing: %d characters", message.length());
+
+    server.send(200, "text/plain", "Receipt received and sent to printer");
 }
 
 void handleStatus()
@@ -310,6 +616,21 @@ String replaceTemplate(String templateStr, const String &placeholder, const Stri
 
 void handlePrintTest()
 {
+    // Validate optional parameters
+    ValidationResult modeValidation = validatePrintMode();
+    if (!modeValidation.isValid)
+    {
+        sendValidationError(modeValidation);
+        return;
+    }
+
+    ValidationResult remoteValidation = validateRemoteParameter();
+    if (!remoteValidation.isValid)
+    {
+        sendValidationError(remoteValidation);
+        return;
+    }
+
     // Load print test content from file
     String testContent = loadPrintTestContent();
     String fullContent = "PRINT TEST\n\n" + testContent + "\n\n";
@@ -320,14 +641,47 @@ void handlePrintTest()
 
 void handleNotFound()
 {
+    // Rate limit 404 requests to prevent abuse
+    if (isRateLimited())
+    {
+        server.send(429, "text/plain", "Rate limit exceeded");
+        return;
+    }
+
     String uri = server.uri();
     String method = (server.method() == HTTP_GET) ? "GET" : "POST";
 
+    // Validate URI to prevent log injection
+    if (uri.length() > maxUriDisplayLength)
+    {
+        uri = uri.substring(0, maxUriDisplayLength) + "..."; // Truncate very long URIs
+    }
+
+    // Remove any potential log injection characters
+    uri.replace('\n', ' ');
+    uri.replace('\r', ' ');
+
     // Build comprehensive 404 error message for logging
     String errorDetails = "=== 404 Error === | Method: " + method + " | URI: " + uri + " | Args: " + String(server.args());
-    for (int i = 0; i < server.args(); i++)
+
+    // Limit argument logging to prevent log flooding
+    int maxArgs = min(server.args(), 5);
+    for (int i = 0; i < maxArgs; i++)
     {
-        errorDetails += " | " + server.argName(i) + ": " + server.arg(i);
+        String argName = server.argName(i);
+        String argValue = server.arg(i);
+
+        // Sanitize and truncate arguments
+        if (argName.length() > 50)
+            argName = argName.substring(0, 50) + "...";
+        if (argValue.length() > 100)
+            argValue = argValue.substring(0, 100) + "...";
+        argName.replace('\n', ' ');
+        argName.replace('\r', ' ');
+        argValue.replace('\n', ' ');
+        argValue.replace('\r', ' ');
+
+        errorDetails += " | " + argName + ": " + argValue;
     }
     errorDetails += " | ================";
 
@@ -371,6 +725,21 @@ String reverseString(const String &str)
 
 void handleRiddle()
 {
+    // Validate optional parameters
+    ValidationResult modeValidation = validatePrintMode();
+    if (!modeValidation.isValid)
+    {
+        sendValidationError(modeValidation);
+        return;
+    }
+
+    ValidationResult remoteValidation = validateRemoteParameter();
+    if (!remoteValidation.isValid)
+    {
+        sendValidationError(remoteValidation);
+        return;
+    }
+
     // Ensure LittleFS is mounted
     if (!LittleFS.begin())
     {
@@ -436,11 +805,26 @@ void handleRiddle()
 
 void handleJoke()
 {
+    // Validate optional parameters
+    ValidationResult modeValidation = validatePrintMode();
+    if (!modeValidation.isValid)
+    {
+        sendValidationError(modeValidation);
+        return;
+    }
+
+    ValidationResult remoteValidation = validateRemoteParameter();
+    if (!remoteValidation.isValid)
+    {
+        sendValidationError(remoteValidation);
+        return;
+    }
+
     // Start with fallback joke
     String dadJoke = "Why don't scientists trust atoms? Because they make up everything!";
 
     // Try to fetch from API
-    String response = fetchFromAPI("https://icanhazdadjoke.com/", apiUserAgent);
+    String response = fetchFromAPI(dadJokeAPI, apiUserAgent);
 
     if (response.length() > 0)
     {
@@ -452,7 +836,7 @@ void handleJoke()
         {
             String apiJoke = doc["joke"].as<String>();
             apiJoke.trim();
-            if (apiJoke.length() > 10) // Ensure it's a real joke, not empty
+            if (apiJoke.length() > minJokeLength) // Ensure it's a real joke, not empty
             {
                 dadJoke = apiJoke;
             }
@@ -467,16 +851,31 @@ void handleJoke()
 
 void handleQuote()
 {
+    // Validate optional parameters
+    ValidationResult modeValidation = validatePrintMode();
+    if (!modeValidation.isValid)
+    {
+        sendValidationError(modeValidation);
+        return;
+    }
+
+    ValidationResult remoteValidation = validateRemoteParameter();
+    if (!remoteValidation.isValid)
+    {
+        sendValidationError(remoteValidation);
+        return;
+    }
+
     // Start with fallback quote
     String quote = "\"Your mind is for having ideas, not holding them.\"\n– David Allen";
 
     // Try to fetch from API
-    String response = fetchFromAPI("https://zenquotes.io/api/random", apiUserAgent);
+    String response = fetchFromAPI(quoteAPI, apiUserAgent);
 
     if (response.length() > 0)
     {
         // Parse JSON response (expecting array format)
-        DynamicJsonDocument doc(2048);
+        DynamicJsonDocument doc(largeJsonDocumentSize);
         DeserializationError error = deserializeJson(doc, response);
 
         if (!error && doc.is<JsonArray>() && doc.size() > 0)
@@ -506,13 +905,28 @@ void handleQuote()
 
 void handleQuiz()
 {
+    // Validate optional parameters
+    ValidationResult modeValidation = validatePrintMode();
+    if (!modeValidation.isValid)
+    {
+        sendValidationError(modeValidation);
+        return;
+    }
+
+    ValidationResult remoteValidation = validateRemoteParameter();
+    if (!remoteValidation.isValid)
+    {
+        sendValidationError(remoteValidation);
+        return;
+    }
+
     // Start with fallback quiz question
     String question = "What is the largest planet in our solar system?";
     String correctAnswer = "Jupiter";
     String answers[4] = {"Mars", "Jupiter", "Saturn", "Earth"};
 
     // Try to fetch from API
-    String response = fetchFromAPI("https://the-trivia-api.com/api/questions?categories=general_knowledge&difficulty=medium&limit=1", apiUserAgent);
+    String response = fetchFromAPI(triviaAPI, apiUserAgent);
 
     if (response.length() > 0)
     {
@@ -576,43 +990,62 @@ void handleQuiz()
 
 void handleMQTTSend()
 {
+    // Check rate limiting first
+    if (isRateLimited())
+    {
+        server.send(429, "text/plain", "Rate limit exceeded. Please wait before sending another request.");
+        return;
+    }
+
     if (!mqttClient.connected())
     {
         server.send(503, "text/plain", "MQTT client not connected");
         return;
     }
 
-    // Parse JSON body
+    // Get and validate JSON body
     String body = server.arg("plain");
     if (body.length() == 0)
     {
-        server.send(400, "text/plain", "No JSON body provided");
+        sendValidationError(ValidationResult(false, "No JSON body provided"));
         return;
     }
 
-    // Parse the JSON
-    DynamicJsonDocument doc(4096); // Increased to match MQTT buffer size
-    DeserializationError error = deserializeJson(doc, body);
-
-    if (error)
+    // Validate JSON structure
+    const char *requiredFields[] = {"topic", "message"};
+    ValidationResult jsonValidation = validateJSON(body, requiredFields, 2);
+    if (!jsonValidation.isValid)
     {
-        server.send(400, "text/plain", "Invalid JSON: " + String(error.c_str()));
+        sendValidationError(jsonValidation);
         return;
     }
 
-    // Extract topic and message
-    if (!doc.containsKey("topic") || !doc.containsKey("message"))
-    {
-        server.send(400, "text/plain", "JSON must contain 'topic' and 'message' fields");
-        return;
-    }
+    // Parse the JSON (we know it's valid now)
+    DynamicJsonDocument doc(4096);
+    deserializeJson(doc, body); // No need to check error again
 
     String topic = doc["topic"].as<String>();
     String message = doc["message"].as<String>();
 
+    // Validate MQTT topic
+    ValidationResult topicValidation = validateMQTTTopic(topic);
+    if (!topicValidation.isValid)
+    {
+        sendValidationError(topicValidation);
+        return;
+    }
+
+    // Validate message content
+    ValidationResult messageValidation = validateMessage(message);
+    if (!messageValidation.isValid)
+    {
+        sendValidationError(messageValidation);
+        return;
+    }
+
     // Create the MQTT payload as JSON with proper escaping
-    DynamicJsonDocument payloadDoc(4096); // Increased to match MQTT buffer size
-    payloadDoc["message"] = message;      // ArduinoJson handles escaping automatically
+    DynamicJsonDocument payloadDoc(4096);
+    payloadDoc["message"] = message; // ArduinoJson handles escaping automatically
 
     String payload;
     serializeJson(payloadDoc, payload);
@@ -620,12 +1053,12 @@ void handleMQTTSend()
     // Publish to MQTT
     if (mqttClient.publish(topic.c_str(), payload.c_str()))
     {
-        LOG_VERBOSE("WEB", "MQTT message sent to topic: %s", topic.c_str());
+        LOG_NOTICE("WEB", "MQTT message sent to topic: %s (%d characters)", topic.c_str(), message.length());
         server.send(200, "text/plain", "Message sent successfully!");
     }
     else
     {
         LOG_ERROR("WEB", "Failed to send MQTT message to topic: %s", topic.c_str());
-        server.send(500, "text/plain", "Failed to send MQTT message");
+        server.send(500, "text/plain", "Failed to send MQTT message - broker error");
     }
 }

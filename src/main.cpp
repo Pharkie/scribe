@@ -24,11 +24,10 @@
 #include "logging.h"
 
 // === Web Server ===
-WebServer server(80);
+WebServer server(webServerPort);
 
 // === Memory Monitoring Variables ===
 unsigned long lastMemCheck = 0;
-const unsigned long memCheckInterval = 60000; // 60 seconds
 
 void setup()
 {
@@ -62,9 +61,9 @@ void setup()
               enableBetterStackLogging ? "ON" : "OFF");
 
   // Enable watchdog timer
-  esp_task_wdt_init(8, true);
+  esp_task_wdt_init(watchdogTimeoutSeconds, true);
   esp_task_wdt_add(NULL);
-  LOG_VERBOSE("BOOT", "Watchdog timer enabled (8s timeout) (Pre-NTP sync)");
+  LOG_VERBOSE("BOOT", "Watchdog timer enabled (%ds timeout) (Pre-NTP sync)", watchdogTimeoutSeconds);
 
   // Initialize timezone with automatic DST handling (must be after WiFi for NTP sync)
   setupTimezone();
