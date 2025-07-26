@@ -23,12 +23,12 @@ void validateConfig()
 
     // Check runtime variables are initialized (should be set by initializePrinterConfig)
     Serial.print("Checking wifiSSID... ");
-    if (!wifiSSID)
+    if (!getWifiSSID())
     {
         Serial.println("ERROR: wifiSSID is NULL! Did initializePrinterConfig() run?");
         return;
     }
-    else if (strlen(wifiSSID) == 0)
+    else if (strlen(getWifiSSID()) == 0)
     {
         Serial.println("ERROR: wifiSSID is empty string!");
         return;
@@ -36,16 +36,16 @@ void validateConfig()
     else
     {
         Serial.print("OK: ");
-        Serial.println(wifiSSID);
+        Serial.println(getWifiSSID());
     }
 
     Serial.print("Checking wifiPassword... ");
-    if (!wifiPassword)
+    if (!getWifiPassword())
     {
         Serial.println("ERROR: wifiPassword is NULL!");
         return;
     }
-    else if (strlen(wifiPassword) == 0)
+    else if (strlen(getWifiPassword()) == 0)
     {
         Serial.println("ERROR: wifiPassword is empty string!");
         return;
@@ -53,7 +53,7 @@ void validateConfig()
     else
     {
         Serial.print("OK: ");
-        Serial.println(wifiPassword);
+        Serial.println(getWifiPassword());
     }
 
     // Check local printer configuration
@@ -73,23 +73,36 @@ void validateConfig()
     Serial.print(getLocalPrinterName());
     Serial.print(" -> ");
     Serial.println(getLocalPrinterTopic()); // Check mDNS hostname
-    if (!mdnsHostname || strlen(mdnsHostname) == 0)
+    if (!getMdnsHostname() || strlen(getMdnsHostname()) == 0)
     {
         Serial.println("ERROR: mDNS hostname not configured!");
         return;
     }
 
     Serial.print("mDNS hostname: ");
-    Serial.println(mdnsHostname);
+    Serial.println(getMdnsHostname());
+
+    // Check timezone configuration
+    Serial.print("Checking timezone... ");
+    if (!getTimezone() || strlen(getTimezone()) == 0)
+    {
+        Serial.println("ERROR: Timezone not configured!");
+        return;
+    }
+    else
+    {
+        Serial.print("OK: ");
+        Serial.println(getTimezone());
+    }
 
     Serial.println("=== CONFIGURATION VALIDATION COMPLETE - ALL OK ===");
 } // === WiFi Connection ===
 void connectToWiFi()
 {
     Serial.print("Connecting to WiFi: ");
-    Serial.println(wifiSSID);
+    Serial.println(getWifiSSID());
 
-    WiFi.begin(wifiSSID, wifiPassword);
+    WiFi.begin(getWifiSSID(), getWifiPassword());
 
     int attempts = 0;
     while (WiFi.status() != WL_CONNECTED && attempts < 30)
@@ -117,10 +130,10 @@ void connectToWiFi()
 // === mDNS Setup ===
 void setupmDNS()
 {
-    if (MDNS.begin(mdnsHostname))
+    if (MDNS.begin(getMdnsHostname()))
     {
         Serial.println("mDNS responder started");
-        Serial.println("Access the form at: http://" + String(mdnsHostname) + ".local");
+        Serial.println("Access the form at: http://" + String(getMdnsHostname()) + ".local");
 
         // Add service to MDNS-SD
         MDNS.addService("http", "tcp", 80);
@@ -142,7 +155,7 @@ void handleWiFiReconnection()
         if (millis() - lastReconnectAttempt > reconnectInterval)
         {
             Serial.println("WiFi disconnected, attempting reconnection...");
-            WiFi.begin(wifiSSID, wifiPassword);
+            WiFi.begin(getWifiSSID(), getWifiPassword());
             lastReconnectAttempt = millis();
         }
     }

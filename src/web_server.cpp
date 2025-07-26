@@ -196,7 +196,7 @@ void handleStatus()
     // Network information
     doc["wifi_connected"] = (WiFi.status() == WL_CONNECTED);
     doc["ip_address"] = WiFi.localIP().toString();
-    doc["mdns_hostname"] = String(mdnsHostname);
+    doc["mdns_hostname"] = String(getMdnsHostname());
     doc["wifi_ssid"] = WiFi.SSID();
 
     // MQTT information
@@ -354,7 +354,7 @@ void handleNotFound()
     // Replace template placeholders with dynamic content
     template404 = replaceTemplate(template404, "METHOD", method);
     template404 = replaceTemplate(template404, "URI", uri);
-    template404 = replaceTemplate(template404, "HOSTNAME", String(mdnsHostname));
+    template404 = replaceTemplate(template404, "HOSTNAME", String(getMdnsHostname()));
 
     server.send(404, "text/html; charset=UTF-8", template404);
 }

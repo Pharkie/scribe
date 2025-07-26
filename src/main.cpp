@@ -99,7 +99,7 @@ void setup()
 
   // Start the server
   server.begin();
-  String webServerInfo = "Web server started: " + String(mdnsHostname) + ".local or " + WiFi.localIP().toString();
+  String webServerInfo = "Web server started: " + String(getMdnsHostname()) + ".local or " + WiFi.localIP().toString();
   LOG_VERBOSE("BOOT", "%s", webServerInfo.c_str());
 
   // Print server info

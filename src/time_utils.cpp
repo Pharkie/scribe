@@ -1,5 +1,6 @@
 #include "time_utils.h"
 #include "logging.h"
+#include "config_utils.h"
 #include <esp_task_wdt.h>
 
 // Timezone object
@@ -74,10 +75,10 @@ String formatCustomDate(String customDate)
 void setupTimezone()
 {
     // Set location (this doesn't require NTP sync)
-    myTZ.setLocation(timezone);
+    myTZ.setLocation(getTimezone());
 
     // Log combined timezone and NTP sync start
-    LOG_VERBOSE("TIME", "Timezone set: %s | Waiting for NTP sync (Pre-NTP sync)", timezone);
+    LOG_VERBOSE("TIME", "Timezone set: %s | Waiting for NTP sync (Pre-NTP sync)", getTimezone());
 
     // Feed watchdog while waiting for NTP sync
     int attempts = 0;

@@ -12,22 +12,23 @@
 // Available options: "printer1", "printer2", "printer3", etc.
 static const char *deviceOwner = "printer1"; // <-- CHANGE THIS TO YOUR PRINTER
 
-// Printer configuration database - add new printers here
+// Printer configuration structure (defined here as it's needed for the data below)
 struct PrinterConfig
 {
-    const char *key;          // Unique identifier
+    const char *key;          // Unique identifier (used to derive MQTT topic and mDNS hostname)
     const char *wifiSSID;     // WiFi network name
     const char *wifiPassword; // WiFi password
-    const char *printerName;  // Display name
-    const char *mqttTopic;    // MQTT inbox topic
+    const char *timezone;     // Timezone (e.g., "Europe/London", "America/New_York")
 };
 
 static const PrinterConfig printerConfigs[] = {
-    // Key, WiFi SSID, WiFi Password, Printer Name, MQTT Topic
-    {"printer1", "Your_WiFi_Name", "Your_WiFi_Password", "Kitchen Printer", "scribe/printer1/inbox"},
-    {"printer2", "Your_WiFi_Name", "Your_WiFi_Password", "Office Printer", "scribe/printer2/inbox"},
-    {"printer3", "Your_WiFi_Name", "Your_WiFi_Password", "Workshop Printer", "scribe/printer3/inbox"}
-    // Add more: {"key", "WiFi_Name", "WiFi_Pass", "Display Name", "scribe/key/inbox"}
+    // Key, WiFi SSID, WiFi Password, Timezone
+    {"Kitchen", "Your_WiFi_Name", "Your_WiFi_Password", "Europe/London"},
+    {"Office", "Your_WiFi_Name", "Your_WiFi_Password", "America/New_York"},
+    {"Workshop", "Your_WiFi_Name", "Your_WiFi_Password", "Asia/Tokyo"}
+    // Add more: {"key", "WiFi_Name", "WiFi_Pass", "Timezone"}
+    // MQTT topic will be: scribe/{key}/inbox
+    // mDNS hostname will be: scribe-{key} (lowercase)
 };
 
 static const int numPrinterConfigs = sizeof(printerConfigs) / sizeof(printerConfigs[0]);
@@ -53,8 +54,7 @@ static const char *mqttUsername = "your_username";
 static const char *mqttPassword = "your_password";
 
 // Network services
-static const char *mdnsHostname = "scribe";    // Accessible at http://scribe.local
-static const char *timezone = "Europe/London"; // Timezone (automatically handles DST)
+// Timezone is now configured per-printer in the PrinterConfig struct above
 // Examples: "America/New_York", "Europe/Paris", "Asia/Tokyo", "Australia/Sydney"
 
 // ========================================

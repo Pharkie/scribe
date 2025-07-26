@@ -1,6 +1,7 @@
 #include "printer.h"
 #include "time_utils.h"
 #include "logging.h"
+#include "config_utils.h"
 #include <WiFi.h>
 #include <esp_task_wdt.h>
 
@@ -58,7 +59,7 @@ void printServerInfo()
     // Feed watchdog after first log (network logging can be slow)
     esp_task_wdt_reset();
 
-    String serverInfo = "Web interface: " + String(mdnsHostname) + ".local or " + WiFi.localIP().toString();
+    String serverInfo = "Web interface: " + String(getMdnsHostname()) + ".local or " + WiFi.localIP().toString();
 
     // Feed watchdog before thermal printing (can be slow)
     esp_task_wdt_reset();

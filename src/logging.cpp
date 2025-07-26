@@ -1,5 +1,6 @@
 #include "logging.h"
 #include "time_utils.h"
+#include "config_utils.h"
 #include <esp_task_wdt.h>
 
 // Global instance of multi-output printer
@@ -152,7 +153,7 @@ void logToMQTT(const String &message, const String &level, const String &compone
         // Create JSON log entry
         DynamicJsonDocument doc(1024);
         doc["device_timestamp"] = getFormattedDateTime();
-        doc["device"] = String(mdnsHostname);
+        doc["device"] = String(getMdnsHostname());
         doc["level"] = level;
         doc["message"] = message;
 

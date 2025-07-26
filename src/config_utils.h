@@ -3,6 +3,21 @@
 
 #include "config.h"
 #include <string.h>
+#include <stdio.h>
+#include <ctype.h>
+
+// Static buffers for derived strings
+static char derivedMqttTopic[64];
+static char derivedMdnsHostname[32];
+
+// Helper function to convert string to lowercase
+inline void toLowerCase(char *str)
+{
+    for (int i = 0; str[i]; i++)
+    {
+        str[i] = tolower(str[i]);
+    }
+}
 
 // Helper functions to get configuration values dynamically
 inline const PrinterConfig *findPrinterConfig(const char *key)
@@ -32,34 +47,57 @@ inline const char *getWifiPassword()
 inline const char *getLocalPrinterName()
 {
     const PrinterConfig *config = findPrinterConfig(deviceOwner);
-    return config ? config->printerName : "INVALID_PRINTER";
+    return config ? config->key : "INVALID_PRINTER";
 }
 
 inline const char *getLocalPrinterTopic()
 {
     const PrinterConfig *config = findPrinterConfig(deviceOwner);
-    return config ? config->mqttTopic : "INVALID_TOPIC";
+    if (config)
+    {
+        snprintf(derivedMqttTopic, sizeof(derivedMqttTopic), "scribe/%s/inbox", config->key);
+        return derivedMqttTopic;
+    }
+    return "scribe/invalid/inbox";
+}
+
+inline const char *getMdnsHostname()
+{
+    const PrinterConfig *config = findPrinterConfig(deviceOwner);
+    if (config)
+    {
+        snprintf(derivedMdnsHostname, sizeof(derivedMdnsHostname), "scribe-%s", config->key);
+        toLowerCase(derivedMdnsHostname);
+        return derivedMdnsHostname;
+    }
+    return "scribe-invalid";
+}
+
+inline const char *getTimezone()
+{
+    const PrinterConfig *config = findPrinterConfig(deviceOwner);
+    return config ? config->timezone : "UTC";
 }
 
 // Function to get other printers (all except current deviceOwner)
 inline int getOtherPrinters(const char *otherPrinters[][2], int maxPrinters)
 {
+    static char otherTopics[10][64]; // Static storage for derived topics
     int count = 0;
     for (int i = 0; i < numPrinterConfigs && count < maxPrinters; i++)
     {
         if (strcmp(printerConfigs[i].key, deviceOwner) != 0)
         {
-            otherPrinters[count][0] = printerConfigs[i].printerName;
-            otherPrinters[count][1] = printerConfigs[i].mqttTopic;
+            // Use key directly as the name
+            otherPrinters[count][0] = printerConfigs[i].key;
+            // Derive MQTT topic for this printer
+            snprintf(otherTopics[count], sizeof(otherTopics[count]), "scribe/%s/inbox", printerConfigs[i].key);
+            otherPrinters[count][1] = otherTopics[count];
             count++;
         }
     }
     return count;
 }
-
-// For compatibility with existing code - these return the dynamic values
-#define wifiSSID getWifiSSID()
-#define wifiPassword getWifiPassword()
 
 // Simple initialization function
 inline void initializePrinterConfig()
