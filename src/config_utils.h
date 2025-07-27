@@ -248,6 +248,9 @@ inline const PrinterConfig *findPrinterConfig(const char *key)
     return nullptr;
 }
 
+// Function declarations
+const char *getDeviceOwnerKey();
+
 inline const char *getWifiSSID()
 {
     const PrinterConfig *config = findPrinterConfig(deviceOwner);
