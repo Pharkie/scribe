@@ -12,8 +12,8 @@ This fork includes the following changes to the original repo:
   `src/config.h`, where they can be kept out of the### Credits and
   Acknowledgments
 - **New UI** - You can write on receipt after another more easily, now.
-- **mDNS integration** - Device accessible at http://scribe.local, as well as
-  the IP address.
+- **mDNS integration** - Device accessible at http://scribe-XXX.local, as well
+  as the IP address.
 - **MQTT remote printing** - Send messages to other Scribe printers over MQTT,
   supporting both local and remote printers. You'll need your own MQTT broker to
   use this bit (HiveMQ has a free tier).
@@ -22,8 +22,10 @@ This fork includes the following changes to the original repo:
 - **Modular code structure** - Refactored from monolithic code into different
   files for better maintainability and development e.g. HTML, CSS and JS are now
   separate files.
-- **Fun buttons** - Added Riddle, Joke, Quote, and Character Test buttons for
+- **Fun buttons** - Added Riddle, Joke, Quote, and Print Test buttons for
   entertainment and printer testing, local or remote.
+- **Hardware button support** - Physical GPIO buttons can be wired to trigger
+  any web endpoint (riddles, jokes, quotes, etc.) for tactile interaction.
 - **Comprehensive logging system** - System logging with multiple output
   destinations (Serial, LittleFS file, MQTT, BetterStack).
 - **Enhanced robustness** - new text wrapping algorithm, WiFi reconnection,
@@ -34,8 +36,7 @@ This fork includes the following changes to the original repo:
   printer from hanging during initialisation.
 - **Web server upgrades** - Favicon and 404 pages included
 
-I've modified the below text to reflect these changes, so it's now a mix of the
-original and my changes.
+The below is a mix of the original and my changes.
 
 All credit to UrbanCircles for the original concept, 3D model and original code.
 Have fun, makers!
@@ -58,11 +59,13 @@ this using a bench power supply and crocodile clips).
 The project integrates with several external APIs and local databases for
 enhanced functionality:
 
-- **Dad Jokes**: Powered by [icanhazdadjoke.com](https://icanhazdadjoke.com/) -
-  A free API providing random dad jokes
-- **Inspirational Quotes**: Powered by [ZenQuotes.io](https://zenquotes.io/) -
-  Free inspirational quotes API
-- **Random Riddles**: Local database with 545+ riddles curated by
+- **Jokes**: Powered by [icanhazdadjoke.com](https://icanhazdadjoke.com/) - A
+  free API providing random dad jokes
+- **Quotes**: Powered by [ZenQuotes.io](https://zenquotes.io/) - Free
+  inspirational quotes API
+- **Quiz**: Powered by [The Trivia API](https://the-trivia-api.com/) - Free
+  trivia questions with multiple choice answers
+- **Riddles**: Local database with 545+ riddles curated by
   [Nikhil Mohite](https://github.com/nkilm/riddles-api) - stored locally
 
 ---
