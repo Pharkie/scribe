@@ -12,8 +12,8 @@ void validateConfig()
 {
     Serial.println("=== VALIDATING CONFIGURATION ===");
 
-    // Use the new validation framework
-    ValidationResult result = ConfigValidator::validateComplete();
+    // Use the simplified validation
+    ValidationResult result = validateDeviceConfig();
 
     if (result.isValid)
     {
@@ -38,11 +38,8 @@ void validateConfig()
     else
     {
         Serial.println("❌ Configuration validation FAILED:");
-        for (int i = 0; i < result.errorCount; i++)
-        {
-            Serial.print("  ERROR: ");
-            Serial.println(result.errors[i]);
-        }
+        Serial.print("  ERROR: ");
+        Serial.println(result.errorMessage);
         Serial.println("=== CONFIGURATION VALIDATION FAILED ===");
         // Note: System will continue but may not function correctly
     }

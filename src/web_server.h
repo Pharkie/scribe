@@ -3,6 +3,8 @@
 
 #include <WebServer.h>
 #include <Arduino.h>
+#include "content_generators.h"
+#include "api_client.h"
 
 /**
  * @file web_server.h
@@ -53,12 +55,6 @@ void handleSubmit();
 void handleStatus();
 
 String loadPrintTestContent();
-String reverseString(const String &str);
-
-/**
- * @brief Make HTTPS API calls with JSON response
- */
-String fetchFromAPI(const String &url, const String &userAgent, int timeoutMs = 5000);
 
 void handlePrintTest();
 void handleRiddle();
@@ -84,13 +80,6 @@ void handleStatus();
  * @return String containing the test content
  */
 String loadPrintTestContent();
-
-/**
- * @brief Helper function to reverse a string
- * @param str The string to reverse
- * @return String containing the reversed string
- */
-String reverseString(const String &str);
 
 void handlePrintTest();
 
@@ -133,36 +122,6 @@ void handleMessage();
  * Returns hardware button configuration and status as JSON
  */
 void handleButtons();
-
-// ========================================
-// CONTENT GENERATION FUNCTIONS
-// ========================================
-// These functions generate content without web server context
-// Can be called from hardware buttons or web handlers
-
-/**
- * @brief Generate riddle content for printing
- * @return String containing formatted riddle content
- */
-String generateRiddleContent();
-
-/**
- * @brief Generate joke content for printing
- * @return String containing formatted joke content
- */
-String generateJokeContent();
-
-/**
- * @brief Generate quote content for printing
- * @return String containing formatted quote content
- */
-String generateQuoteContent();
-
-/**
- * @brief Generate quiz content for printing
- * @return String containing formatted quiz content
- */
-String generateQuizContent();
 
 /**
  * @brief Load print test content from filesystem

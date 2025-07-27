@@ -46,196 +46,82 @@ inline const char *buildPersistentMqttTopic(int index, const char *key)
 }
 
 // ========================================
-// CONFIGURATION VALIDATION FRAMEWORK
+// SIMPLIFIED CONFIGURATION VALIDATION
 // ========================================
+
+// Simple validation result structure
 struct ValidationResult
 {
     bool isValid;
-    const char *errors[maxValidationErrors]; // Fixed array for embedded systems
-    int errorCount;
-    String errorMessage; // For simple cases
+    String errorMessage;
 
-    ValidationResult() : isValid(true), errorCount(0) {}
-
-    ValidationResult(bool valid, const char *message = "") : isValid(valid), errorCount(0)
-    {
-        if (!valid && message && strlen(message) > 0)
-        {
-            errorMessage = String(message);
-            addError(message);
-        }
-    }
-
-    ValidationResult(bool valid, const String &message) : isValid(valid), errorCount(0)
-    {
-        if (!valid && message.length() > 0)
-        {
-            errorMessage = message;
-            addError(message.c_str());
-        }
-    }
-
-    void addError(const char *error)
-    {
-        if (errorCount < maxValidationErrors)
-        {
-            errors[errorCount++] = error;
-            isValid = false;
-        }
-    }
+    ValidationResult(bool valid = true, const String &message = "")
+        : isValid(valid), errorMessage(message) {}
 };
 
-class ConfigValidator
+// Unified string validation helper
+inline bool isValidString(const char *str, int maxLen, const char *fieldName, String &error)
 {
-private:
-    static ValidationResult result;
-
-public:
-    static ValidationResult validatePrinterConfig(const PrinterConfig &config)
+    if (!str || strlen(str) == 0)
     {
-        ValidationResult result;
+        error = String(fieldName) + " cannot be empty";
+        return false;
+    }
+    if (strlen(str) > maxLen)
+    {
+        error = String(fieldName) + " too long (max " + String(maxLen) + " chars)";
+        return false;
+    }
+    return true;
+}
 
-        // Validate key
-        if (!config.key || strlen(config.key) == 0)
-        {
-            result.addError("Printer key cannot be empty");
-        }
-        else if (strlen(config.key) > 32)
-        {
-            result.addError("Printer key too long (max 32 chars)");
-        }
+// Simple validation functions
+inline ValidationResult validateDeviceConfig()
+{
+    String error;
 
-        // Validate WiFi SSID
-        if (!config.wifiSSID || strlen(config.wifiSSID) == 0)
-        {
-            result.addError("WiFi SSID cannot be empty");
-        }
-        else if (strlen(config.wifiSSID) > 32)
-        {
-            result.addError("WiFi SSID too long (max 32 chars)");
-        }
-
-        // Validate WiFi password
-        if (!config.wifiPassword || strlen(config.wifiPassword) == 0)
-        {
-            result.addError("WiFi password cannot be empty");
-        }
-        else if (strlen(config.wifiPassword) > maxWifiPasswordLength)
-        {
-            result.addError("WiFi password too long (max 64 chars)");
-        }
-
-        // Validate timezone
-        if (!config.timezone || strlen(config.timezone) == 0)
-        {
-            result.addError("Timezone cannot be empty");
-        }
-        else if (strlen(config.timezone) > maxTimezoneLength)
-        {
-            result.addError("Timezone string too long (max 64 chars)");
-        }
-
-        return result;
+    // Validate deviceOwner
+    if (!isValidString(deviceOwner, 32, "Device owner", error))
+    {
+        return ValidationResult(false, error.c_str());
     }
 
-    static ValidationResult validateDeviceOwner()
+    // Check if we have printer configs
+    if (numPrinterConfigs == 0)
     {
-        ValidationResult result;
-
-        if (!deviceOwner || strlen(deviceOwner) == 0)
-        {
-            result.addError("deviceOwner cannot be empty");
-            return result;
-        }
-
-        // Check if deviceOwner exists in printer configs
-        bool found = false;
-        for (int i = 0; i < numPrinterConfigs; i++)
-        {
-            if (strcmp(printerConfigs[i].key, deviceOwner) == 0)
-            {
-                found = true;
-                break;
-            }
-        }
-
-        if (!found)
-        {
-            result.addError("deviceOwner not found in printer configurations");
-        }
-
-        return result;
+        return ValidationResult(false, "No printer configurations defined");
     }
 
-    static ValidationResult validateAllPrinterConfigs()
+    // Find matching printer config and validate it
+    const PrinterConfig *config = nullptr;
+    for (int i = 0; i < numPrinterConfigs; i++)
     {
-        ValidationResult result;
-
-        if (numPrinterConfigs == 0)
+        if (strcmp(printerConfigs[i].key, deviceOwner) == 0)
         {
-            result.addError("No printer configurations defined");
-            return result;
+            config = &printerConfigs[i];
+            break;
         }
-
-        // Validate each printer config
-        for (int i = 0; i < numPrinterConfigs; i++)
-        {
-            ValidationResult configResult = validatePrinterConfig(printerConfigs[i]);
-            if (!configResult.isValid)
-            {
-                // Combine errors (simplified for embedded)
-                for (int j = 0; j < configResult.errorCount && result.errorCount < maxValidationErrors; j++)
-                {
-                    result.addError(configResult.errors[j]);
-                }
-            }
-        }
-
-        // Check for duplicate keys
-        for (int i = 0; i < numPrinterConfigs; i++)
-        {
-            for (int j = i + 1; j < numPrinterConfigs; j++)
-            {
-                if (strcmp(printerConfigs[i].key, printerConfigs[j].key) == 0)
-                {
-                    result.addError("Duplicate printer keys found");
-                    break;
-                }
-            }
-        }
-
-        return result;
     }
 
-    static ValidationResult validateComplete()
+    if (!config)
     {
-        ValidationResult result;
-
-        // Validate all printer configs
-        ValidationResult configsResult = validateAllPrinterConfigs();
-        if (!configsResult.isValid)
-        {
-            for (int i = 0; i < configsResult.errorCount && result.errorCount < 10; i++)
-            {
-                result.addError(configsResult.errors[i]);
-            }
-        }
-
-        // Validate device owner
-        ValidationResult ownerResult = validateDeviceOwner();
-        if (!ownerResult.isValid)
-        {
-            for (int i = 0; i < ownerResult.errorCount && result.errorCount < 10; i++)
-            {
-                result.addError(ownerResult.errors[i]);
-            }
-        }
-
-        return result;
+        return ValidationResult(false, "Device owner not found in printer configurations");
     }
-};
 
-// Helper functions to get configuration values dynamically
+    // Validate current printer config
+    if (!isValidString(config->wifiSSID, 32, "WiFi SSID", error) ||
+        !isValidString(config->wifiPassword, maxWifiPasswordLength, "WiFi password", error) ||
+        !isValidString(config->timezone, maxTimezoneLength, "Timezone", error))
+    {
+        return ValidationResult(false, error.c_str());
+    }
+
+    return ValidationResult(true);
+}
+
+// ========================================
+// CONFIGURATION ACCESS FUNCTIONS
+// ========================================
 inline const PrinterConfig *findPrinterConfig(const char *key)
 {
     for (int i = 0; i < numPrinterConfigs; i++)

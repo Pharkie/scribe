@@ -17,6 +17,8 @@
 #include "time_utils.h"
 #include "logging.h"
 #include "hardware_buttons.h"
+#include "content_generators.h"
+#include "api_client.h"
 
 // === Web Server ===
 WebServer server(webServerPort);
