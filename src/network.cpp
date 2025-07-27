@@ -1,6 +1,7 @@
 #include "network.h"
 #include "logging.h"
 #include "config_utils.h"
+#include <esp_task_wdt.h>
 
 // Network status variables
 unsigned long lastReconnectAttempt = 0;
@@ -91,6 +92,9 @@ void setupmDNS()
     {
         Serial.println("Error setting up mDNS responder!");
     }
+
+    // Feed watchdog after potentially slow mDNS operations
+    esp_task_wdt_reset();
 
     LOG_VERBOSE("NETWORK", "mDNS set up");
 }

@@ -135,10 +135,11 @@ void loop()
   }
 
   // Check if we have a new receipt to print
-  if (currentReceipt.hasData)
+  if (currentReceipt.queuedForPrint)
   {
+    LOG_VERBOSE("MAIN", "Printing receipt from main loop");
     printReceipt();
-    currentReceipt.hasData = false; // Reset flag
+    currentReceipt.queuedForPrint = false; // Reset flag
   }
 
   // Monitor memory usage periodically

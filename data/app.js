@@ -68,13 +68,8 @@ function handleSubmit(event) {
     return;
   }
   
-  if (printerTarget === 'local-direct') {
-    // Print directly to local printer
-    printLocalMessage(message);
-  } else {
-    // Send via MQTT to selected printer
-    sendMQTTMessage(printerTarget, message);
-  }
+  // Use unified message endpoint for all text messages
+  sendMessage(printerTarget, message);
 }
 
 // Helper function to get action colors and name
@@ -95,18 +90,27 @@ function getActionConfig(action) {
   }
 }
 
-// Print message to local printer
-function printLocalMessage(message, action = null) {
+// Send message using unified endpoint
+function sendMessage(printerTarget, message, action = null) {
+  // Determine source parameter based on printer target
+  let source;
+  if (printerTarget === 'local-direct') {
+    source = 'local-direct';
+  } else {
+    source = printerTarget; // Use the MQTT topic as the source
+  }
+
   const formData = new FormData();
   formData.append('message', message);
+  formData.append('source', source);
   
-  fetch('/print-local', {
+  fetch('/message', {
     method: 'POST',
     body: formData
   })
   .then(response => response.text())
   .then(data => {
-    console.log('Local print response:', data);
+    console.log('Message response:', data);
     
     // Get action-specific confetti colors and name
     const actionConfig = getActionConfig(action);
@@ -120,48 +124,8 @@ function printLocalMessage(message, action = null) {
     });
     
     // Show success message
-    showSuccessMessage(`${actionConfig.name} scribed`);
-    
-    // Clear the form
-    document.getElementById('message-textarea').value = '';
-    updateCharCounter();
-  })
-  .catch(error => {
-    console.error('Error occurred:', error);
-    alert('Failed to print message. Please try again. Error: ' + error.message);
-  });
-}
-
-// Send message via MQTT
-function sendMQTTMessage(topic, message, action = null) {
-  const payload = {
-    topic: topic,
-    message: message
-  };
-
-  fetch('/mqtt-send', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(payload)
-  })
-  .then(response => response.text())
-  .then(data => {
-    // Get action-specific confetti colors and name
-    const actionConfig = getActionConfig(action);
-    
-    // Confetti effect
-    confetti({
-      particleCount: 100,
-      spread: 70,
-      origin: { y: 0.6 },
-      colors: actionConfig.colors
-    });
-    
-    // Show success message
-    const printerName = getPrinterName(topic);
-    showSuccessMessage(`${actionConfig.name} scribed`);
+    const printerName = printerTarget === 'local-direct' ? 'local printer' : getPrinterName(printerTarget);
+    showSuccessMessage(`${actionConfig.name} scribed to ${printerName}`);
     
     // Clear the form
     document.getElementById('message-textarea').value = '';
@@ -207,20 +171,39 @@ function sendQuickAction(action) {
       return;
   }
   
-  // Step 1: Get content from the content endpoint
+  // Determine source parameter based on printer target
+  let source;
+  if (printerTarget === 'local-direct') {
+    source = 'local-direct';  // Hardware buttons and web local-direct use "local-direct"
+  } else {
+    source = printerTarget; // Use the MQTT topic as the source
+  }
+  
+  // Single unified call - processEndpoint handles everything
   fetch(endpoint, {
-    method: 'POST'
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded'
+    },
+    body: `source=${encodeURIComponent(source)}`
   })
   .then(response => response.text())
   .then(content => {
-    // Step 2: Send content via appropriate channel with action type
-    if (printerTarget === 'local-direct') {
-      // Send to local printer with action type for correct colors
-      printLocalMessage(content, action);
-    } else {
-      // Send via MQTT with action type for correct colors
-      sendMQTTMessage(printerTarget, content, action);
-    }
+    console.log('Response:', content);
+    
+    // Get action-specific confetti colors and name
+    const actionConfig = getActionConfig(action);
+    
+    // Confetti effect
+    confetti({
+      particleCount: 50,
+      spread: 60,
+      origin: { y: 0.6 },
+      colors: actionConfig.colors
+    });
+    
+    // Show success message
+    showSuccessMessage(`${actionConfig.name} scribed`);
   })
   .catch(error => {
     console.error('Error occurred:', error);

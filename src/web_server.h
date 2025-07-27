@@ -24,7 +24,7 @@ struct Receipt
 {
     String message;
     String timestamp;
-    bool hasData;
+    bool queuedForPrint;
 };
 
 // Forward declarations
@@ -46,10 +46,19 @@ void handleRoot();
 /**
  * @brief Process endpoint and generate content (shared by web and hardware buttons)
  * @param endpoint The endpoint to process (e.g., "/riddle", "/joke")
- * @param fromHardware True if called from hardware button, false if from web
+ * @param destination The destination: "local-direct" for direct local printing, or MQTT topic for MQTT routing
  * @return True if content was generated successfully
  */
-bool processEndpoint(const char *endpoint, bool fromHardware = false);
+bool processEndpoint(const char *endpoint, const char *destination = "local-direct");
+
+/**
+ * @brief Process custom message content with unified routing
+ * @param message The message content to process
+ * @param timestamp The timestamp to use for the message
+ * @param destination The destination: "local-direct" for direct local printing, or MQTT topic for MQTT routing
+ * @return True if message was processed successfully
+ */
+bool processCustomMessage(const String &message, const String &timestamp, const char *destination);
 
 /**
  * @brief Handle form submission from the web interface
@@ -120,6 +129,12 @@ void handleQuote();
  * Content should be sent to printer via /print-local or /mqtt-send endpoints
  */
 void handleQuiz();
+
+/**
+ * @brief Handle requests to /message endpoint
+ * Unified text message handling that works with source parameter routing
+ */
+void handleMessage();
 
 /**
  * @brief Handle requests to /buttons endpoint

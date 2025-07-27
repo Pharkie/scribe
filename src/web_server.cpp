@@ -27,6 +27,47 @@ Receipt currentReceipt = {"", "", false};
 static int localMaxReceiptChars = maxReceiptChars;
 
 // ========================================
+// UTILITY FUNCTIONS
+// ========================================
+
+/**
+ * @brief URL decode a string (handle %XX encoding)
+ * @param str String to decode
+ * @return Decoded string
+ */
+String urlDecode(String str)
+{
+    String decoded = "";
+    char temp[] = "00";
+    unsigned int len = str.length();
+
+    for (unsigned int i = 0; i < len; i++)
+    {
+        char decodedChar;
+        if (str[i] == '%')
+        {
+            if (i + 2 < len)
+            {
+                temp[0] = str[i + 1];
+                temp[1] = str[i + 2];
+                decodedChar = (char)strtol(temp, NULL, 16);
+                decoded += decodedChar;
+                i += 2;
+            }
+            else
+            {
+                decoded += str[i]; // Invalid encoding, keep as-is
+            }
+        }
+        else
+        {
+            decoded += str[i];
+        }
+    }
+    return decoded;
+}
+
+// ========================================
 // RATE LIMITING AND SECURITY
 // ========================================
 
@@ -97,10 +138,15 @@ ValidationResult validateMessage(const String &message, int maxLength = -1)
         return ValidationResult(false, "Message too long. Maximum " + String(maxLength) + " characters allowed, got " + String(message.length()));
     }
 
-    // Check for null bytes (can cause printing issues)
-    if (message.indexOf('\0') != -1)
+    // Check for null bytes WITHIN the message content (not the terminator)
+    // We need to manually check each character instead of using indexOf
+    for (unsigned int i = 0; i < message.length(); i++)
     {
-        return ValidationResult(false, "Message contains null bytes which are not allowed");
+        if (message.charAt(i) == '\0')
+        {
+            LOG_WARNING("WEB", "Found null byte at position %d in message content", i);
+            return ValidationResult(false, "Message contains null bytes which are not allowed");
+        }
     }
 
     // Check for excessive control characters (except common ones like \n, \r, \t)
@@ -273,23 +319,6 @@ void sendValidationError(const ValidationResult &result, int statusCode = 400)
 }
 
 /**
- * @brief Validate optional print mode parameter
- * @return ValidationResult with validation status and error message
- */
-ValidationResult validatePrintMode()
-{
-    if (server.hasArg("mode"))
-    {
-        String mode = server.arg("mode");
-        if (mode != "print" && mode != "content")
-        {
-            return ValidationResult(false, "Invalid mode parameter. Must be 'print' or 'content'");
-        }
-    }
-    return ValidationResult(true);
-}
-
-/**
  * @brief Validate optional remote parameter (for MQTT sending)
  * @return ValidationResult with validation status and error message
  */
@@ -358,20 +387,23 @@ void setupWebServerRoutes(int maxChars)
     // Also handle submission via URL
     server.on("/print-local", HTTP_GET, handleSubmit);
 
-    // Test print endpoint (supports both local print and remote content modes)
+    // Test print endpoint - prints locally and returns content
     server.on("/test-print", HTTP_POST, handlePrintTest);
 
-    // Riddle endpoint (supports both local print and remote content modes)
+    // Riddle endpoint - prints locally and returns content
     server.on("/riddle", HTTP_POST, handleRiddle);
 
-    // Joke endpoint (supports both local print and remote content modes)
+    // Joke endpoint - prints locally and returns content
     server.on("/joke", HTTP_POST, handleJoke);
 
-    // Quote endpoint (supports both local print and remote content modes)
+    // Quote endpoint - prints locally and returns content
     server.on("/quote", HTTP_POST, handleQuote);
 
-    // Quiz endpoint (supports both local print and remote content modes)
+    // Quiz endpoint - prints locally and returns content
     server.on("/quiz", HTTP_POST, handleQuiz);
+
+    // Message endpoint - unified text message handling
+    server.on("/message", HTTP_POST, handleMessage);
 
     // System status endpoint
     server.on("/status", HTTP_GET, handleStatus);
@@ -455,10 +487,18 @@ void handleSubmit()
 
     String message = server.arg("message");
 
+    // URL decode the message (handles %20 for spaces, etc.)
+    message.replace("+", " "); // Handle + as space in URL encoding
+    message = urlDecode(message);
+
+    // Debug: Log message details (can be removed after testing)
+    LOG_VERBOSE("WEB", "Received message: length=%d, content: '%.50s'", message.length(), message.c_str());
+
     // Validate message content
     ValidationResult messageValidation = validateMessage(message);
     if (!messageValidation.isValid)
     {
+        LOG_WARNING("WEB", "Message validation failed: %s", messageValidation.errorMessage.c_str());
         sendValidationError(messageValidation);
         return;
     }
@@ -485,9 +525,9 @@ void handleSubmit()
 
     // All validation passed, process the request
     currentReceipt.message = message;
-    currentReceipt.hasData = true;
+    currentReceipt.queuedForPrint = true;
 
-    LOG_NOTICE("WEB", "Valid message received for printing: %d characters", message.length());
+    LOG_VERBOSE("WEB", "Valid message received for printing: %d characters", message.length());
 
     server.send(200, "text/plain", "Receipt received and sent to printer");
 }
@@ -568,20 +608,22 @@ String loadPrintTestContent()
 }
 
 /**
- * @brief Process endpoint and generate content (shared by web and hardware buttons)
+ * @brief Process endpoint with unified source handling (shared by hardware buttons and web interface)
  * @param endpoint The endpoint to process (e.g., "/riddle", "/joke")
- * @param fromHardware True if called from hardware button, false if from web
- * @return True if content was generated and printed successfully
+ * @param destination The destination: "local-direct" for direct local printing, or MQTT topic name for MQTT routing
+ * @return True if content was generated and handled successfully
  */
-bool processEndpoint(const char *endpoint, bool fromHardware)
+bool processEndpoint(const char *endpoint, const char *destination)
 {
-    if (!endpoint)
+    if (!endpoint || !destination)
     {
-        LOG_ERROR("WEB", "Null endpoint provided");
+        LOG_ERROR("WEB", "Null endpoint or destination provided");
         return false;
     }
 
-    LOG_NOTICE("WEB", "Processing endpoint: %s (source: %s)", endpoint, fromHardware ? "hardware" : "web");
+    bool isLocalDirect = (strcmp(destination, "local-direct") == 0);
+
+    LOG_VERBOSE("WEB", "Processing endpoint: %s (destination: %s)", endpoint, destination);
 
     String content;
     bool success = false;
@@ -609,10 +651,8 @@ bool processEndpoint(const char *endpoint, bool fromHardware)
     }
     else if (strcmp(endpoint, "/print-test") == 0)
     {
-        content = "Test Print from " + String(fromHardware ? "Hardware Button" : "Web Interface") + "\n"
-                                                                                                    "Time: " +
-                  String(millis()) + "ms\n"
-                                     "Test Successful!\n";
+        String testContent = loadPrintTestContent();
+        content = "TEST PRINT\n\n" + testContent + "\n\n";
         success = true;
     }
     else
@@ -627,18 +667,96 @@ bool processEndpoint(const char *endpoint, bool fromHardware)
         return false;
     }
 
-    // Set up receipt and print
+    // Set up receipt data
     currentReceipt.message = content;
-    currentReceipt.hasData = true;
     currentReceipt.timestamp = getFormattedDateTime();
 
-    if (fromHardware)
+    // Handle routing based on destination
+    if (isLocalDirect)
     {
-        // For hardware buttons, print immediately
-        printReceipt();
-        LOG_NOTICE("WEB", "Hardware button content printed successfully");
+        // Local direct printing: queue for local printer
+        currentReceipt.queuedForPrint = true;
+        LOG_VERBOSE("WEB", "Content queued for local direct printing");
     }
-    // For web requests, the HTTP handler will send the response
+    else
+    {
+        // MQTT: send via MQTT, don't print locally
+        currentReceipt.queuedForPrint = false;
+        LOG_VERBOSE("WEB", "Content will be sent via MQTT to topic: %s", destination);
+
+        // Create JSON payload for MQTT (same format as handleMQTTSend)
+        DynamicJsonDocument payloadDoc(jsonDocumentSize);
+        payloadDoc["message"] = content;
+        payloadDoc["timestamp"] = getFormattedDateTime();
+        payloadDoc["sender"] = getMdnsHostname();
+
+        String payload;
+        serializeJson(payloadDoc, payload);
+
+        // Send via MQTT
+        if (mqttClient.publish(destination, payload.c_str()))
+        {
+            LOG_VERBOSE("WEB", "Content successfully sent via MQTT");
+        }
+        else
+        {
+            LOG_ERROR("WEB", "Failed to send content via MQTT");
+            return false;
+        }
+    }
+
+    return true;
+}
+
+bool processCustomMessage(const String &message, const String &timestamp, const char *destination)
+{
+    if (!destination)
+    {
+        LOG_ERROR("WEB", "Null destination provided");
+        return false;
+    }
+
+    bool isLocalDirect = (strcmp(destination, "local-direct") == 0);
+
+    LOG_VERBOSE("WEB", "Processing custom message (destination: %s)", destination);
+
+    // Set up receipt data
+    currentReceipt.message = message;
+    currentReceipt.timestamp = timestamp;
+
+    // Handle routing based on destination
+    if (isLocalDirect)
+    {
+        // Local direct printing: queue for local printer
+        currentReceipt.queuedForPrint = true;
+        LOG_VERBOSE("WEB", "Custom message queued for local direct printing");
+    }
+    else
+    {
+        // MQTT: send via MQTT, don't print locally
+        currentReceipt.queuedForPrint = false;
+        LOG_VERBOSE("WEB", "Custom message will be sent via MQTT to topic: %s", destination);
+
+        // Create JSON payload for MQTT (same format as handleMQTTSend)
+        DynamicJsonDocument payloadDoc(jsonDocumentSize);
+        payloadDoc["message"] = message;
+        payloadDoc["timestamp"] = timestamp;
+        payloadDoc["sender"] = getMdnsHostname();
+
+        String payload;
+        serializeJson(payloadDoc, payload);
+
+        // Send via MQTT
+        if (mqttClient.publish(destination, payload.c_str()))
+        {
+            LOG_VERBOSE("WEB", "Custom message successfully sent via MQTT");
+        }
+        else
+        {
+            LOG_ERROR("WEB", "Failed to send custom message via MQTT");
+            return false;
+        }
+    }
 
     return true;
 }
@@ -727,7 +845,7 @@ String generateJokeContent()
         }
     }
 
-    String fullContent = "DAD JOKE\n\n" + dadJoke;
+    String fullContent = "JOKE\n\n" + dadJoke;
     return fullContent;
 }
 
@@ -763,13 +881,32 @@ String generateQuoteContent()
         }
     }
 
-    String fullContent = "INSPIRATION\n\n" + quote;
+    String fullContent = "QUOTE\n\n" + quote;
     return fullContent;
 }
 
 String generateQuizContent()
 {
-    String quiz = "TRIVIA QUESTION\n\nWhat is the capital of France?\nA) London\nB) Berlin\nC) Paris\nD) Madrid\n\n\n\nAnswer: C) Paris";
+    // Randomize the fallback quiz answer position
+    int correctPosition = random(0, 4);
+    String options[4] = {"London", "Berlin", "Paris", "Madrid"};
+    String correctAnswer = "Paris";
+    String positionLabels[4] = {"A", "B", "C", "D"};
+
+    // Swap the correct answer to the random position
+    if (correctPosition != 2)
+    { // Paris is at index 2
+        String temp = options[correctPosition];
+        options[correctPosition] = correctAnswer;
+        options[2] = temp;
+    }
+
+    String quiz = "QUIZ\n\nWhat is the capital of France?\n";
+    quiz += "A) " + options[0] + "\n";
+    quiz += "B) " + options[1] + "\n";
+    quiz += "C) " + options[2] + "\n";
+    quiz += "D) " + options[3] + "\n\n\n\n";
+    quiz += "Answer: " + reverseString(correctAnswer);
 
     // Try to fetch from API
     String response = fetchFromAPI(triviaAPI, apiUserAgent);
@@ -795,12 +932,32 @@ String generateQuizContent()
 
                 if (question.length() > 0 && correctAnswer.length() > 0 && incorrectAnswers.size() >= 3)
                 {
-                    quiz = "TRIVIA QUESTION\n\n" + question + "\n";
-                    quiz += "A) " + incorrectAnswers[0].as<String>() + "\n";
-                    quiz += "B) " + incorrectAnswers[1].as<String>() + "\n";
-                    quiz += "C) " + correctAnswer + "\n";
-                    quiz += "D) " + incorrectAnswers[2].as<String>() + "\n\n\n\n";
-                    quiz += "Answer: C) " + correctAnswer;
+                    // Randomize the position of the correct answer (A, B, C, or D)
+                    int correctPosition = random(0, 4);
+                    String options[4];
+                    String positionLabels[4] = {"A", "B", "C", "D"};
+
+                    // Fill with incorrect answers first
+                    int incorrectIndex = 0;
+                    for (int i = 0; i < 4; i++)
+                    {
+                        if (i == correctPosition)
+                        {
+                            options[i] = correctAnswer;
+                        }
+                        else
+                        {
+                            options[i] = incorrectAnswers[incorrectIndex].as<String>();
+                            incorrectIndex++;
+                        }
+                    }
+
+                    quiz = "QUIZ\n\n" + question + "\n";
+                    quiz += "A) " + options[0] + "\n";
+                    quiz += "B) " + options[1] + "\n";
+                    quiz += "C) " + options[2] + "\n";
+                    quiz += "D) " + options[3] + "\n\n\n\n";
+                    quiz += "Answer: " + reverseString(correctAnswer);
                 }
             }
         }
@@ -881,13 +1038,6 @@ String replaceTemplate(String templateStr, const String &placeholder, const Stri
 void handlePrintTest()
 {
     // Validate optional parameters
-    ValidationResult modeValidation = validatePrintMode();
-    if (!modeValidation.isValid)
-    {
-        sendValidationError(modeValidation);
-        return;
-    }
-
     ValidationResult remoteValidation = validateRemoteParameter();
     if (!remoteValidation.isValid)
     {
@@ -895,12 +1045,19 @@ void handlePrintTest()
         return;
     }
 
-    // Load print test content from file
-    String testContent = loadPrintTestContent();
-    String fullContent = "PRINT TEST\n\n" + testContent + "\n\n";
+    // Check for source parameter - determines routing
+    String source = server.hasArg("source") ? server.arg("source") : "local-direct";
 
-    // Return the content as plain text
-    server.send(200, "text/plain", fullContent);
+    // Use unified endpoint processing
+    if (processEndpoint("/print-test", source.c_str()))
+    {
+        // Return the content as plain text
+        server.send(200, "text/plain", currentReceipt.message);
+    }
+    else
+    {
+        server.send(500, "text/plain", "Failed to generate print test content");
+    }
 }
 
 void handleNotFound()
@@ -989,14 +1146,9 @@ String reverseString(const String &str)
 
 void handleRiddle()
 {
-    // Validate optional parameters
-    ValidationResult modeValidation = validatePrintMode();
-    if (!modeValidation.isValid)
-    {
-        sendValidationError(modeValidation);
-        return;
-    }
+    LOG_VERBOSE("WEB", "handleRiddle() called");
 
+    // Validate optional parameters
     ValidationResult remoteValidation = validateRemoteParameter();
     if (!remoteValidation.isValid)
     {
@@ -1004,8 +1156,11 @@ void handleRiddle()
         return;
     }
 
-    // Use shared endpoint processing
-    if (processEndpoint("/riddle", false))
+    // Check for source parameter - determines routing
+    String source = server.hasArg("source") ? server.arg("source") : "local-direct";
+
+    // Use unified endpoint processing
+    if (processEndpoint("/riddle", source.c_str()))
     {
         // Return the content as plain text
         server.send(200, "text/plain", currentReceipt.message);
@@ -1019,13 +1174,6 @@ void handleRiddle()
 void handleJoke()
 {
     // Validate optional parameters
-    ValidationResult modeValidation = validatePrintMode();
-    if (!modeValidation.isValid)
-    {
-        sendValidationError(modeValidation);
-        return;
-    }
-
     ValidationResult remoteValidation = validateRemoteParameter();
     if (!remoteValidation.isValid)
     {
@@ -1033,8 +1181,11 @@ void handleJoke()
         return;
     }
 
-    // Use shared endpoint processing
-    if (processEndpoint("/joke", false))
+    // Check for source parameter - determines routing
+    String source = server.hasArg("source") ? server.arg("source") : "local-direct";
+
+    // Use unified endpoint processing
+    if (processEndpoint("/joke", source.c_str()))
     {
         // Return the content as plain text
         server.send(200, "text/plain", currentReceipt.message);
@@ -1048,13 +1199,6 @@ void handleJoke()
 void handleQuote()
 {
     // Validate optional parameters
-    ValidationResult modeValidation = validatePrintMode();
-    if (!modeValidation.isValid)
-    {
-        sendValidationError(modeValidation);
-        return;
-    }
-
     ValidationResult remoteValidation = validateRemoteParameter();
     if (!remoteValidation.isValid)
     {
@@ -1062,8 +1206,11 @@ void handleQuote()
         return;
     }
 
-    // Use shared endpoint processing
-    if (processEndpoint("/quote", false))
+    // Check for source parameter - determines routing
+    String source = server.hasArg("source") ? server.arg("source") : "local-direct";
+
+    // Use unified endpoint processing
+    if (processEndpoint("/quote", source.c_str()))
     {
         // Return the content as plain text
         server.send(200, "text/plain", currentReceipt.message);
@@ -1077,13 +1224,6 @@ void handleQuote()
 void handleQuiz()
 {
     // Validate optional parameters
-    ValidationResult modeValidation = validatePrintMode();
-    if (!modeValidation.isValid)
-    {
-        sendValidationError(modeValidation);
-        return;
-    }
-
     ValidationResult remoteValidation = validateRemoteParameter();
     if (!remoteValidation.isValid)
     {
@@ -1091,8 +1231,11 @@ void handleQuiz()
         return;
     }
 
-    // Use shared endpoint processing
-    if (processEndpoint("/quiz", false))
+    // Check for source parameter - determines routing
+    String source = server.hasArg("source") ? server.arg("source") : "local-direct";
+
+    // Use unified endpoint processing
+    if (processEndpoint("/quiz", source.c_str()))
     {
         // Return the content as plain text
         server.send(200, "text/plain", currentReceipt.message);
@@ -1100,6 +1243,75 @@ void handleQuiz()
     else
     {
         server.send(500, "text/plain", "Failed to generate quiz content");
+    }
+}
+
+void handleMessage()
+{
+    // Check rate limiting first
+    if (isRateLimited())
+    {
+        server.send(429, "text/plain", "Rate limit exceeded. Please wait before sending another request.");
+        return;
+    }
+
+    // Validate message parameter exists
+    if (!server.hasArg("message"))
+    {
+        sendValidationError(ValidationResult(false, "Missing required parameter 'message'"));
+        return;
+    }
+
+    String message = server.arg("message");
+
+    // URL decode the message (handles %20 for spaces, etc.)
+    message.replace("+", " "); // Handle + as space in URL encoding
+    message = urlDecode(message);
+
+    // Debug: Log message details (can be removed after testing)
+    LOG_VERBOSE("WEB", "Received message: length=%d, content: '%.50s'", message.length(), message.c_str());
+
+    // Validate message content
+    ValidationResult messageValidation = validateMessage(message);
+    if (!messageValidation.isValid)
+    {
+        LOG_WARNING("WEB", "Message validation failed: %s", messageValidation.errorMessage.c_str());
+        sendValidationError(messageValidation);
+        return;
+    }
+
+    // Check for source parameter - determines routing
+    String source = server.hasArg("source") ? server.arg("source") : "local-direct";
+
+    // Validate custom date if provided
+    String timestamp;
+    if (server.hasArg("date"))
+    {
+        String customDate = server.arg("date");
+        ValidationResult dateValidation = validateParameter(customDate, "date", 50, false);
+        if (!dateValidation.isValid)
+        {
+            sendValidationError(dateValidation);
+            return;
+        }
+        timestamp = formatCustomDate(customDate);
+        LOG_VERBOSE("WEB", "Using custom date: %s", customDate.c_str());
+    }
+    else
+    {
+        timestamp = getFormattedDateTime();
+        LOG_VERBOSE("WEB", "Using current date");
+    }
+
+    // Process the message using unified routing
+    if (processCustomMessage(message, timestamp, source.c_str()))
+    {
+        // Return success response
+        server.send(200, "text/plain", "Message processed successfully");
+    }
+    else
+    {
+        server.send(500, "text/plain", "Failed to process message");
     }
 }
 
@@ -1168,7 +1380,7 @@ void handleMQTTSend()
     // Publish to MQTT
     if (mqttClient.publish(topic.c_str(), payload.c_str()))
     {
-        LOG_NOTICE("WEB", "MQTT message sent to topic: %s (%d characters)", topic.c_str(), message.length());
+        LOG_VERBOSE("WEB", "MQTT message sent to topic: %s (%d characters)", topic.c_str(), message.length());
         server.send(200, "text/plain", "Message sent successfully!");
     }
     else

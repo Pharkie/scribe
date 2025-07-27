@@ -12,23 +12,35 @@ const int maxCharsPerLine = 32;
 // === Printer Functions ===
 void stabilizePrinterPin()
 {
-    // Configure TX pin as output and set to idle state (HIGH) as early as possible
+    // Set TX pin to HIGH (idle state) before UART initialization
+    // This prevents spurious data from being sent to the printer during boot
     pinMode(TX_PIN, OUTPUT);
     digitalWrite(TX_PIN, HIGH); // UART idle state is HIGH
-    // Note: Using Serial.println here since logging isn't initialized yet
-    Serial.println("Printer TX pin stabilized to HIGH (idle state)");
+
+    // Small delay to ensure pin is stable
+    delay(100);
 }
 
 void initializePrinter()
 {
-    // Initialize UART1 for TX only (one-way communication to printer)
-    printer.begin(9600, SERIAL_8N1, -1, TX_PIN); // baud, config, RX pin (-1 = not used), TX pin
-    delay(500);
+    LOG_VERBOSE("PRINTER", "Starting printer initialization...");
 
-    // Initialise
+    // The TX pin was manually set to HIGH in stabilizePrinterPin()
+    // Now initialize UART1 which will take over pin control
+    printer.begin(9600, SERIAL_8N1, -1, TX_PIN); // baud, config, RX pin (-1 = not used), TX pin
+
+    // Give printer and UART time to settle after pin transition
+    delay(100);
+
+    // Feed watchdog after delay
+    esp_task_wdt_reset();
+
+    LOG_VERBOSE("PRINTER", "UART initialized, sending printer commands...");
+
+    // Initialize printer with ESC @ (reset command)
     printer.write(0x1B);
     printer.write('@'); // ESC @
-    delay(50);
+    delay(100);
 
     // Set printer heating parameters from config
     printer.write(0x1B);
@@ -36,13 +48,15 @@ void initializePrinter()
     printer.write(heatingDots);     // Heating dots from config
     printer.write(heatingTime);     // Heating time from config
     printer.write(heatingInterval); // Heating interval from config
+    delay(50);
 
     // Enable 180° rotation (which also reverses the line order)
     printer.write(0x1B);
     printer.write('{');
     printer.write(0x01); // ESC { 1
+    delay(50);
 
-    LOG_VERBOSE("PRINTER", "Printer initialized");
+    LOG_VERBOSE("PRINTER", "Printer initialized successfully");
 }
 
 void printReceipt()

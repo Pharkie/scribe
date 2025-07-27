@@ -2,6 +2,7 @@
 #include "web_server.h"
 #include "printer.h"
 #include <ArduinoJson.h>
+#include <esp_task_wdt.h>
 
 // ========================================
 // HARDWARE BUTTON IMPLEMENTATION
@@ -9,7 +10,7 @@
 
 void initializeHardwareButtons()
 {
-    LOG_NOTICE("BUTTONS", "Initializing %d hardware buttons", numHardwareButtons);
+    LOG_VERBOSE("BUTTONS", "Initializing %d hardware buttons", numHardwareButtons);
 
     for (int i = 0; i < numHardwareButtons; i++)
     {
@@ -29,6 +30,9 @@ void initializeHardwareButtons()
         LOG_VERBOSE("BUTTONS", "Button %d: GPIO %d -> %s",
                     i, hardwareButtons[i].gpio, hardwareButtons[i].endpoint);
     }
+
+    // Feed watchdog after hardware button initialization
+    esp_task_wdt_reset();
 
     LOG_NOTICE("BUTTONS", "Hardware buttons initialized");
 }
@@ -143,10 +147,10 @@ void handleButtonPress(int buttonIndex)
 
 void triggerEndpointFromButton(const char *endpoint)
 {
-    // Use the shared endpoint processing function with hardware flag
-    LOG_NOTICE("BUTTONS", "Hardware button triggered: %s", endpoint);
+    // Use the shared endpoint processing function with local-direct destination
+    LOG_VERBOSE("BUTTONS", "Hardware button triggered: %s", endpoint);
 
-    if (!processEndpoint(endpoint, true))
+    if (!processEndpoint(endpoint, "local-direct"))
     {
         LOG_ERROR("BUTTONS", "Failed to process endpoint: %s", endpoint);
     }
