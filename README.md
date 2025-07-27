@@ -188,13 +188,13 @@ out the project :)
 
 The project uses UART1 to communicate with the printer on the ESP32-C3.
 
-| Printer Pin | ESP32-C3 Pin | Power Supply Pin | Description   |
-| ----------- | ------------ | ---------------- | ------------- |
-| TTL RX      | GPIO20       | -                | MCU Transmit  |
-| TTL TX      | GPIO21       | -                | MCU Receive   |
-| TTL GND     | GND          | GND              | Common Ground |
-| Power VH    | -            | 5V               | Printer VIN   |
-| Power GND   | GND          | GND              | Printer GND   |
+| Printer Pin | ESP32-C3 Pin | Power Supply Pin | Description              |
+| ----------- | ------------ | ---------------- | ------------------------ |
+| TTL RX      | GPIO20       | -                | MCU Transmit             |
+| TTL TX      | GPIO21       | -                | MCU Receive (not needed) |
+| TTL GND     | GND          | GND              | Common Ground            |
+| Power VH    | -            | 5V               | Printer VIN              |
+| Power GND   | GND          | GND              | Printer GND              |
 
 Wires not listed in the table (e.g. TTL NC/ DTR) are unused andcan be removed.
 Fewer wires => less clutter which is hugely helpful.
@@ -565,3 +565,43 @@ This is an open-source project given for free, with no warranties or guarantees.
 It assumes a level of proficiency with electronics, assemblies, engineering,
 etc. Do your own due diligence - it's your responsibility. Stay safe. Stay
 productive. Work with what you have. Make the world a better place.
+
+## License
+
+This project is licensed under the **Creative Commons
+Attribution-NonCommercial-ShareAlike 4.0 International License**.
+
+### What this means:
+
+✅ **You are free to:**
+
+- **Share** — copy and redistribute the material in any medium or format
+- **Adapt** — remix, transform, and build upon the material
+
+⚠️ **Under the following terms:**
+
+- **Attribution** — You must give appropriate credit to Adam Knowles, provide a
+  link to the license, and indicate if changes were made
+- **NonCommercial** — You may not use the material for commercial purposes
+  without explicit written permission
+- **ShareAlike** — If you remix, transform, or build upon the material, you must
+  distribute your contributions under the same license
+
+### Commercial Use
+
+**Commercial use is prohibited without a licensing agreement.** If you wish to
+use this project commercially (including but not limited to selling products
+based on this design, using it in commercial environments, or incorporating it
+into commercial software), please contact the authors.
+
+### Full License
+
+You can view the full license text at:
+https://creativecommons.org/licenses/by-nc-sa/4.0/
+
+### Copyright (extended code)
+
+© 2025 Adam Knowles. All rights reserved.
+
+**Original Project:** Based on the original Project Scribe by UrbanCircles, used
+with permission and adapted under the same Creative Commons license terms.
