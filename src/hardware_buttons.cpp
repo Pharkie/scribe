@@ -21,14 +21,15 @@ void initializeHardwareButtons()
         buttonStates[i].currentState = digitalRead(hardwareButtons[i].gpio);
         buttonStates[i].lastState = buttonStates[i].currentState;
         buttonStates[i].pressed = false;
+        buttonStates[i].longPressTriggered = false;
         buttonStates[i].lastDebounceTime = 0;
         buttonStates[i].pressStartTime = 0;
         buttonStates[i].lastPressTime = 0;
         buttonStates[i].pressCount = 0;
         buttonStates[i].windowStartTime = 0;
 
-        LOG_VERBOSE("BUTTONS", "Button %d: GPIO %d -> %s",
-                    i, hardwareButtons[i].gpio, hardwareButtons[i].endpoint);
+        LOG_VERBOSE("BUTTONS", "Button %d: GPIO %d -> %s (short), %s (long)",
+                    i, hardwareButtons[i].gpio, hardwareButtons[i].shortEndpoint, hardwareButtons[i].longEndpoint);
     }
 
     // Feed watchdog after hardware button initialization
@@ -67,10 +68,10 @@ void checkHardwareButtons()
                 {
                     // Button pressed
                     buttonStates[i].pressed = true;
+                    buttonStates[i].longPressTriggered = false;
                     buttonStates[i].pressStartTime = currentTime;
 
-                    LOG_NOTICE("BUTTONS", "Button %d pressed: %s", i, hardwareButtons[i].endpoint);
-                    handleButtonPress(i);
+                    LOG_VERBOSE("BUTTONS", "Button %d pressed: %s", i, hardwareButtons[i].shortEndpoint);
                 }
                 else if (!isPressed && buttonStates[i].pressed)
                 {
@@ -78,8 +79,30 @@ void checkHardwareButtons()
                     buttonStates[i].pressed = false;
                     unsigned long pressDuration = currentTime - buttonStates[i].pressStartTime;
 
+                    // Only trigger short press if long press wasn't already triggered
+                    if (!buttonStates[i].longPressTriggered)
+                    {
+                        if (pressDuration < buttonLongPressMs)
+                        {
+                            LOG_NOTICE("BUTTONS", "Button %d short press: %s", i, hardwareButtons[i].shortEndpoint);
+                            handleButtonPress(i);
+                        }
+                    }
+
                     LOG_VERBOSE("BUTTONS", "Button %d released after %lu ms", i, pressDuration);
                 }
+            }
+        }
+
+        // Check for long press while button is held down
+        if (buttonStates[i].pressed && !buttonStates[i].longPressTriggered)
+        {
+            unsigned long pressDuration = currentTime - buttonStates[i].pressStartTime;
+            if (pressDuration >= buttonLongPressMs)
+            {
+                buttonStates[i].longPressTriggered = true;
+                LOG_NOTICE("BUTTONS", "Button %d long press: %s", i, hardwareButtons[i].longEndpoint);
+                handleButtonLongPress(i);
             }
         }
 
@@ -141,8 +164,29 @@ void handleButtonPress(int buttonIndex)
         return; // Rate limited, ignore this press
     }
 
-    LOG_NOTICE("BUTTONS", "Triggering endpoint: %s", button.endpoint);
-    triggerEndpointFromButton(button.endpoint);
+    LOG_VERBOSE("BUTTONS", "Triggering short press endpoint: %s", button.shortEndpoint);
+    triggerEndpointFromButton(button.shortEndpoint);
+}
+
+void handleButtonLongPress(int buttonIndex)
+{
+    if (buttonIndex < 0 || buttonIndex >= numHardwareButtons)
+    {
+        LOG_ERROR("BUTTONS", "Invalid button index: %d", buttonIndex);
+        return;
+    }
+
+    const ButtonConfig &button = hardwareButtons[buttonIndex];
+
+    // Check rate limiting
+    unsigned long currentTime = millis();
+    if (isButtonRateLimited(buttonIndex, currentTime))
+    {
+        return; // Rate limited, ignore this press
+    }
+
+    LOG_VERBOSE("BUTTONS", "Triggering long press endpoint: %s", button.longEndpoint);
+    triggerEndpointFromButton(button.longEndpoint);
 }
 
 void triggerEndpointFromButton(const char *endpoint)
@@ -166,10 +210,12 @@ String getButtonConfigJson()
         JsonObject button = buttons.createNestedObject();
         button["index"] = i;
         button["gpio"] = hardwareButtons[i].gpio;
-        button["endpoint"] = hardwareButtons[i].endpoint;
+        button["shortEndpoint"] = hardwareButtons[i].shortEndpoint;
+        button["longEndpoint"] = hardwareButtons[i].longEndpoint;
 
         button["currentState"] = buttonStates[i].currentState;
         button["pressed"] = buttonStates[i].pressed;
+        button["longPressTriggered"] = buttonStates[i].longPressTriggered;
     }
 
     doc["activeLow"] = buttonActiveLow;

@@ -1,20 +1,14 @@
 #include <WiFi.h>
 #include <WebServer.h>
-#include <WiFiUdp.h>
-#include <HardwareSerial.h>
 #include <ESPmDNS.h>
 #include <esp_task_wdt.h>
 #include <ezTime.h>
-#include <vector>
 #include <LittleFS.h>
 #include <PubSubClient.h>
 #include "config.h"
 #include "config_utils.h"
-#include <ArduinoJson.h>
-#include <WiFiClientSecure.h>
 
 // Local module includes
-#include "config.h"
 #include "character_mapping.h"
 #include "web_server.h"
 #include "network.h"

@@ -38,37 +38,22 @@ void structuredLog(const char *component, int level, const char *format, ...);
 #define LOG_INFO(component, format, ...) structuredLog(component, LOG_LEVEL_NOTICE, format, ##__VA_ARGS__)
 #define LOG_VERBOSE(component, format, ...) structuredLog(component, LOG_LEVEL_VERBOSE, format, ##__VA_ARGS__)
 
-/**
- * @brief Log message to file (LittleFS)
- * @param message The message to log
- */
-void logToFileSystem(const String &message);
+void logToFile(const char *message);
 
 /**
  * @brief Log message to MQTT topic with optional component metadata
- * @param message The message to log
- * @param level The log level string
- * @param component The component name (optional)
  */
-void logToMQTT(const String &message, const String &level, const String &component);
+void logToMQTT(const char *message, const char *level, const char *component = "");
 
 /**
  * @brief Log message to BetterStack with component metadata
- * @param message The message to log
- * @param level The log level string
- * @param component The component name (empty string will extract from message)
  */
-void logToBetterStack(const String &message, const String &level, const String &component);
+void logToBetterStack(const char *message, const char *level, const char *component = "");
 
-/**
- * @brief Rotate log file if it exceeds maximum size
- */
 void rotateLogFile();
 
 /**
  * @brief Get log level string from numeric level
- * @param level Numeric log level
- * @return String representation of log level
  */
 String getLogLevelString(int level);
 

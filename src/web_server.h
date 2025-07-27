@@ -33,32 +33,38 @@ extern Receipt currentReceipt;
 
 /**
  * @brief Setup all web server routes and handlers
- * @param maxChars Maximum number of characters allowed in receipts
  */
 void setupWebServerRoutes(int maxChars);
 
-/**
- * @brief Handle requests to the root path "/"
- * Serves the main web form interface
- */
 void handleRoot();
 
 /**
  * @brief Process endpoint and generate content (shared by web and hardware buttons)
- * @param endpoint The endpoint to process (e.g., "/riddle", "/joke")
- * @param destination The destination: "local-direct" for direct local printing, or MQTT topic for MQTT routing
- * @return True if content was generated successfully
+ * @param destination "local-direct" for direct local printing, or MQTT topic for MQTT routing
  */
 bool processEndpoint(const char *endpoint, const char *destination = "local-direct");
 
 /**
  * @brief Process custom message content with unified routing
- * @param message The message content to process
- * @param timestamp The timestamp to use for the message
- * @param destination The destination: "local-direct" for direct local printing, or MQTT topic for MQTT routing
- * @return True if message was processed successfully
  */
 bool processCustomMessage(const String &message, const String &timestamp, const char *destination);
+
+void handleSubmit();
+void handleStatus();
+
+String loadPrintTestContent();
+String reverseString(const String &str);
+
+/**
+ * @brief Make HTTPS API calls with JSON response
+ */
+String fetchFromAPI(const String &url, const String &userAgent, int timeoutMs = 5000);
+
+void handlePrintTest();
+void handleRiddle();
+void handleJoke();
+void handleQuote();
+void handleQuiz();
 
 /**
  * @brief Handle form submission from the web interface
@@ -86,20 +92,6 @@ String loadPrintTestContent();
  */
 String reverseString(const String &str);
 
-/**
- * @brief Helper function to make HTTPS API calls with JSON response
- * @param url The API endpoint URL
- * @param userAgent User agent string for the request
- * @param timeoutMs Request timeout in milliseconds (default: 5000)
- * @return String containing the API response, or empty string on failure
- */
-String fetchFromAPI(const String &url, const String &userAgent, int timeoutMs = 5000);
-
-/**
- * @brief Handle requests to /test endpoint
- * Generates and returns print test content as plain text
- * Content should be sent to printer via /print-local or /mqtt-send endpoints
- */
 void handlePrintTest();
 
 /**

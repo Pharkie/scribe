@@ -6,10 +6,6 @@
 // Global instance of multi-output printer
 MultiOutputPrint multiOutput;
 
-// Buffer for accumulating MQTT and BetterStack messages
-String mqttLogBuffer = "";
-String betterStackLogBuffer = "";
-
 size_t MultiOutputPrint::write(uint8_t c)
 {
     String message = String((char)c);
@@ -33,49 +29,7 @@ size_t MultiOutputPrint::write(const uint8_t *buffer, size_t size)
     // Output to file if enabled
     if (enableFileLogging && message.length() > 0)
     {
-        logToFileSystem(message);
-    }
-
-    // Buffer for MQTT output (send complete lines)
-    // Note: Skip buffered MQTT logging since we use structured logging via structuredLog()
-    // This prevents duplicate/malformed log entries
-    if (false && enableMQTTLogging && message.length() > 0)
-    {
-        mqttLogBuffer += message;
-        if (message.endsWith("\n") || message.endsWith("\r\n"))
-        {
-            mqttLogBuffer.trim();
-            if (mqttLogBuffer.length() > 0)
-            {
-                // Feed watchdog before potentially slow network operation
-                esp_task_wdt_reset();
-
-                // Use default notice level for buffered logs
-                logToMQTT(mqttLogBuffer, "NOTICE", "");
-                mqttLogBuffer = "";
-            }
-        }
-    }
-
-    // Buffer for BetterStack output (send complete lines)
-    // Note: Skip buffered BetterStack logging since we use structured logging via structuredLog()
-    // This prevents duplicate/malformed log entries
-    if (false && enableBetterStackLogging && message.length() > 0)
-    {
-        betterStackLogBuffer += message;
-        if (message.endsWith("\n") || message.endsWith("\r\n"))
-        {
-            betterStackLogBuffer.trim();
-            if (betterStackLogBuffer.length() > 0)
-            {
-                // Feed watchdog before potentially slow network operation
-                esp_task_wdt_reset();
-
-                // Use default info level for buffered logs
-                logToBetterStack(betterStackLogBuffer, "info", "");
-                betterStackLogBuffer = "";
-            }
-        }
+        logToFile(message.c_str());
     }
 
     return size;
