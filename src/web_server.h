@@ -114,6 +114,48 @@ void handleQuote();
 void handleQuiz();
 
 /**
+ * @brief Handle requests to /buttons endpoint
+ * Returns hardware button configuration and status as JSON
+ */
+void handleButtons();
+
+// ========================================
+// CONTENT GENERATION FUNCTIONS
+// ========================================
+// These functions generate content without web server context
+// Can be called from hardware buttons or web handlers
+
+/**
+ * @brief Generate riddle content for printing
+ * @return String containing formatted riddle content
+ */
+String generateRiddleContent();
+
+/**
+ * @brief Generate joke content for printing
+ * @return String containing formatted joke content
+ */
+String generateJokeContent();
+
+/**
+ * @brief Generate quote content for printing
+ * @return String containing formatted quote content
+ */
+String generateQuoteContent();
+
+/**
+ * @brief Generate quiz content for printing
+ * @return String containing formatted quiz content
+ */
+String generateQuizContent();
+
+/**
+ * @brief Load print test content from filesystem
+ * @return String containing print test content
+ */
+String loadPrintTestContent();
+
+/**
  * @brief Handle requests to /styles.css endpoint
  * Serves the CSS stylesheet from filesystem
  */

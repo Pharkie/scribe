@@ -22,6 +22,7 @@
 #include "mqtt_handler.h"
 #include "time_utils.h"
 #include "logging.h"
+#include "hardware_buttons.h"
 
 // === Web Server ===
 WebServer server(webServerPort);
@@ -87,6 +88,9 @@ void setup()
   // Initialize printer
   initializePrinter();
 
+  // Initialize hardware buttons
+  initializeHardwareButtons();
+
   // Setup mDNS
   setupmDNS();
 
@@ -117,6 +121,9 @@ void loop()
 
   // Check WiFi connection and reconnect if needed
   handleWiFiReconnection();
+
+  // Check hardware buttons (works even without WiFi)
+  checkHardwareButtons();
 
   // Handle web server requests (only if WiFi is connected)
   if (WiFi.status() == WL_CONNECTED)
