@@ -419,6 +419,78 @@ following lines are the message itself.
   `date` parameter:
   `http://scribe.local/submit?message=Finished%20the%20book&date=2025-07-04`
 
+## Webhook Integration with n8n
+
+For users who want to integrate Project Scribe with external services like Apple
+Shortcuts, IFTTT, or other web-based automation tools, **n8n** provides an
+excellent bridge between HTTP webhooks and MQTT.
+
+### What is n8n?
+
+**n8n** is an open-source workflow automation tool that you can use to connect
+different services and APIs. In this case n8n can act as a translator,
+converting incoming HTTP POST requests (webhooks) into MQTT messages that your
+Scribe printer will understand.
+
+### Why Use n8n?
+
+- **Universal Integration**: Works with Apple Shortcuts, IFTTT, Zapier, and any
+  service that can send HTTP POST requests
+- **No Local Networking Required**: External services can reach your printer
+  through MQTT without needing access to your local network, poking holes in the
+  firewall, port forwarding or ngrok.
+- **Secure**: Uses encrypted MQTT connections (TLS) rather than exposing your
+  local printer to the internet
+- **Flexible**: Can process, format, or validate messages before sending them to
+  your printer
+
+### Setting up n8n
+
+1. **Host n8n**: You'll need to host n8n somewhere accessible from the internet.
+   Popular options include:
+
+   - **Fly.io** (recommended for beginners) - Free tier available
+   - **Railway** - Simple deployment with free tier
+   - **DigitalOcean** - More control, requires basic server management
+   - **Self-hosted** - On your own VPS or cloud server
+
+2. **Create a Webhook to MQTT Workflow**:
+
+   ```
+   HTTP Webhook → (Optional: Data Processing) → MQTT Node
+   ```
+
+3. **Configure the Webhook Node**:
+
+   - Set up a webhook endpoint (e.g., `https://your-n8n.fly.dev/webhook/scribe`)
+   - Accept POST requests with JSON payload
+
+4. **Configure the MQTT Node**:
+   - **Broker**: Your HiveMQ Cloud endpoint (from `config.h`)
+   - **Topic**: Your printer's MQTT topic (e.g., `scribe/YourPrinter/inbox`)
+   - **Message**: Extract message from webhook payload
+
+### Example Apple Shortcuts Integration
+
+With n8n set up, you can create an Apple Shortcut that:
+
+1. Prompts for text input
+2. Sends POST request to your n8n webhook:
+   `https://your-n8n.fly.dev/webhook/scribe`
+3. n8n forwards the message to your printer via MQTT
+
+**Shortcut POST Body Example**:
+
+```json
+{
+  "message": "Your message text here",
+  "printer": "scribe/YourPrinter/inbox"
+}
+```
+
+This setup allows you to securely print to any Scribe printer from anywhere in
+the world using just your phone.
+
 ## Beyond the as-is: Ideas to Extend or Replace the As-Is Functionality
 
 The combination of a WiFi-enabled MCU, a Thermal Printer and an API-ready web
