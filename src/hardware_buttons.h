@@ -52,30 +52,15 @@ bool isButtonRateLimited(int buttonIndex, unsigned long currentTime);
 void handleButtonPress(int buttonIndex);
 
 /**
- * @brief Generate content directly from hardware button press
- * @param contentType The content type to generate (e.g., "riddle", "joke")
+ * @brief Trigger an endpoint from hardware button press
+ * @param endpoint The endpoint to trigger (e.g., "/riddle", "/joke")
  */
-void generateContentFromButton(const char *contentType);
+void triggerEndpointFromButton(const char *endpoint);
 
 /**
  * @brief Get button configuration info as JSON string
  * @return JSON string with button configuration
  */
 String getButtonConfigJson();
-
-/**
- * @brief Hardware button specific handlers (bypass web server context)
- */
-void handleButtonRiddle();
-void handleButtonJoke();
-void handleButtonQuote();
-void handleButtonQuiz();
-void handleButtonPrintTest();
-
-// Content generation functions (need to be accessible)
-String generateRiddleContent();
-String generateJokeContent();
-String generateQuoteContent();
-String generateQuizContent();
 
 #endif

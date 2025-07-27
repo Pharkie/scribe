@@ -44,6 +44,14 @@ void setupWebServerRoutes(int maxChars);
 void handleRoot();
 
 /**
+ * @brief Process endpoint and generate content (shared by web and hardware buttons)
+ * @param endpoint The endpoint to process (e.g., "/riddle", "/joke")
+ * @param fromHardware True if called from hardware button, false if from web
+ * @return True if content was generated successfully
+ */
+bool processEndpoint(const char *endpoint, bool fromHardware = false);
+
+/**
  * @brief Handle form submission from the web interface
  * Processes the text input and queues it for printing
  */

@@ -3,6 +3,8 @@
 #include "config_utils.h"
 #include "logging.h"
 #include "hardware_buttons.h"
+#include "time_utils.h"
+#include "printer.h"
 #include <WiFi.h>
 #include <ESPmDNS.h>
 #include <LittleFS.h>
@@ -565,6 +567,82 @@ String loadPrintTestContent()
     return content;
 }
 
+/**
+ * @brief Process endpoint and generate content (shared by web and hardware buttons)
+ * @param endpoint The endpoint to process (e.g., "/riddle", "/joke")
+ * @param fromHardware True if called from hardware button, false if from web
+ * @return True if content was generated and printed successfully
+ */
+bool processEndpoint(const char *endpoint, bool fromHardware)
+{
+    if (!endpoint)
+    {
+        LOG_ERROR("WEB", "Null endpoint provided");
+        return false;
+    }
+
+    LOG_NOTICE("WEB", "Processing endpoint: %s (source: %s)", endpoint, fromHardware ? "hardware" : "web");
+
+    String content;
+    bool success = false;
+
+    // Generate content based on endpoint
+    if (strcmp(endpoint, "/riddle") == 0)
+    {
+        content = generateRiddleContent();
+        success = (content.length() > 0);
+    }
+    else if (strcmp(endpoint, "/joke") == 0)
+    {
+        content = generateJokeContent();
+        success = (content.length() > 0);
+    }
+    else if (strcmp(endpoint, "/quote") == 0)
+    {
+        content = generateQuoteContent();
+        success = (content.length() > 0);
+    }
+    else if (strcmp(endpoint, "/quiz") == 0)
+    {
+        content = generateQuizContent();
+        success = (content.length() > 0);
+    }
+    else if (strcmp(endpoint, "/print-test") == 0)
+    {
+        content = "Test Print from " + String(fromHardware ? "Hardware Button" : "Web Interface") + "\n"
+                                                                                                    "Time: " +
+                  String(millis()) + "ms\n"
+                                     "Test Successful!\n";
+        success = true;
+    }
+    else
+    {
+        LOG_WARNING("WEB", "Unknown endpoint: %s", endpoint);
+        return false;
+    }
+
+    if (!success)
+    {
+        LOG_ERROR("WEB", "Failed to generate content for %s", endpoint);
+        return false;
+    }
+
+    // Set up receipt and print
+    currentReceipt.message = content;
+    currentReceipt.hasData = true;
+    currentReceipt.timestamp = getFormattedDateTime();
+
+    if (fromHardware)
+    {
+        // For hardware buttons, print immediately
+        printReceipt();
+        LOG_NOTICE("WEB", "Hardware button content printed successfully");
+    }
+    // For web requests, the HTTP handler will send the response
+
+    return true;
+}
+
 String generateRiddleContent()
 {
     if (!LittleFS.begin())
@@ -926,67 +1004,16 @@ void handleRiddle()
         return;
     }
 
-    // Ensure LittleFS is mounted
-    if (!LittleFS.begin())
+    // Use shared endpoint processing
+    if (processEndpoint("/riddle", false))
     {
-        server.send(500, "text/plain", "Failed to mount LittleFS");
-        return;
+        // Return the content as plain text
+        server.send(200, "text/plain", currentReceipt.message);
     }
-
-    // Open the riddles.ndjson file
-    File file = LittleFS.open("/riddles.ndjson", "r");
-    if (!file)
+    else
     {
-        server.send(500, "text/plain", "Failed to open riddles file");
-        return;
+        server.send(500, "text/plain", "Failed to generate riddle content");
     }
-
-    // Pick a random riddle
-    int target = random(0, totalRiddles);
-    int current = 0;
-    String riddleText = "What gets wetter the more it dries?"; // fallback
-    String riddleAnswer = "A towel";                           // fallback answer
-
-    while (file.available() && current <= target)
-    {
-        String line = file.readStringUntil('\n');
-        line.trim();
-
-        if (current == target)
-        {
-            DynamicJsonDocument doc(1024);
-            DeserializationError error = deserializeJson(doc, line);
-
-            if (!error && doc.containsKey("riddle"))
-            {
-                String extracted = doc["riddle"].as<String>();
-                if (extracted.length() > 0)
-                {
-                    riddleText = extracted;
-                }
-
-                // Also extract the answer if available
-                if (doc.containsKey("answer"))
-                {
-                    String extractedAnswer = doc["answer"].as<String>();
-                    if (extractedAnswer.length() > 0)
-                    {
-                        riddleAnswer = extractedAnswer;
-                    }
-                }
-            }
-            break;
-        }
-        current++;
-    }
-
-    file.close();
-
-    String fullContent = "RIDDLE #" + String(target + 1) + "\n\n" + riddleText + "\n\n\n\n\n\n";
-    fullContent += "Answer: " + reverseString(riddleAnswer);
-
-    // Return the content as plain text
-    server.send(200, "text/plain", fullContent);
 }
 
 void handleJoke()
@@ -1006,33 +1033,16 @@ void handleJoke()
         return;
     }
 
-    // Start with fallback joke
-    String dadJoke = "Why don't scientists trust atoms? Because they make up everything!";
-
-    // Try to fetch from API
-    String response = fetchFromAPI(dadJokeAPI, apiUserAgent);
-
-    if (response.length() > 0)
+    // Use shared endpoint processing
+    if (processEndpoint("/joke", false))
     {
-        // Parse JSON response
-        DynamicJsonDocument doc(1024);
-        DeserializationError error = deserializeJson(doc, response);
-
-        if (!error && doc.containsKey("joke"))
-        {
-            String apiJoke = doc["joke"].as<String>();
-            apiJoke.trim();
-            if (apiJoke.length() > minJokeLength) // Ensure it's a real joke, not empty
-            {
-                dadJoke = apiJoke;
-            }
-        }
+        // Return the content as plain text
+        server.send(200, "text/plain", currentReceipt.message);
     }
-
-    String fullContent = "JOKE\n\n" + dadJoke;
-
-    // Return the content as plain text
-    server.send(200, "text/plain", fullContent);
+    else
+    {
+        server.send(500, "text/plain", "Failed to generate joke content");
+    }
 }
 
 void handleQuote()
@@ -1052,41 +1062,16 @@ void handleQuote()
         return;
     }
 
-    // Start with fallback quote
-    String quote = "\"Your mind is for having ideas, not holding them.\"\n– David Allen";
-
-    // Try to fetch from API
-    String response = fetchFromAPI(quoteAPI, apiUserAgent);
-
-    if (response.length() > 0)
+    // Use shared endpoint processing
+    if (processEndpoint("/quote", false))
     {
-        // Parse JSON response (expecting array format)
-        DynamicJsonDocument doc(largeJsonDocumentSize);
-        DeserializationError error = deserializeJson(doc, response);
-
-        if (!error && doc.is<JsonArray>() && doc.size() > 0)
-        {
-            JsonObject quoteObj = doc[0];
-            if (quoteObj.containsKey("q") && quoteObj.containsKey("a"))
-            {
-                String quoteText = quoteObj["q"].as<String>();
-                String author = quoteObj["a"].as<String>();
-
-                quoteText.trim();
-                author.trim();
-
-                if (quoteText.length() > 5 && author.length() > 0) // Ensure valid quote
-                {
-                    quote = "\"" + quoteText + "\"\n– " + author;
-                }
-            }
-        }
+        // Return the content as plain text
+        server.send(200, "text/plain", currentReceipt.message);
     }
-
-    String fullContent = "QUOTE\n\n" + quote;
-
-    // Return the content as plain text
-    server.send(200, "text/plain", fullContent);
+    else
+    {
+        server.send(500, "text/plain", "Failed to generate quote content");
+    }
 }
 
 void handleQuiz()
@@ -1106,72 +1091,16 @@ void handleQuiz()
         return;
     }
 
-    // Start with fallback quiz question
-    String question = "What is the largest planet in our solar system?";
-    String correctAnswer = "Jupiter";
-    String answers[4] = {"Mars", "Jupiter", "Saturn", "Earth"};
-
-    // Try to fetch from API
-    String response = fetchFromAPI(triviaAPI, apiUserAgent);
-
-    if (response.length() > 0)
+    // Use shared endpoint processing
+    if (processEndpoint("/quiz", false))
     {
-        // Parse JSON response (expecting array format)
-        DynamicJsonDocument doc(2048);
-        DeserializationError error = deserializeJson(doc, response);
-
-        if (!error && doc.is<JsonArray>() && doc.size() > 0)
-        {
-            JsonObject quizObj = doc[0];
-            if (quizObj.containsKey("question") && quizObj.containsKey("correctAnswer") && quizObj.containsKey("incorrectAnswers"))
-            {
-                String apiQuestion = quizObj["question"].as<String>();
-                String apiCorrectAnswer = quizObj["correctAnswer"].as<String>();
-                JsonArray incorrectAnswers = quizObj["incorrectAnswers"];
-
-                apiQuestion.trim();
-                apiCorrectAnswer.trim();
-
-                if (apiQuestion.length() > 5 && apiCorrectAnswer.length() > 0 && incorrectAnswers.size() >= 3)
-                {
-                    question = apiQuestion;
-                    correctAnswer = apiCorrectAnswer;
-
-                    // Create answer array with correct answer in random position
-                    int correctPosition = random(0, 4);
-                    answers[correctPosition] = correctAnswer;
-
-                    // Fill other positions with incorrect answers
-                    int incorrectIndex = 0;
-                    for (int i = 0; i < 4; i++)
-                    {
-                        if (i != correctPosition && incorrectIndex < incorrectAnswers.size())
-                        {
-                            String incorrectAnswer = incorrectAnswers[incorrectIndex].as<String>();
-                            incorrectAnswer.trim();
-                            answers[i] = incorrectAnswer;
-                            incorrectIndex++;
-                        }
-                    }
-                }
-            }
-        }
+        // Return the content as plain text
+        server.send(200, "text/plain", currentReceipt.message);
     }
-
-    // Format the quiz content
-    String fullContent = "QUIZ\n\n";
-    fullContent += "Question:\n";
-    fullContent += question + "\n\n";
-
-    fullContent += "[ ] " + answers[0] + "\n";
-    fullContent += "[ ] " + answers[1] + "\n";
-    fullContent += "[ ] " + answers[2] + "\n";
-    fullContent += "[ ] " + answers[3] + "\n\n\n\n\n\n";
-
-    fullContent += "Correct answer: " + reverseString(correctAnswer);
-
-    // Return the content as plain text
-    server.send(200, "text/plain", fullContent);
+    else
+    {
+        server.send(500, "text/plain", "Failed to generate quiz content");
+    }
 }
 
 void handleMQTTSend()

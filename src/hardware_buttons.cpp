@@ -137,134 +137,18 @@ void handleButtonPress(int buttonIndex)
         return; // Rate limited, ignore this press
     }
 
-    LOG_NOTICE("BUTTONS", "Triggering content type: %s", button.endpoint);
-    generateContentFromButton(button.endpoint);
+    LOG_NOTICE("BUTTONS", "Triggering endpoint: %s", button.endpoint);
+    triggerEndpointFromButton(button.endpoint);
 }
 
-void generateContentFromButton(const char *contentType)
+void triggerEndpointFromButton(const char *endpoint)
 {
-    // This function generates content directly from hardware button press,
-    // bypassing the web server entirely
+    // Use the shared endpoint processing function with hardware flag
+    LOG_NOTICE("BUTTONS", "Hardware button triggered: %s", endpoint);
 
-    LOG_NOTICE("BUTTONS", "Hardware button triggered: %s", contentType);
-
-    if (strcmp(contentType, "riddle") == 0)
+    if (!processEndpoint(endpoint, true))
     {
-        LOG_VERBOSE("BUTTONS", "Generating riddle from button press");
-        handleButtonRiddle();
-    }
-    else if (strcmp(contentType, "joke") == 0)
-    {
-        LOG_VERBOSE("BUTTONS", "Generating joke from button press");
-        handleButtonJoke();
-    }
-    else if (strcmp(contentType, "quote") == 0)
-    {
-        LOG_VERBOSE("BUTTONS", "Generating quote from button press");
-        handleButtonQuote();
-    }
-    else if (strcmp(contentType, "quiz") == 0)
-    {
-        LOG_VERBOSE("BUTTONS", "Generating quiz from button press");
-        handleButtonQuiz();
-    }
-    else if (strcmp(contentType, "print-test") == 0)
-    {
-        LOG_VERBOSE("BUTTONS", "Triggering print test from button press");
-        handleButtonPrintTest();
-    }
-    else
-    {
-        LOG_WARNING("BUTTONS", "Unknown content type: %s", contentType);
-    }
-}
-
-// Dedicated button handler functions that work without web server context
-void handleButtonRiddle()
-{
-    // Generate riddle content and send to printer
-    String riddle = generateRiddleContent();
-    if (riddle.length() > 0)
-    {
-        currentReceipt.message = riddle;
-        currentReceipt.timestamp = "";
-        currentReceipt.hasData = true;
-        LOG_NOTICE("BUTTONS", "Riddle queued for printing");
-    }
-    else
-    {
-        LOG_ERROR("BUTTONS", "Failed to generate riddle");
-    }
-}
-
-void handleButtonJoke()
-{
-    // Generate joke content and send to printer
-    String joke = generateJokeContent();
-    if (joke.length() > 0)
-    {
-        currentReceipt.message = joke;
-        currentReceipt.timestamp = "";
-        currentReceipt.hasData = true;
-        LOG_NOTICE("BUTTONS", "Joke queued for printing");
-    }
-    else
-    {
-        LOG_ERROR("BUTTONS", "Failed to generate joke");
-    }
-}
-
-void handleButtonQuote()
-{
-    // Generate quote content and send to printer
-    String quote = generateQuoteContent();
-    if (quote.length() > 0)
-    {
-        currentReceipt.message = quote;
-        currentReceipt.timestamp = "";
-        currentReceipt.hasData = true;
-        LOG_NOTICE("BUTTONS", "Quote queued for printing");
-    }
-    else
-    {
-        LOG_ERROR("BUTTONS", "Failed to generate quote");
-    }
-}
-
-void handleButtonQuiz()
-{
-    // Generate quiz content and send to printer
-    String quiz = generateQuizContent();
-    if (quiz.length() > 0)
-    {
-        currentReceipt.message = quiz;
-        currentReceipt.timestamp = "";
-        currentReceipt.hasData = true;
-        LOG_NOTICE("BUTTONS", "Quiz queued for printing");
-    }
-    else
-    {
-        LOG_ERROR("BUTTONS", "Failed to generate quiz");
-    }
-}
-
-void handleButtonPrintTest()
-{
-    // Generate test content and send to printer
-    String testContent = "Test Print from Hardware Button\n"
-                         "Time: " +
-                         String(millis()) + "ms\n"
-                                            "GPIO Button Test Successful!\n";
-    if (testContent.length() > 0)
-    {
-        currentReceipt.message = testContent;
-        currentReceipt.timestamp = "";
-        currentReceipt.hasData = true;
-        LOG_NOTICE("BUTTONS", "Test print queued for printing");
-    }
-    else
-    {
-        LOG_ERROR("BUTTONS", "Failed to generate test content");
+        LOG_ERROR("BUTTONS", "Failed to process endpoint: %s", endpoint);
     }
 }
 
