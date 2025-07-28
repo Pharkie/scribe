@@ -85,7 +85,10 @@ void printServerInfo()
     // Feed watchdog before the actual printing
     esp_task_wdt_reset();
 
-    printWithHeader("SCRIBE READY", serverInfo);
+    // Format the startup message with datetime in header and SCRIBE READY in body
+    String timestamp = getFormattedDateTime();
+    String startupMessage = "SCRIBE READY\n\n" + serverInfo;
+    printWithHeader(timestamp, startupMessage);
 
     // Feed watchdog after thermal printing completes
     esp_task_wdt_reset();
