@@ -208,7 +208,7 @@ Fewer wires => less clutter which is hugely helpful.
 
 ## MQTT Remote Printing
 
-This fork includes MQTT support for networked printing between multiple Scribe
+My fork includes MQTT support for networked printing between multiple Scribe
 devices:
 
 ### Features
@@ -219,8 +219,8 @@ devices:
   and remote printing
 - **Secure connection** - Uses TLS encryption (port 8883) for secure MQTT
   communication
-- **Cloud MQTT broker** - Pre-configured for HiveMQ Cloud (configurable in
-  `config.h`)
+- **Cloud MQTT broker** - Ready for e.g. HiveMQ Cloud (free tier) (configurable
+  in `config.h`)
 
 ### Configuration
 
@@ -258,6 +258,16 @@ printer:
 
 All quick actions include timestamps and work seamlessly with both local and
 remote printing.
+
+## 🌐 Print from Apple Shortcuts etc
+
+### Pipedream MQTT Bridge (Recommended)
+
+Since e.g. Apple Shortcuts can't send to MQTT directly, and you aren't always at
+home with the Scribe on the local network, you can send messages to your Scribe
+printer from anywhere via an HTTP-to-MQTT bridge.
+
+**📖 [Pipedream Setup Guide](docs/pipedream-integration.md)**
 
 ## Logging System
 

@@ -14,7 +14,13 @@ src/config.h
 .DS_Store
 Thumbs.db
 
+# IDE specific files
+.idea/
+.vscode/
+*.code-workspace
+
 # Backup files
 *~
 *.bak
 *.tmp
+
