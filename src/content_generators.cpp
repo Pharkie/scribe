@@ -23,6 +23,7 @@
 #include "api_client.h"
 #include "config.h"
 #include "logging.h"
+#include "unbidden_ink.h"
 #include <LittleFS.h>
 #include <ArduinoJson.h>
 
@@ -40,8 +41,8 @@ String generateRiddleContent()
     // Pick a random riddle
     int target = random(0, totalRiddles);
     int current = 0;
-    String riddleText = "What gets wetter the more it dries?"; // fallback
-    String riddleAnswer = "A towel";                           // fallback answer
+    String riddleText = "";
+    String riddleAnswer = "";
 
     while (file.available() && current <= target)
     {
@@ -78,6 +79,13 @@ String generateRiddleContent()
 
     file.close();
 
+    // Return empty string if no riddle was found
+    if (riddleText.length() == 0 || riddleAnswer.length() == 0)
+    {
+        LOG_ERROR("RIDDLE", "Failed to load riddle from file");
+        return "";
+    }
+
     String fullContent = "RIDDLE #" + String(target + 1) + "\n\n" + riddleText + "\n\n\n\n\n\n";
     fullContent += "Answer: " + reverseString(riddleAnswer);
 
@@ -86,8 +94,6 @@ String generateRiddleContent()
 
 String generateJokeContent()
 {
-    String jokeText = "Why don't scientists trust atoms? Because they make up everything!"; // fallback
-
     // Try to fetch from API
     String response = fetchFromAPI(jokeAPI, apiUserAgent);
 
@@ -102,19 +108,18 @@ String generateJokeContent()
             apiJoke.trim();
             if (apiJoke.length() > minJokeLength) // Ensure it's a real joke, not empty
             {
-                jokeText = apiJoke;
+                String fullContent = "JOKE\n\n" + apiJoke;
+                return fullContent;
             }
         }
     }
 
-    String fullContent = "JOKE\n\n" + jokeText;
-    return fullContent;
+    LOG_ERROR("JOKE", "Failed to fetch joke from API");
+    return ""; // Return empty string to indicate failure
 }
 
 String generateQuoteContent()
 {
-    String quote = "\"Your mind is for having ideas, not holding them.\"\n– David Allen";
-
     // Try to fetch from API
     String response = fetchFromAPI(quoteAPI, apiUserAgent);
 
@@ -137,39 +142,20 @@ String generateQuoteContent()
 
                 if (quoteText.length() > 0 && author.length() > 0)
                 {
-                    quote = "\"" + quoteText + "\"\n– " + author;
+                    String quote = "\"" + quoteText + "\"\n– " + author;
+                    String fullContent = "QUOTE\n\n" + quote;
+                    return fullContent;
                 }
             }
         }
     }
 
-    String fullContent = "QUOTE\n\n" + quote;
-    return fullContent;
+    LOG_ERROR("QUOTE", "Failed to fetch quote from API");
+    return ""; // Return empty string to indicate failure
 }
 
 String generateQuizContent()
 {
-    // Randomize the fallback quiz answer position
-    int correctPosition = random(0, 4);
-    String options[4] = {"London", "Berlin", "Paris", "Madrid"};
-    String correctAnswer = "Paris";
-    String positionLabels[4] = {"A", "B", "C", "D"};
-
-    // Swap the correct answer to the random position
-    if (correctPosition != 2)
-    { // Paris is at index 2
-        String temp = options[correctPosition];
-        options[correctPosition] = correctAnswer;
-        options[2] = temp;
-    }
-
-    String quiz = "QUIZ\n\nWhat is the capital of France?\n";
-    quiz += "A) " + options[0] + "\n";
-    quiz += "B) " + options[1] + "\n";
-    quiz += "C) " + options[2] + "\n";
-    quiz += "D) " + options[3] + "\n\n\n\n";
-    quiz += "Answer: " + reverseString(correctAnswer);
-
     // Try to fetch from API
     String response = fetchFromAPI(triviaAPI, apiUserAgent);
 
@@ -214,35 +200,47 @@ String generateQuizContent()
                         }
                     }
 
-                    quiz = "QUIZ\n\n" + question + "\n";
+                    String quiz = "QUIZ\n\n" + question + "\n";
                     quiz += "A) " + options[0] + "\n";
                     quiz += "B) " + options[1] + "\n";
                     quiz += "C) " + options[2] + "\n";
                     quiz += "D) " + options[3] + "\n\n\n\n";
                     quiz += "Answer: " + reverseString(correctAnswer);
+                    return quiz;
                 }
             }
         }
     }
 
-    return quiz;
+    LOG_ERROR("QUIZ", "Failed to fetch quiz from API");
+    return ""; // Return empty string to indicate failure
 }
 
-String generateKeepGoingContent()
+String generateUnbiddenInkContent()
 {
-    String keepGoingMessage = "Keep going! You've got this!"; // fallback message (removed emoji)
+    // Get token, endpoint, and prompt from config and dynamic settings
+    String apiToken = unbiddenInkApiToken;
+    String apiEndpoint = unbiddenInkApiEndpoint;
+    String prompt = getUnbiddenInkPrompt();
 
     // Build Bearer token with automatic prefix
-    String bearerToken = "Bearer " + String(keepGoingApiToken);
+    String bearerToken = "Bearer " + apiToken;
 
-    LOG_VERBOSE("KEEPGOING", "Calling Keep Going API: %s", keepGoingApiEndpoint);
+    LOG_VERBOSE("UNBIDDENINK", "Calling Unbidden Ink API: %s", apiEndpoint.c_str());
+    LOG_VERBOSE("UNBIDDENINK", "Using prompt: %s", prompt.c_str());
 
-    // Try to fetch from Pipedream API with Bearer token
-    String response = fetchFromAPIWithBearer(keepGoingApiEndpoint, bearerToken, apiUserAgent);
+    // Build JSON payload with the prompt
+    DynamicJsonDocument payloadDoc(1024);
+    payloadDoc["prompt"] = prompt;
+    String jsonPayload;
+    serializeJson(payloadDoc, jsonPayload);
+
+    // Try to POST to Pipedream API with Bearer token and prompt
+    String response = postToAPIWithBearer(apiEndpoint, bearerToken, jsonPayload, apiUserAgent);
 
     if (response.length() > 0)
     {
-        LOG_VERBOSE("KEEPGOING", "API response received: %s", response.c_str());
+        LOG_VERBOSE("UNBIDDENINK", "API response received: %s", response.c_str());
 
         // Parse JSON response expecting a "message" field
         DynamicJsonDocument doc(largeJsonDocumentSize);
@@ -254,24 +252,25 @@ String generateKeepGoingContent()
             apiMessage.trim();
             if (apiMessage.length() > 0)
             {
-                keepGoingMessage = apiMessage;
-                LOG_VERBOSE("KEEPGOING", "Using API message: %s", apiMessage.c_str());
+                LOG_VERBOSE("UNBIDDENINK", "Using API message: %s", apiMessage.c_str());
+                String fullContent = "UNBIDDEN INK\n\n" + apiMessage;
+                return fullContent;
             }
             else
             {
-                LOG_WARNING("KEEPGOING", "API returned empty message, using fallback");
+                LOG_ERROR("UNBIDDENINK", "API returned empty message");
+                return ""; // Return empty string to indicate failure
             }
         }
         else
         {
-            LOG_WARNING("KEEPGOING", "API response parsing failed or no 'message' field found");
+            LOG_ERROR("UNBIDDENINK", "API response parsing failed or no 'message' field found");
+            return ""; // Return empty string to indicate failure
         }
     }
     else
     {
-        LOG_WARNING("KEEPGOING", "No response from Keep Going API, using fallback message");
+        LOG_ERROR("UNBIDDENINK", "No response from Unbidden Ink API");
+        return ""; // Return empty string to indicate failure
     }
-
-    String fullContent = "KEEP GOING\n\n" + keepGoingMessage;
-    return fullContent;
 }

@@ -1,6 +1,6 @@
 /**
- * @file keep_going.h
- * @brief Keep Going feature for automated motivational messages
+ * @file unbidden_ink.h
+ * @brief Unbidden Ink feature for automated AI-generated content
  * @author Adam Knowles
  * @date 2025
  * @copyright Copyright (c) 2025 Adam Knowles. All rights reserved.
@@ -19,47 +19,58 @@
  * Based on the original Project Scribe by UrbanCircles.
  */
 
-#ifndef KEEP_GOING_H
-#define KEEP_GOING_H
+#ifndef UNBIDDEN_INK_H
+#define UNBIDDEN_INK_H
 
 #include <Arduino.h>
 
+// Default prompts for Unbidden Ink
+const char *const DEFAULT_MOTIVATION_PROMPT = "Generate a short, encouraging motivational message to help me stay focused and positive. Keep it brief, uplifting, and practical.";
+
 /**
- * @brief Keep Going feature for automated motivational messages
+ * @brief Unbidden Ink feature for automated AI-generated content
  *
- * This module handles the automated printing of motivational messages from
- * the Pipedream Keep Going API during configured working hours.
+ * This module handles the automated printing of AI-generated content from
+ * ChatGPT via Pipedream API during configured working hours. Users can
+ * customize the prompt sent to ChatGPT or choose from preset options.
  *
  * Features:
  * - Working hours scheduling (configurable start/end times)
  * - Random timing within frequency windows for natural feel
+ * - Customizable ChatGPT prompts with preset options
  * - Pipedream API integration with Bearer token authentication
- * - Automatic fallback to default motivational messages
+ * - Automatic fallback to default messages
  * - Integration with existing printing and logging systems
  */
 
 /**
- * @brief Initialize the Keep Going system and schedule first message
+ * @brief Initialize the Unbidden Ink system and schedule first message
  * Should be called during system setup after WiFi and time sync
  */
-void initializeKeepGoing();
+void initializeUnbiddenInk();
 
 /**
- * @brief Check if Keep Going message should be sent
+ * @brief Check if Unbidden Ink message should be sent
  * Should be called regularly from main loop when WiFi is connected
  */
-void checkKeepGoing();
+void checkUnbiddenInk();
 
 /**
  * @brief Check if current time is within configured working hours
- * @return true if within working hours and Keep Going is enabled
+ * @return true if within working hours and Unbidden Ink is enabled
  */
 bool isInWorkingHours();
 
 /**
- * @brief Schedule the next Keep Going message at random time within frequency window
+ * @brief Schedule the next Unbidden Ink message at random time within frequency window
  * Called automatically after each message is sent
  */
-void scheduleNextKeepGoing();
+void scheduleNextUnbiddenInk();
 
-#endif // KEEP_GOING_H
+/**
+ * @brief Get current ChatGPT prompt from settings
+ * @return Current prompt string
+ */
+String getUnbiddenInkPrompt();
+
+#endif // UNBIDDEN_INK_H

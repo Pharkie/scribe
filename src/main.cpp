@@ -40,7 +40,7 @@
 #include "hardware_buttons.h"
 #include "content_generators.h"
 #include "api_client.h"
-#include "keep_going.h"
+#include "unbidden_ink.h"
 
 // === Web Server ===
 WebServer server(webServerPort);
@@ -135,8 +135,8 @@ void setup()
   // Print server info
   printServerInfo();
 
-  // Initialize Keep Going schedule
-  initializeKeepGoing();
+  // Initialize Unbidden Ink schedule
+  initializeUnbiddenInk();
 
   LOG_NOTICE("BOOT", "=== Scribe Ready ===");
 }
@@ -179,10 +179,10 @@ void loop()
     lastMemCheck = millis();
   }
 
-  // Check Keep Going schedule (only if WiFi connected for API calls)
+  // Check Unbidden Ink schedule (only if WiFi connected for API calls)
   if (WiFi.status() == WL_CONNECTED)
   {
-    checkKeepGoing();
+    checkUnbiddenInk();
   }
 
   delay(10); // Small delay to prevent excessive CPU usage

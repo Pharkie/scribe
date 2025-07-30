@@ -2,6 +2,9 @@
 let MAX_CHARS = 200; // Default value, will be updated by config endpoint
 let PRINTERS = []; // Will store all available printers
 
+// Default prompts - keep in sync with C++ constants
+const DEFAULT_MOTIVATION_PROMPT = "Generate a short, encouraging motivational message to help me stay focused and positive. Keep it brief, uplifting, and practical.";
+
 // Fetch configuration from server
 async function loadConfig() {
   try {
@@ -85,8 +88,8 @@ function getActionConfig(action) {
       return { colors: ['#14b8a6', '#0f766e', '#5eead4'], name: 'Quote' }; // Teal
     case 'quiz':
       return { colors: ['#eab308', '#ca8a04', '#fde047'], name: 'Quiz' }; // Yellow
-    case 'keep-going':
-      return { colors: ['#10b981', '#059669', '#34d399'], name: 'Keep Going' }; // Emerald
+    case 'unbidden-ink':
+      return { colors: ['#8b5cf6', '#7c3aed', '#a78bfa'], name: 'Unbidden Ink' }; // Purple
     default:
       return { colors: ['#3b82f6', '#1e40af', '#60a5fa'], name: 'Message' }; // Blue (default)
   }
@@ -110,7 +113,15 @@ function sendMessage(printerTarget, message, action = null) {
     method: 'POST',
     body: formData
   })
-  .then(response => response.text())
+  .then(response => {
+    if (!response.ok) {
+      // Handle HTTP error responses (like 500)
+      return response.text().then(errorText => {
+        throw new Error(errorText || `HTTP ${response.status}`);
+      });
+    }
+    return response.text();
+  })
   .then(data => {
     console.log('Message response:', data);
     
@@ -135,7 +146,7 @@ function sendMessage(printerTarget, message, action = null) {
   })
   .catch(error => {
     console.error('Error occurred:', error);
-    alert('Failed to send message. Please try again. Error: ' + error.message);
+    alert(`Failed to send message. Please try again.\n\nError: ${error.message}`);
   });
 }
 
@@ -167,8 +178,8 @@ function sendQuickAction(action) {
     case 'quiz':
       endpoint = '/quiz';
       break;
-    case 'keep-going':
-      endpoint = '/keep-going';
+    case 'unbidden-ink':
+      endpoint = '/unbidden-ink';
       break;
     default:
       console.error('Unknown action:', action);
@@ -192,7 +203,15 @@ function sendQuickAction(action) {
     },
     body: `source=${encodeURIComponent(source)}`
   })
-  .then(response => response.text())
+  .then(response => {
+    if (!response.ok) {
+      // Handle HTTP error responses (like 500)
+      return response.text().then(errorText => {
+        throw new Error(errorText || `HTTP ${response.status}`);
+      });
+    }
+    return response.text();
+  })
   .then(content => {
     console.log('Response:', content);
     
@@ -213,7 +232,7 @@ function sendQuickAction(action) {
   .catch(error => {
     console.error('Error occurred:', error);
     const actionConfig = getActionConfig(action);
-    alert(`Failed to get ${actionConfig.name.toLowerCase()} content. Please try again. Error: ` + error.message);
+    alert(`Failed to get ${actionConfig.name.toLowerCase()} content. Please try again.\n\nError: ${error.message}`);
   });
 }
 
@@ -298,10 +317,321 @@ function handleKeyPress(event) {
 // Initialize the app when DOM is loaded
 document.addEventListener('DOMContentLoaded', function() {
   loadConfig();
+  loadSettings();
+  initializeSettingsPanel();
   
   // Add keyboard shortcut listener to the textarea
   const textarea = document.getElementById('message-textarea');
   if (textarea) {
     textarea.addEventListener('keydown', handleKeyPress);
+  }
+});
+
+// ========================================
+// SETTINGS FUNCTIONALITY
+// ========================================
+
+// Settings state
+let settingsVisible = false;
+
+// Initialize settings panel
+function initializeSettingsPanel() {
+  // Populate hour dropdowns
+  const startHourSelect = document.getElementById('start-hour');
+  const endHourSelect = document.getElementById('end-hour');
+  
+  for (let i = 0; i < 24; i++) {
+    const startOption = document.createElement('option');
+    startOption.value = i;
+    startOption.textContent = `${i.toString().padStart(2, '0')}:00`;
+    startHourSelect.appendChild(startOption);
+    
+    const endOption = document.createElement('option');
+    endOption.value = i;
+    endOption.textContent = `${i.toString().padStart(2, '0')}:00`;
+    endHourSelect.appendChild(endOption);
+  }
+  
+  // Initialize frequency slider
+  const frequencySlider = document.getElementById('frequency');
+  const frequencyValue = document.getElementById('frequency-value');
+  
+  frequencySlider.addEventListener('input', function() {
+    frequencyValue.textContent = `${this.value} min`;
+  });
+  
+  // Close settings when clicking overlay
+  document.getElementById('settings-overlay').addEventListener('click', function(e) {
+    if (e.target === this) {
+      toggleSettings();
+    }
+  });
+}
+
+// Toggle settings panel visibility
+function toggleSettings() {
+  const overlay = document.getElementById('settings-overlay');
+  const panel = document.getElementById('settings-panel');
+  
+  if (settingsVisible) {
+    // Hide settings
+    overlay.classList.remove('settings-show');
+    setTimeout(() => {
+      overlay.classList.add('hidden');
+    }, 300);
+    settingsVisible = false;
+  } else {
+    // Show settings
+    overlay.classList.remove('hidden');
+    setTimeout(() => {
+      overlay.classList.add('settings-show');
+    }, 10);
+    settingsVisible = true;
+    
+    // Load current settings when opening
+    loadSettings();
+  }
+}
+
+// Load current settings from server
+async function loadSettings() {
+  try {
+    const response = await fetch('/unbidden-ink/settings');
+    if (response.ok) {
+      const settings = await response.json();
+      
+      // Update form fields
+      document.getElementById('enable-unbidden-ink').checked = settings.enabled;
+      document.getElementById('custom-prompt').value = settings.prompt || DEFAULT_MOTIVATION_PROMPT;
+      document.getElementById('start-hour').value = settings.startHour;
+      document.getElementById('end-hour').value = settings.endHour;
+      document.getElementById('frequency').value = settings.frequencyMinutes;
+      
+      // Update frequency display
+      document.getElementById('frequency-value').textContent = `${settings.frequencyMinutes} min`;
+      
+      // Update character count
+      updatePromptCharCount();
+      
+      // Update settings container state based on enabled status
+      toggleUnbiddenInkSettings();
+    }
+  } catch (error) {
+    console.error('Failed to load settings:', error);
+    showSettingsStatus('Failed to load settings', 'error');
+  }
+}
+
+// Save settings to server
+async function saveSettings() {
+  const settings = {
+    enabled: document.getElementById('enable-unbidden-ink').checked,
+    prompt: document.getElementById('custom-prompt').value,
+    startHour: parseInt(document.getElementById('start-hour').value),
+    endHour: parseInt(document.getElementById('end-hour').value),
+    frequencyMinutes: parseInt(document.getElementById('frequency').value)
+  };
+  
+  // Basic validation
+  if (settings.enabled) {
+    if (!settings.prompt.trim()) {
+      showSettingsStatus('Prompt is required when Unbidden Ink is enabled', 'error');
+      return;
+    }
+    if (settings.startHour >= settings.endHour) {
+      showSettingsStatus('Start hour must be before end hour', 'error');
+      return;
+    }
+  }
+  
+  try {
+    showSettingsStatus('Saving...', 'info');
+    
+    const response = await fetch('/unbidden-ink/settings', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(settings)
+    });
+    
+    if (response.ok) {
+      showSettingsStatus('Settings saved successfully! 💾', 'success');
+      
+      // Close settings panel after a delay
+      setTimeout(() => {
+        toggleSettings();
+      }, 1500);
+    } else {
+      const errorText = await response.text();
+      showSettingsStatus(`Failed to save: ${errorText}`, 'error');
+    }
+  } catch (error) {
+    console.error('Failed to save settings:', error);
+    showSettingsStatus('Failed to save settings', 'error');
+  }
+}
+
+// Save settings quietly (for auto-save when disabling)
+async function saveSettingsQuietly() {
+  const settings = {
+    enabled: document.getElementById('enable-unbidden-ink').checked,
+    prompt: document.getElementById('custom-prompt').value,
+    startHour: parseInt(document.getElementById('start-hour').value),
+    endHour: parseInt(document.getElementById('end-hour').value),
+    frequencyMinutes: parseInt(document.getElementById('frequency').value)
+  };
+  
+  try {
+    await fetch('/unbidden-ink/settings', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(settings)
+    });
+    // Silent save - no status messages
+  } catch (error) {
+    console.error('Failed to auto-save settings:', error);
+    // Silent failure - don't show error to user for auto-save
+  }
+}
+
+// Test Unbidden Ink functionality
+async function testUnbiddenInk() {
+  try {
+    showSettingsStatus('Sending test message...', 'info');
+    
+    const response = await fetch('/unbidden-ink', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded'
+      },
+      body: 'source=local-direct'
+    });
+    
+    if (response.ok) {
+      showSettingsStatus('Test message sent! 🧪', 'success');
+      
+      // Add confetti effect
+      confetti({
+        particleCount: 100,
+        spread: 70,
+        origin: { y: 0.6 }
+      });
+    } else {
+      const errorText = await response.text();
+      showSettingsStatus(`Test failed: ${errorText}`, 'error');
+    }
+  } catch (error) {
+    console.error('Failed to test Unbidden Ink:', error);
+    showSettingsStatus('Test failed', 'error');
+  }
+}
+
+// Show status message in settings panel
+function showSettingsStatus(message, type) {
+  const statusElement = document.getElementById('settings-status');
+  
+  // Set content and styling based on type
+  statusElement.textContent = message;
+  statusElement.className = `text-center text-sm min-h-[1.5rem] flex items-center justify-center transition-opacity duration-200 ${
+    type === 'success' ? 'text-green-600' :
+    type === 'error' ? 'text-red-600' :
+    'text-blue-600'
+  }`;
+  
+  // Show message
+  statusElement.style.opacity = '1';
+  
+  // Auto-hide after delay (except for info messages)
+  if (type !== 'info') {
+    setTimeout(() => {
+      statusElement.style.opacity = '0';
+    }, type === 'success' ? 3000 : 5000);
+  }
+}
+
+// Load prompt presets
+function loadPromptPreset(presetType) {
+  const prompts = {
+    motivation: DEFAULT_MOTIVATION_PROMPT,
+    doctorwho: "Share an interesting and lesser-known fact about Doctor Who - the characters, episodes, behind-the-scenes trivia, or science fiction concepts from the show. Make it engaging and fun for a fan.",
+    wonderful: "Tell me about something wonderful happening in the world today - a scientific breakthrough, human kindness, environmental progress, or cultural achievement. Focus on positive, uplifting news.",
+    creative: "Give me a creative writing prompt, art inspiration, or imaginative idea to spark my creativity. Something unique and thought-provoking that could lead to an interesting project or story."
+  };
+  
+  const promptTextarea = document.getElementById('custom-prompt');
+  if (promptTextarea && prompts[presetType]) {
+    promptTextarea.value = prompts[presetType];
+    updatePromptCharCount();
+    
+    // Add visual feedback
+    promptTextarea.focus();
+    promptTextarea.style.borderColor = '#8b5cf6';
+    setTimeout(() => {
+      promptTextarea.style.borderColor = '';
+    }, 1000);
+  }
+}
+
+// Toggle Unbidden Ink settings visibility and state
+function toggleUnbiddenInkSettings() {
+  const enableCheckbox = document.getElementById('enable-unbidden-ink');
+  const settingsContainer = document.getElementById('unbidden-ink-settings');
+  
+  if (enableCheckbox.checked) {
+    // Enable settings
+    settingsContainer.style.opacity = '1';
+    settingsContainer.style.pointerEvents = 'auto';
+    
+    // Enable all form elements within the container (including action buttons)
+    const formElements = settingsContainer.querySelectorAll('input, select, textarea, button');
+    formElements.forEach(element => {
+      element.disabled = false;
+    });
+  } else {
+    // Disable settings
+    settingsContainer.style.opacity = '0.5';
+    settingsContainer.style.pointerEvents = 'none';
+    
+    // Disable all form elements within the container (including action buttons)
+    const formElements = settingsContainer.querySelectorAll('input, select, textarea, button');
+    formElements.forEach(element => {
+      element.disabled = true;
+    });
+    
+    // Immediately save the disabled state
+    saveSettingsQuietly();
+  }
+}
+
+// Update character count for prompt
+function updatePromptCharCount() {
+  const promptTextarea = document.getElementById('custom-prompt');
+  const charCountElement = document.getElementById('prompt-char-count');
+  
+  if (promptTextarea && charCountElement) {
+    const currentLength = promptTextarea.value.length;
+    const maxLength = 500;
+    charCountElement.textContent = `${currentLength}/${maxLength}`;
+    
+    // Change color based on usage
+    if (currentLength > maxLength * 0.9) {
+      charCountElement.className = 'text-xs text-red-500';
+    } else if (currentLength > maxLength * 0.7) {
+      charCountElement.className = 'text-xs text-orange-500';
+    } else {
+      charCountElement.className = 'text-xs text-gray-400';
+    }
+  }
+}
+
+// Initialize character counter when page loads
+document.addEventListener('DOMContentLoaded', function() {
+  const promptTextarea = document.getElementById('custom-prompt');
+  if (promptTextarea) {
+    promptTextarea.addEventListener('input', updatePromptCharCount);
+    updatePromptCharCount(); // Initial count
   }
 });

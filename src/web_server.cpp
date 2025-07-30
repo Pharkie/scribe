@@ -28,6 +28,7 @@
 #include "printer.h"
 #include "content_generators.h"
 #include "api_client.h"
+#include "unbidden_ink.h"
 #include <WiFi.h>
 #include <ESPmDNS.h>
 #include <LittleFS.h>
@@ -422,8 +423,8 @@ void setupWebServerRoutes(int maxChars)
     // Quiz endpoint - prints locally and returns content
     server.on("/quiz", HTTP_POST, handleQuiz);
 
-    // Keep Going endpoint - prints locally and returns content
-    server.on("/keep-going", HTTP_POST, handleKeepGoing);
+    // Unbidden Ink endpoint - prints locally and returns content
+    server.on("/unbidden-ink", HTTP_POST, handleUnbiddenInk);
 
     // Message endpoint - unified text message handling
     server.on("/message", HTTP_POST, handleMessage);
@@ -436,6 +437,10 @@ void setupWebServerRoutes(int maxChars)
 
     // MQTT send endpoint for remote printing
     server.on("/mqtt-send", HTTP_POST, handleMQTTSend);
+
+    // Unbidden Ink settings endpoints
+    server.on("/unbidden-ink/settings", HTTP_GET, handleUnbiddenInkSettingsGet);
+    server.on("/unbidden-ink/settings", HTTP_POST, handleUnbiddenInkSettingsPost);
 
     // Handle 404
     server.onNotFound(handleNotFound);
@@ -667,9 +672,9 @@ bool processEndpoint(const char *endpoint, const char *destination)
         content = generateQuizContent();
         success = (content.length() > 0);
     }
-    else if (strcmp(endpoint, "/keep-going") == 0)
+    else if (strcmp(endpoint, "/unbidden-ink") == 0)
     {
-        content = generateKeepGoingContent();
+        content = generateUnbiddenInkContent();
         success = (content.length() > 0);
     }
     else if (strcmp(endpoint, "/print-test") == 0)
@@ -987,7 +992,7 @@ void handleQuiz()
     }
 }
 
-void handleKeepGoing()
+void handleUnbiddenInk()
 {
     // Validate optional parameters
     ValidationResult remoteValidation = validateRemoteParameter();
@@ -1001,14 +1006,14 @@ void handleKeepGoing()
     String source = server.hasArg("source") ? server.arg("source") : "local-direct";
 
     // Use unified endpoint processing
-    if (processEndpoint("/keep-going", source.c_str()))
+    if (processEndpoint("/unbidden-ink", source.c_str()))
     {
         // Return the content as plain text
         server.send(200, "text/plain", currentMessage.message);
     }
     else
     {
-        server.send(500, "text/plain", "Failed to generate Keep Going content");
+        server.send(500, "text/plain", "Failed to generate Unbidden Ink content");
     }
 }
 
@@ -1154,4 +1159,147 @@ void handleMQTTSend()
         LOG_ERROR("WEB", "Failed to send MQTT message to topic: %s", topic.c_str());
         server.send(500, "text/plain", "Failed to send MQTT message - broker error");
     }
+}
+
+void handleUnbiddenInkSettingsGet()
+{
+    // Check rate limiting
+    if (isRateLimited())
+    {
+        server.send(429, "text/plain", "Rate limit exceeded. Please wait before making another request.");
+        return;
+    }
+
+    DynamicJsonDocument doc(1024); // Increased size for prompt field
+
+    // Read current settings from config or LittleFS
+    File settingsFile = LittleFS.open("/unbidden_ink_settings.json", "r");
+    if (settingsFile)
+    {
+        DeserializationError error = deserializeJson(doc, settingsFile);
+        settingsFile.close();
+
+        if (error)
+        {
+            LOG_WARNING("WEB", "Failed to parse Unbidden Ink settings file: %s", error.c_str());
+            // Fall back to defaults
+        }
+    }
+
+    // Set defaults if file doesn't exist or parsing failed
+    if (!doc.containsKey("enabled"))
+    {
+        doc["enabled"] = enableUnbiddenInk;
+        doc["prompt"] = getUnbiddenInkPrompt();
+        doc["startHour"] = unbiddenInkStartHour;
+        doc["endHour"] = unbiddenInkEndHour;
+        doc["frequencyMinutes"] = unbiddenInkFrequencyMinutes;
+    }
+
+    String response;
+    serializeJson(doc, response);
+    server.send(200, "application/json", response);
+}
+
+void handleUnbiddenInkSettingsPost()
+{
+    // Check rate limiting
+    if (isRateLimited())
+    {
+        server.send(429, "text/plain", "Rate limit exceeded. Please wait before making another request.");
+        return;
+    }
+
+    // Get and validate JSON body
+    String body = server.arg("plain");
+    if (body.length() == 0)
+    {
+        sendValidationError(ValidationResult(false, "No JSON body provided"));
+        return;
+    }
+
+    // Parse JSON
+    DynamicJsonDocument doc(1024); // Increased size for prompt field
+    DeserializationError error = deserializeJson(doc, body);
+    if (error)
+    {
+        sendValidationError(ValidationResult(false, "Invalid JSON format: " + String(error.c_str())));
+        return;
+    }
+
+    // Validate required fields
+    if (!doc.containsKey("enabled") || !doc.containsKey("startHour") ||
+        !doc.containsKey("endHour") || !doc.containsKey("frequencyMinutes"))
+    {
+        sendValidationError(ValidationResult(false, "Missing required fields"));
+        return;
+    }
+
+    // Validate field types and ranges
+    if (!doc["enabled"].is<bool>())
+    {
+        sendValidationError(ValidationResult(false, "enabled must be boolean"));
+        return;
+    }
+
+    int startHour = doc["startHour"];
+    int endHour = doc["endHour"];
+    int frequency = doc["frequencyMinutes"];
+
+    if (startHour < 0 || startHour > 23 || endHour < 0 || endHour > 23)
+    {
+        sendValidationError(ValidationResult(false, "Hours must be between 0 and 23"));
+        return;
+    }
+
+    if (startHour >= endHour)
+    {
+        sendValidationError(ValidationResult(false, "Start hour must be before end hour"));
+        return;
+    }
+
+    if (frequency < 5 || frequency > 240)
+    {
+        sendValidationError(ValidationResult(false, "Frequency must be between 5 and 240 minutes"));
+        return;
+    }
+
+    // If enabled, validate prompt
+    if (doc["enabled"].as<bool>())
+    {
+        if (!doc.containsKey("prompt"))
+        {
+            sendValidationError(ValidationResult(false, "Prompt required when enabled"));
+            return;
+        }
+
+        String prompt = doc["prompt"];
+
+        if (prompt.length() == 0)
+        {
+            sendValidationError(ValidationResult(false, "Prompt cannot be empty when enabled"));
+            return;
+        }
+
+        if (prompt.length() > 500)
+        {
+            sendValidationError(ValidationResult(false, "Prompt must be less than 500 characters"));
+            return;
+        }
+    }
+
+    // Save settings to LittleFS
+    File settingsFile = LittleFS.open("/unbidden_ink_settings.json", "w");
+    if (!settingsFile)
+    {
+        LOG_ERROR("WEB", "Failed to open Unbidden Ink settings file for writing");
+        server.send(500, "text/plain", "Failed to save settings");
+        return;
+    }
+
+    serializeJson(doc, settingsFile);
+    settingsFile.close();
+
+    LOG_VERBOSE("WEB", "Unbidden Ink settings saved successfully");
+    server.send(200, "text/plain", "Settings saved successfully");
 }

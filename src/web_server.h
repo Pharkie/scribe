@@ -133,11 +133,11 @@ void handleQuote();
 void handleQuiz();
 
 /**
- * @brief Handle requests to /keep-going endpoint
- * Fetches and returns motivational message from Pipedream Keep Going API
+ * @brief Handle requests to /unbidden-ink endpoint
+ * Fetches and returns AI-generated content from Pipedream with custom prompts
  * Content should be sent to printer via /print-local or /mqtt-send endpoints
  */
-void handleKeepGoing();
+void handleUnbiddenInk();
 
 /**
  * @brief Handle requests to /message endpoint
@@ -191,6 +191,18 @@ void handleNotFound();
  * Publishes JSON messages to specified MQTT topics for remote printing
  */
 void handleMQTTSend();
+
+/**
+ * @brief Handle Unbidden Ink settings GET requests
+ * Returns current Unbidden Ink configuration as JSON
+ */
+void handleUnbiddenInkSettingsGet();
+
+/**
+ * @brief Handle Unbidden Ink settings POST requests
+ * Updates Unbidden Ink configuration from JSON payload
+ */
+void handleUnbiddenInkSettingsPost();
 
 // Helper functions for file operations
 /**

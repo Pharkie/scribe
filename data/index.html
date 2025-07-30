@@ -14,7 +14,157 @@
 <body class="flex flex-col min-h-screen justify-between py-8 px-4 font-sans">
     <!-- Header with title and system status -->
     <header class="w-full max-w-4xl mx-auto flex justify-between items-center mb-8">
+        <div class="flex-1"></div>
+        <h1 class="text-3xl font-bold text-gray-800">Scribe</h1>
+        <div class="flex-1 flex justify-end items-center">
+            <button onclick="toggleSettings()"
+                class="flex items-center space-x-2 px-4 py-3 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-full transition-all duration-200 hover:scale-105 hover:shadow-md">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z">
+                    </path>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                </svg>
+                <span class="text-sm font-medium">Unbidden Ink Settings</span>
+            </button>
+        </div>
     </header>
+
+    <!-- Settings Panel Overlay -->
+    <div id="settings-overlay"
+        class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden opacity-0 transition-opacity duration-300">
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div id="settings-panel"
+                class="bg-white rounded-2xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto transform scale-95 transition-transform duration-300">
+                <div class="p-6">
+                    <div class="flex justify-between items-center mb-6">
+                        <h3 class="text-xl font-semibold text-gray-800">✨ Unbidden Ink Settings</h3>
+                        <button onclick="toggleSettings()" class="text-gray-500 hover:text-gray-700 transition-colors">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M6 18L18 6M6 6l12 12"></path>
+                            </svg>
+                        </button>
+                    </div>
+
+                    <form id="settings-form" class="space-y-6">
+                        <!-- Enable/Disable Unbidden Ink -->
+                        <div class="space-y-3">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <h4 class="text-sm font-medium text-gray-700">Enable Unbidden Ink</h4>
+                                    <p class="text-xs text-gray-500 mt-1">Automatically generate AI content during
+                                        working hours using custom prompts</p>
+                                </div>
+                                <label class="relative inline-flex items-center cursor-pointer">
+                                    <input type="checkbox" id="enable-unbidden-ink" class="sr-only peer"
+                                        onchange="toggleUnbiddenInkSettings()">
+                                    <div
+                                        class="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-purple-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600">
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Settings Container (disabled when Unbidden Ink is off) -->
+                        <div id="unbidden-ink-settings" class="space-y-6 transition-opacity duration-200">
+                            <!-- ChatGPT Prompt Section -->
+                            <div class="space-y-3">
+                                <h4 class="text-sm font-medium text-gray-700">ChatGPT Prompt</h4>
+
+                                <!-- Preset Buttons -->
+                                <div class="grid grid-cols-2 gap-2">
+                                    <button type="button" onclick="loadPromptPreset('motivation')"
+                                        class="p-2 text-xs bg-emerald-100 hover:bg-emerald-200 text-emerald-700 rounded-lg border border-emerald-300 transition-colors">
+                                        💪 Keep Going
+                                    </button>
+                                    <button type="button" onclick="loadPromptPreset('doctorwho')"
+                                        class="p-2 text-xs bg-blue-100 hover:bg-blue-200 text-blue-700 rounded-lg border border-blue-300 transition-colors">
+                                        🌌 Doctor Who Fact
+                                    </button>
+                                    <button type="button" onclick="loadPromptPreset('wonderful')"
+                                        class="p-2 text-xs bg-yellow-100 hover:bg-yellow-200 text-yellow-700 rounded-lg border border-yellow-300 transition-colors">
+                                        🌟 Wonderful World
+                                    </button>
+                                    <button type="button" onclick="loadPromptPreset('creative')"
+                                        class="p-2 text-xs bg-purple-100 hover:bg-purple-200 text-purple-700 rounded-lg border border-purple-300 transition-colors">
+                                        🎨 Creative Spark
+                                    </button>
+                                </div>
+
+                                <!-- Custom Prompt Text Area -->
+                                <textarea id="custom-prompt"
+                                    class="w-full p-3 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent text-sm resize-none"
+                                    rows="4" maxlength="500"
+                                    placeholder="Enter your custom ChatGPT prompt here..."></textarea>
+                                <div class="flex justify-between items-center">
+                                    <p class="text-xs text-gray-500">Design your perfect AI content prompt
+                                    </p>
+                                    <span id="prompt-char-count" class="text-xs text-gray-400">0/500</span>
+                                </div>
+                            </div>
+
+                            <!-- Working Hours -->
+                            <div class="space-y-3">
+                                <h4 class="text-sm font-medium text-gray-700">Working Hours</h4>
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label for="start-hour" class="block text-xs text-gray-600 mb-1">Start
+                                            Hour</label>
+                                        <select id="start-hour"
+                                            class="w-full p-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-purple-400 text-sm">
+                                            <!-- Options 0-23 will be populated by JavaScript -->
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label for="end-hour" class="block text-xs text-gray-600 mb-1">End Hour</label>
+                                        <select id="end-hour"
+                                            class="w-full p-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-purple-400 text-sm">
+                                            <!-- Options 0-23 will be populated by JavaScript -->
+                                        </select>
+                                    </div>
+                                </div>
+                                <p class="text-xs text-gray-500">Unbidden Ink messages will only be sent during these
+                                    hours</p>
+                            </div>
+
+                            <!-- Frequency -->
+                            <div class="space-y-2">
+                                <label for="frequency" class="block text-sm font-medium text-gray-700">Frequency
+                                    (minutes):</label>
+                                <div class="flex items-center space-x-3">
+                                    <input type="range" id="frequency" min="5" max="240" step="5"
+                                        class="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider">
+                                    <span id="frequency-value"
+                                        class="text-sm font-medium text-gray-700 min-w-[60px] text-center">60 min</span>
+                                </div>
+                                <p class="text-xs text-gray-500">How often to send Unbidden Ink messages during working
+                                    hours</p>
+                            </div>
+
+                            <!-- Action Buttons -->
+                            <div class="flex space-x-3 pt-4 border-t border-gray-200">
+                                <button type="button" onclick="saveSettings()"
+                                    class="flex-1 bg-purple-600 hover:bg-purple-700 text-white py-3 rounded-lg font-medium transition-all duration-200 hover:scale-[1.02]">
+                                    💾 Save Settings
+                                </button>
+                                <button type="button" onclick="testUnbiddenInk()"
+                                    class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white py-3 rounded-lg font-medium transition-all duration-200 hover:scale-[1.02]">
+                                    🧪 Print sample
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Status Message -->
+                        <div id="settings-status"
+                            class="text-center text-sm min-h-[1.5rem] flex items-center justify-center opacity-0 transition-opacity duration-200">
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <main class="w-full max-w-4xl mx-auto flex-1">
         <!-- Unified Printer Interface -->
@@ -67,10 +217,6 @@
                     <button onclick="sendQuickAction('quiz')"
                         class="px-4 py-2 bg-yellow-500 hover:bg-yellow-600 text-white text-sm rounded-lg font-medium transition-all duration-200 hover:scale-105">
                         🧠 Quiz
-                    </button>
-                    <button onclick="sendQuickAction('keep-going')"
-                        class="px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white text-sm rounded-lg font-medium transition-all duration-200 hover:scale-105">
-                        💪 Keep Going
                     </button>
                     <button onclick="sendQuickAction('test-print')"
                         class="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white text-sm rounded-lg font-medium transition-all duration-200 hover:scale-105">

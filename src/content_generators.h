@@ -56,9 +56,9 @@ String generateQuoteContent();
 String generateQuizContent();
 
 /**
- * @brief Generate Keep Going content from Pipedream API
- * @return String containing formatted motivational message
+ * @brief Generate AI content from Unbidden Ink API
+ * @return String containing formatted Unbidden Ink content
  */
-String generateKeepGoingContent();
+String generateUnbiddenInkContent();
 
 #endif // CONTENT_GENERATORS_H
