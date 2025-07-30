@@ -59,19 +59,14 @@ void setupLogging()
     // Create logs directory if logging to file
     if (enableFileLogging)
     {
-        if (LittleFS.begin())
-        {
-            LittleFS.mkdir("/logs");
-        }
+        // LittleFS is already mounted in main.cpp
+        LittleFS.mkdir("/logs");
     }
 }
 
 void logToFileSystem(const String &message)
 {
-    if (!LittleFS.begin())
-    {
-        return;
-    }
+    // LittleFS is already mounted in main.cpp, no need to call begin() again
 
     // Check if log rotation is needed
     if (LittleFS.exists(logFileName))
@@ -173,10 +168,7 @@ void logToBetterStack(const String &message, const String &level, const String &
 
 void rotateLogFile()
 {
-    if (!LittleFS.begin())
-    {
-        return;
-    }
+    // LittleFS is already mounted in main.cpp, no need to call begin() again
 
     // Remove old backup if it exists
     String backupName = String(logFileName) + ".old";

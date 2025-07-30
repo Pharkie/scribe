@@ -42,8 +42,8 @@
  * - 404 error handling
  */
 
-// Receipt structure definition
-struct Receipt
+// Message structure definition
+struct Message
 {
     String message;
     String timestamp;
@@ -52,7 +52,7 @@ struct Receipt
 
 // Forward declarations
 extern WebServer server;
-extern Receipt currentReceipt;
+extern Message currentMessage;
 
 /**
  * @brief Setup all web server routes and handlers
@@ -131,6 +131,13 @@ void handleQuote();
  * Content should be sent to printer via /print-local or /mqtt-send endpoints
  */
 void handleQuiz();
+
+/**
+ * @brief Handle requests to /keep-going endpoint
+ * Fetches and returns motivational message from Pipedream Keep Going API
+ * Content should be sent to printer via /print-local or /mqtt-send endpoints
+ */
+void handleKeepGoing();
 
 /**
  * @brief Handle requests to /message endpoint

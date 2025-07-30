@@ -7,7 +7,7 @@ async function loadConfig() {
   try {
     const response = await fetch('/config');
     const config = await response.json();
-    MAX_CHARS = config.maxReceiptChars;
+    MAX_CHARS = config.maxMessageChars;
     
     // Set the maxlength attribute on textarea
     const textarea = document.getElementById('message-textarea');
@@ -80,11 +80,13 @@ function getActionConfig(action) {
     case 'joke':
       return { colors: ['#f97316', '#ea580c', '#fb923c'], name: 'Joke' }; // Orange
     case 'test-print':
-      return { colors: ['#22c55e', '#16a34a', '#4ade80'], name: 'Test print' }; // Green
+      return { colors: ['#3b82f6', '#1e40af', '#60a5fa'], name: 'Test print' }; // Blue
     case 'quote':
       return { colors: ['#14b8a6', '#0f766e', '#5eead4'], name: 'Quote' }; // Teal
     case 'quiz':
       return { colors: ['#eab308', '#ca8a04', '#fde047'], name: 'Quiz' }; // Yellow
+    case 'keep-going':
+      return { colors: ['#10b981', '#059669', '#34d399'], name: 'Keep Going' }; // Emerald
     default:
       return { colors: ['#3b82f6', '#1e40af', '#60a5fa'], name: 'Message' }; // Blue (default)
   }
@@ -164,6 +166,9 @@ function sendQuickAction(action) {
       break;
     case 'quiz':
       endpoint = '/quiz';
+      break;
+    case 'keep-going':
+      endpoint = '/keep-going';
       break;
     default:
       console.error('Unknown action:', action);

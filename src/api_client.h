@@ -41,6 +41,16 @@
 String fetchFromAPI(const String &url, const String &userAgent, int timeoutMs = 5000);
 
 /**
+ * @brief Make HTTPS API calls with Bearer token authorization
+ * @param url The API endpoint URL
+ * @param bearerToken The Bearer token (including "Bearer " prefix)
+ * @param userAgent User agent string for the request
+ * @param timeoutMs Request timeout in milliseconds (default: 5000)
+ * @return String containing the API response, or empty string on failure
+ */
+String fetchFromAPIWithBearer(const String &url, const String &bearerToken, const String &userAgent, int timeoutMs = 5000);
+
+/**
  * @brief Simple template replacement function
  * @param templateStr The template string with {{PLACEHOLDER}} markers
  * @param placeholder The placeholder name (without braces)

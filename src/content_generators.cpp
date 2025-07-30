@@ -28,10 +28,7 @@
 
 String generateRiddleContent()
 {
-    if (!LittleFS.begin())
-    {
-        return "Failed to mount LittleFS for riddles";
-    }
+    // LittleFS is already mounted in main.cpp, no need to call begin() again
 
     // Open the riddles.ndjson file
     File file = LittleFS.open("/riddles.ndjson", "r");
@@ -92,7 +89,7 @@ String generateJokeContent()
     String jokeText = "Why don't scientists trust atoms? Because they make up everything!"; // fallback
 
     // Try to fetch from API
-    String response = fetchFromAPI(dadJokeAPI, apiUserAgent);
+    String response = fetchFromAPI(jokeAPI, apiUserAgent);
 
     if (response.length() > 0)
     {
@@ -229,4 +226,52 @@ String generateQuizContent()
     }
 
     return quiz;
+}
+
+String generateKeepGoingContent()
+{
+    String keepGoingMessage = "Keep going! You've got this!"; // fallback message (removed emoji)
+
+    // Build Bearer token with automatic prefix
+    String bearerToken = "Bearer " + String(keepGoingApiToken);
+
+    LOG_VERBOSE("KEEPGOING", "Calling Keep Going API: %s", keepGoingApiEndpoint);
+
+    // Try to fetch from Pipedream API with Bearer token
+    String response = fetchFromAPIWithBearer(keepGoingApiEndpoint, bearerToken, apiUserAgent);
+
+    if (response.length() > 0)
+    {
+        LOG_VERBOSE("KEEPGOING", "API response received: %s", response.c_str());
+
+        // Parse JSON response expecting a "message" field
+        DynamicJsonDocument doc(largeJsonDocumentSize);
+        DeserializationError error = deserializeJson(doc, response);
+
+        if (!error && doc.containsKey("message"))
+        {
+            String apiMessage = doc["message"].as<String>();
+            apiMessage.trim();
+            if (apiMessage.length() > 0)
+            {
+                keepGoingMessage = apiMessage;
+                LOG_VERBOSE("KEEPGOING", "Using API message: %s", apiMessage.c_str());
+            }
+            else
+            {
+                LOG_WARNING("KEEPGOING", "API returned empty message, using fallback");
+            }
+        }
+        else
+        {
+            LOG_WARNING("KEEPGOING", "API response parsing failed or no 'message' field found");
+        }
+    }
+    else
+    {
+        LOG_WARNING("KEEPGOING", "No response from Keep Going API, using fallback message");
+    }
+
+    String fullContent = "KEEP GOING\n\n" + keepGoingMessage;
+    return fullContent;
 }

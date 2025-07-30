@@ -44,10 +44,11 @@ extern String formatCustomDate(String customDate);
 extern void printWithHeader(String headerText, String bodyText);
 
 // Storage for form data
-Receipt currentReceipt = {"", "", false};
+// Global variable to store current message for printing
+Message currentMessage = {"", "", false};
 
-// Static variable to store maxReceiptChars value
-static int localMaxReceiptChars = maxReceiptChars;
+// Static variable to store maxMessageChars value
+static int localMaxMessageChars = maxMessageChars;
 
 // ========================================
 // UTILITY FUNCTIONS
@@ -146,7 +147,7 @@ ValidationResult validateMessage(const String &message, int maxLength = -1)
 {
     if (maxLength == -1)
     {
-        maxLength = localMaxReceiptChars;
+        maxLength = localMaxMessageChars;
     }
 
     // Check if message is empty
@@ -368,11 +369,7 @@ ValidationResult validateRemoteParameter()
  */
 bool serveFileFromLittleFS(const String &path, const String &contentType)
 {
-    if (!LittleFS.begin())
-    {
-        server.send(500, "text/plain", "Failed to mount file system");
-        return false;
-    }
+    // LittleFS is already mounted in main.cpp, no need to call begin() again
 
     File file = LittleFS.open(path, "r");
     if (!file)
@@ -391,7 +388,7 @@ bool serveFileFromLittleFS(const String &path, const String &contentType)
 void setupWebServerRoutes(int maxChars)
 {
     // Store the maxChars value for use in handlers
-    localMaxReceiptChars = maxChars;
+    localMaxMessageChars = maxChars;
 
     // Serve the main page from filesystem
     server.on("/", HTTP_GET, handleRoot);
@@ -424,6 +421,9 @@ void setupWebServerRoutes(int maxChars)
 
     // Quiz endpoint - prints locally and returns content
     server.on("/quiz", HTTP_POST, handleQuiz);
+
+    // Keep Going endpoint - prints locally and returns content
+    server.on("/keep-going", HTTP_POST, handleKeepGoing);
 
     // Message endpoint - unified text message handling
     server.on("/message", HTTP_POST, handleMessage);
@@ -465,8 +465,8 @@ void handleConfig()
 {
     DynamicJsonDocument doc(jsonDocumentSize);
 
-    // Set max receipt chars
-    doc["maxReceiptChars"] = localMaxReceiptChars;
+    // Set max message chars
+    doc["maxMessageChars"] = localMaxMessageChars;
 
     // Create remote printers array
     JsonArray printers = doc.createNestedArray("remotePrinters");
@@ -537,22 +537,22 @@ void handleSubmit()
             return;
         }
 
-        currentReceipt.timestamp = formatCustomDate(customDate);
+        currentMessage.timestamp = formatCustomDate(customDate);
         LOG_VERBOSE("WEB", "Using custom date: %s", customDate.c_str());
     }
     else
     {
-        currentReceipt.timestamp = getFormattedDateTime();
+        currentMessage.timestamp = getFormattedDateTime();
         LOG_VERBOSE("WEB", "Using current date");
     }
 
     // All validation passed, process the request
-    currentReceipt.message = message;
-    currentReceipt.queuedForPrint = true;
+    currentMessage.message = message;
+    currentMessage.queuedForPrint = true;
 
     LOG_VERBOSE("WEB", "Valid message received for printing: %d characters", message.length());
 
-    server.send(200, "text/plain", "Receipt received and sent to printer");
+    server.send(200, "text/plain", "Message received and sent to printer");
 }
 
 void handleStatus()
@@ -560,11 +560,9 @@ void handleStatus()
     // Get flash storage information
     size_t totalBytes = 0;
     size_t usedBytes = 0;
-    if (LittleFS.begin())
-    {
-        totalBytes = LittleFS.totalBytes();
-        usedBytes = LittleFS.usedBytes();
-    }
+    // LittleFS is already mounted in main.cpp
+    totalBytes = LittleFS.totalBytes();
+    usedBytes = LittleFS.usedBytes();
 
     DynamicJsonDocument doc(1024);
 
@@ -614,10 +612,7 @@ void handleButtons()
 
 String loadPrintTestContent()
 {
-    if (!LittleFS.begin())
-    {
-        return "Failed to mount LittleFS for print test";
-    }
+    // LittleFS is already mounted in main.cpp, no need to call begin() again
 
     File file = LittleFS.open("/print-test.txt", "r");
     if (!file)
@@ -672,6 +667,11 @@ bool processEndpoint(const char *endpoint, const char *destination)
         content = generateQuizContent();
         success = (content.length() > 0);
     }
+    else if (strcmp(endpoint, "/keep-going") == 0)
+    {
+        content = generateKeepGoingContent();
+        success = (content.length() > 0);
+    }
     else if (strcmp(endpoint, "/print-test") == 0)
     {
         String testContent = loadPrintTestContent();
@@ -690,21 +690,21 @@ bool processEndpoint(const char *endpoint, const char *destination)
         return false;
     }
 
-    // Set up receipt data
-    currentReceipt.message = content;
-    currentReceipt.timestamp = getFormattedDateTime();
+    // Set up message data
+    currentMessage.message = content;
+    currentMessage.timestamp = getFormattedDateTime();
 
     // Handle routing based on destination
     if (isLocalDirect)
     {
         // Local direct printing: queue for local printer
-        currentReceipt.queuedForPrint = true;
+        currentMessage.queuedForPrint = true;
         LOG_VERBOSE("WEB", "Content queued for local direct printing");
     }
     else
     {
         // MQTT: send via MQTT, don't print locally
-        currentReceipt.queuedForPrint = false;
+        currentMessage.queuedForPrint = false;
         LOG_VERBOSE("WEB", "Content will be sent via MQTT to topic: %s", destination);
 
         // Create JSON payload for MQTT (same format as handleMQTTSend)
@@ -743,21 +743,21 @@ bool processCustomMessage(const String &message, const String &timestamp, const 
 
     LOG_VERBOSE("WEB", "Processing custom message (destination: %s)", destination);
 
-    // Set up receipt data
-    currentReceipt.message = message;
-    currentReceipt.timestamp = timestamp;
+    // Set up message data
+    currentMessage.message = message;
+    currentMessage.timestamp = timestamp;
 
     // Handle routing based on destination
     if (isLocalDirect)
     {
         // Local direct printing: queue for local printer
-        currentReceipt.queuedForPrint = true;
+        currentMessage.queuedForPrint = true;
         LOG_VERBOSE("WEB", "Custom message queued for local direct printing");
     }
     else
     {
         // MQTT: send via MQTT, don't print locally
-        currentReceipt.queuedForPrint = false;
+        currentMessage.queuedForPrint = false;
         LOG_VERBOSE("WEB", "Custom message will be sent via MQTT to topic: %s", destination);
 
         // Create JSON payload for MQTT (same format as handleMQTTSend)
@@ -809,7 +809,7 @@ void handlePrintTest()
     if (processEndpoint("/print-test", source.c_str()))
     {
         // Return the content as plain text
-        server.send(200, "text/plain", currentReceipt.message);
+        server.send(200, "text/plain", currentMessage.message);
     }
     else
     {
@@ -865,13 +865,7 @@ void handleNotFound()
 
     LOG_WARNING("WEB", "%s", errorDetails.c_str());
 
-    // Load 404 template from LittleFS
-    if (!LittleFS.begin())
-    {
-        server.send(404, "text/plain", "404 - Page not found (template error)");
-        return;
-    }
-
+    // Load 404 template from LittleFS (already mounted in main.cpp)
     File templateFile = LittleFS.open("/404.html", "r");
     if (!templateFile)
     {
@@ -910,7 +904,7 @@ void handleRiddle()
     if (processEndpoint("/riddle", source.c_str()))
     {
         // Return the content as plain text
-        server.send(200, "text/plain", currentReceipt.message);
+        server.send(200, "text/plain", currentMessage.message);
     }
     else
     {
@@ -935,7 +929,7 @@ void handleJoke()
     if (processEndpoint("/joke", source.c_str()))
     {
         // Return the content as plain text
-        server.send(200, "text/plain", currentReceipt.message);
+        server.send(200, "text/plain", currentMessage.message);
     }
     else
     {
@@ -960,7 +954,7 @@ void handleQuote()
     if (processEndpoint("/quote", source.c_str()))
     {
         // Return the content as plain text
-        server.send(200, "text/plain", currentReceipt.message);
+        server.send(200, "text/plain", currentMessage.message);
     }
     else
     {
@@ -985,11 +979,36 @@ void handleQuiz()
     if (processEndpoint("/quiz", source.c_str()))
     {
         // Return the content as plain text
-        server.send(200, "text/plain", currentReceipt.message);
+        server.send(200, "text/plain", currentMessage.message);
     }
     else
     {
         server.send(500, "text/plain", "Failed to generate quiz content");
+    }
+}
+
+void handleKeepGoing()
+{
+    // Validate optional parameters
+    ValidationResult remoteValidation = validateRemoteParameter();
+    if (!remoteValidation.isValid)
+    {
+        sendValidationError(remoteValidation);
+        return;
+    }
+
+    // Check for source parameter - determines routing
+    String source = server.hasArg("source") ? server.arg("source") : "local-direct";
+
+    // Use unified endpoint processing
+    if (processEndpoint("/keep-going", source.c_str()))
+    {
+        // Return the content as plain text
+        server.send(200, "text/plain", currentMessage.message);
+    }
+    else
+    {
+        server.send(500, "text/plain", "Failed to generate Keep Going content");
     }
 }
 

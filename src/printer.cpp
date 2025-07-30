@@ -59,13 +59,13 @@ void initializePrinter()
     LOG_VERBOSE("PRINTER", "Printer initialized successfully");
 }
 
-void printReceipt()
+void printMessage()
 {
-    LOG_VERBOSE("PRINTER", "Printing receipt...");
+    LOG_VERBOSE("PRINTER", "Printing message...");
 
-    printWithHeader(currentReceipt.timestamp, currentReceipt.message);
+    printWithHeader(currentMessage.timestamp, currentMessage.message);
 
-    LOG_VERBOSE("PRINTER", "Receipt printed successfully");
+    LOG_VERBOSE("PRINTER", "Message printed successfully");
 }
 
 void printServerInfo()

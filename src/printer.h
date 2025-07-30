@@ -15,7 +15,7 @@ extern const int maxCharsPerLine;
 // Function declarations
 void stabilizePrinterPin();
 void initializePrinter();
-void printReceipt();
+void printMessage();
 void printServerInfo();
 void setInverse(bool enable);
 void advancePaper(int lines);

@@ -40,6 +40,7 @@
 #include "hardware_buttons.h"
 #include "content_generators.h"
 #include "api_client.h"
+#include "keep_going.h"
 
 // === Web Server ===
 WebServer server(webServerPort);
@@ -49,13 +50,22 @@ unsigned long lastMemCheck = 0;
 
 void setup()
 {
+  // Initialize serial communication first (USB CDC)
+  Serial.begin(115200);
+
+  // Wait for USB CDC connection (ESP32-C3 with USB CDC enabled)
+  // This is needed because of ARDUINO_USB_CDC_ON_BOOT=1 in platformio.ini
+  unsigned long startTime = millis();
+  while (!Serial && (millis() - startTime < 5000))
+  {
+    delay(10); // Wait up to 5 seconds for serial connection
+  }
+
   // Stabilize printer pin as early as possible
   stabilizePrinterPin();
 
   // Note: We can't use Log.notice() yet as logging isn't initialized
-  Serial.println("\n=== Scribe Starting === (Pre-NTP sync)");
-
-  // Validate configuration
+  Serial.println("\n=== Scribe Starting === (Pre-NTP sync)"); // Validate configuration
   validateConfig();
 
   // Initialize printer configuration lookup functions
@@ -115,7 +125,7 @@ void setup()
   setupMQTT();
 
   // Setup web server routes
-  setupWebServerRoutes(maxReceiptChars);
+  setupWebServerRoutes(maxMessageChars);
 
   // Start the server
   server.begin();
@@ -124,6 +134,9 @@ void setup()
 
   // Print server info
   printServerInfo();
+
+  // Initialize Keep Going schedule
+  initializeKeepGoing();
 
   LOG_NOTICE("BOOT", "=== Scribe Ready ===");
 }
@@ -151,12 +164,12 @@ void loop()
     handleMQTTConnection();
   }
 
-  // Check if we have a new receipt to print
-  if (currentReceipt.queuedForPrint)
+  // Check if we have a new message to print
+  if (currentMessage.queuedForPrint)
   {
-    LOG_VERBOSE("MAIN", "Printing receipt from main loop");
-    printReceipt();
-    currentReceipt.queuedForPrint = false; // Reset flag
+    LOG_VERBOSE("MAIN", "Printing message from main loop");
+    printMessage();
+    currentMessage.queuedForPrint = false; // Reset flag
   }
 
   // Monitor memory usage periodically
@@ -164,6 +177,12 @@ void loop()
   {
     LOG_VERBOSE("SYSTEM", "Free heap: %d bytes", ESP.getFreeHeap());
     lastMemCheck = millis();
+  }
+
+  // Check Keep Going schedule (only if WiFi connected for API calls)
+  if (WiFi.status() == WL_CONNECTED)
+  {
+    checkKeepGoing();
   }
 
   delay(10); // Small delay to prevent excessive CPU usage

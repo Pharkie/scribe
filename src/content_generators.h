@@ -55,4 +55,10 @@ String generateQuoteContent();
  */
 String generateQuizContent();
 
+/**
+ * @brief Generate Keep Going content from Pipedream API
+ * @return String containing formatted motivational message
+ */
+String generateKeepGoingContent();
+
 #endif // CONTENT_GENERATORS_H
