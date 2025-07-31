@@ -50,7 +50,6 @@ void setupWebServerRoutes(int maxChars)
     server.on("/js/darkmode.js", HTTP_GET, handleJS);
     server.on("/html/index.html", HTTP_GET, handleHTMLTemplates);
     server.on("/html/404.html", HTTP_GET, handleHTMLTemplates);
-    server.on("/html/diagnostics-templates.html", HTTP_GET, handleHTMLTemplates);
     server.on("/favicon.ico", HTTP_GET, handleFavicon);
 
     // Configuration endpoint for JavaScript

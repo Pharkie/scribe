@@ -64,11 +64,11 @@ optimal maintainability and professional structure.
 - **`html/`**: All HTML files (templates, pages, components)
   - `index.html`: Main application interface
   - `404.html`: Error page template
-  - `diagnostics-templates.html`: System diagnostics HTML templates
+  - `diagnostics.html`: System diagnostics page with built-in sections
 - **`js/`**: Modular JavaScript files (replaces monolithic app.js)
   - `config.js`: Configuration management and global variables
   - `messaging.js`: Message sending functionality and quick actions
-  - `diagnostics.js`: System diagnostics and status display
+  - `diagnostics.js`: System diagnostics data population and display
   - `utils.js`: Utility functions and clipboard operations
   - `settings.js`: Settings panel functionality
   - `main.js`: Application initialization and event handling
