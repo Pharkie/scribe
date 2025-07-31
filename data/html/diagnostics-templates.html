@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Diagnostics Templates</title>
+</head>
+
+<body>
+    <!-- Diagnostics Templates -->
+    <!-- This file contains HTML templates for the diagnostics system -->
+
+    <!-- Network Section Template -->
+    <template id="network-section-template">
+        <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <div class="flex items-center justify-between mb-3">
+                <h4 class="text-lg font-semibold text-blue-800 flex items-center">
+                    <span class="mr-2">🌐</span>Network
+                </h4>
+                <button onclick="copyGenericSection('Network', this)"
+                    class="px-2 py-1 text-xs bg-blue-100 hover:bg-blue-200 text-blue-700 rounded transition-colors">
+                    📋
+                </button>
+            </div>
+            <div class="space-y-2">
+                <div class="flex justify-between">
+                    <span class="text-gray-600">WiFi Status:</span>
+                    <span class="font-medium" data-field="wifi-status">-</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-gray-600">SSID:</span>
+                    <span class="font-medium" data-field="wifi-ssid">-</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-gray-600">IP Address:</span>
+                    <span class="font-medium font-mono" data-field="ip-address">-</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-gray-600">Signal Strength:</span>
+                    <span class="font-medium" data-field="signal-strength">-</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-gray-600">MAC Address:</span>
+                    <span class="font-medium font-mono" data-field="mac-address">-</span>
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <!-- MQTT Section Template -->
+    <template id="mqtt-section-template">
+        <div class="bg-green-50 border border-green-200 rounded-lg p-4">
+            <div class="flex items-center justify-between mb-3">
+                <h4 class="text-lg font-semibold text-green-800 flex items-center">
+                    <span class="mr-2">📡</span>MQTT
+                </h4>
+                <button onclick="copyGenericSection('MQTT', this)"
+                    class="px-2 py-1 text-xs bg-green-100 hover:bg-green-200 text-green-700 rounded transition-colors">
+                    📋
+                </button>
+            </div>
+            <div class="space-y-2">
+                <div class="flex justify-between">
+                    <span class="text-gray-600">Status:</span>
+                    <span class="font-medium" data-field="mqtt-status">-</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-gray-600">Server:</span>
+                    <span class="font-medium" data-field="mqtt-server">-</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-gray-600">Port:</span>
+                    <span class="font-medium" data-field="mqtt-port">-</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-gray-600">Topic:</span>
+                    <span class="font-medium" data-field="mqtt-topic">-</span>
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <!-- Unbidden Ink Section Template -->
+    <template id="unbidden-ink-section-template">
+        <div class="bg-purple-50 border border-purple-200 rounded-lg p-4">
+            <div class="flex items-center justify-between mb-3">
+                <h4 class="text-lg font-semibold text-purple-800 flex items-center">
+                    <span class="mr-2">🪄</span>Unbidden Ink
+                </h4>
+                <button onclick="copySection('unbidden-ink')"
+                    class="px-2 py-1 text-xs bg-purple-100 hover:bg-purple-200 text-purple-700 rounded transition-colors">
+                    📋
+                </button>
+            </div>
+            <div id="unbidden-ink-content" class="space-y-3">
+                <div class="flex justify-between">
+                    <span class="text-gray-600">Enabled:</span>
+                    <span class="font-medium" data-field="unbidden-enabled">-</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-gray-600">API Key Status:</span>
+                    <span class="font-medium" data-field="api-key-status">-</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-gray-600">Last Check:</span>
+                    <span class="font-medium" data-field="last-check">-</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-gray-600">Total Messages:</span>
+                    <span class="font-medium" data-field="total-messages">-</span>
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <!-- Microcontroller Section Template -->
+    <template id="microcontroller-section-template">
+        <div class="bg-orange-50 border border-orange-200 rounded-lg p-4">
+            <div class="flex items-center justify-between mb-3">
+                <h4 class="text-lg font-semibold text-orange-800 flex items-center">
+                    <span class="mr-2">💾</span>Microcontroller
+                </h4>
+                <button onclick="copyGenericSection('Microcontroller', this)"
+                    class="px-2 py-1 text-xs bg-orange-100 hover:bg-orange-200 text-orange-700 rounded transition-colors">
+                    📋
+                </button>
+            </div>
+            <div class="space-y-2">
+                <div class="flex justify-between">
+                    <span class="text-gray-600">Chip Model:</span>
+                    <span class="font-medium" data-field="chip-model">-</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-gray-600">CPU Frequency:</span>
+                    <span class="font-medium" data-field="cpu-frequency">-</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-gray-600">Free RAM:</span>
+                    <span class="font-medium" data-field="free-ram">-</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-gray-600">Used RAM:</span>
+                    <span class="font-medium" data-field="used-ram">-</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-gray-600">Free Flash:</span>
+                    <span class="font-medium" data-field="free-flash">-</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-gray-600">Used Flash:</span>
+                    <span class="font-medium" data-field="used-flash">-</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-gray-600">Sketch Size:</span>
+                    <span class="font-medium" data-field="sketch-size">-</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-gray-600">Uptime:</span>
+                    <span class="font-medium" data-field="uptime">-</span>
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <!-- Logging Section Template -->
+    <template id="logging-section-template">
+        <div class="bg-gray-50 border border-gray-200 rounded-lg p-4">
+            <div class="flex items-center justify-between mb-3">
+                <h4 class="text-lg font-semibold text-gray-800 flex items-center">
+                    <span class="mr-2">📝</span>Logging
+                </h4>
+                <button onclick="copyGenericSection('Logging', this)"
+                    class="px-2 py-1 text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 rounded transition-colors">
+                    📋
+                </button>
+            </div>
+            <div class="space-y-2">
+                <div class="flex justify-between">
+                    <span class="text-gray-600">Log Level:</span>
+                    <span class="font-medium" data-field="log-level">-</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-gray-600">Serial Logging:</span>
+                    <span class="font-medium" data-field="serial-logging">-</span>
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <!-- Settings File Section Template -->
+    <template id="settings-file-section-template">
+        <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+            <div class="flex items-center justify-between mb-3">
+                <h4 class="text-lg font-semibold text-yellow-800 flex items-center">
+                    <span class="mr-2">📄</span>Settings File
+                </h4>
+                <button onclick="copyFileContents()"
+                    class="px-2 py-1 text-xs bg-yellow-100 hover:bg-yellow-200 text-yellow-700 rounded transition-colors">
+                    📋
+                </button>
+            </div>
+            <div class="bg-gray-800 text-green-400 p-3 rounded font-mono text-sm max-h-60 overflow-y-auto">
+                <pre id="file-contents">Loading...</pre>
+            </div>
+        </div>
+    </template>
+
+    <!-- Error Template -->
+    <template id="error-template">
+        <div class="text-center text-red-600">
+            <span class="text-2xl">❌</span>
+            <div class="mt-2">Failed to load diagnostics</div>
+            <div class="text-sm text-gray-500 mt-1" data-field="error-message">Unknown error</div>
+        </div>
+    </template>
+</body>
+
+</html>

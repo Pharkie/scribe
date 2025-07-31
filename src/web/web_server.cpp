@@ -39,8 +39,16 @@ void setupWebServerRoutes(int maxChars)
 
     // Static file handlers
     server.on("/", HTTP_GET, handleRoot);
-    server.on("/styles.css", HTTP_GET, handleCSS);
-    server.on("/app.js", HTTP_GET, handleJS);
+    server.on("/css/styles.css", HTTP_GET, handleCSS);
+    server.on("/js/config.js", HTTP_GET, handleJS);
+    server.on("/js/messaging.js", HTTP_GET, handleJS);
+    server.on("/js/diagnostics.js", HTTP_GET, handleJS);
+    server.on("/js/utils.js", HTTP_GET, handleJS);
+    server.on("/js/settings.js", HTTP_GET, handleJS);
+    server.on("/js/main.js", HTTP_GET, handleJS);
+    server.on("/html/index.html", HTTP_GET, handleHTMLTemplates);
+    server.on("/html/404.html", HTTP_GET, handleHTMLTemplates);
+    server.on("/html/diagnostics-templates.html", HTTP_GET, handleHTMLTemplates);
     server.on("/favicon.ico", HTTP_GET, handleFavicon);
 
     // Configuration endpoint for JavaScript

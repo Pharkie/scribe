@@ -85,6 +85,11 @@ void handleStatus()
         if (file)
         {
             config["settings_file_size"] = file.size();
+
+            // Read and include actual file contents
+            String fileContents = file.readString();
+            config["settings_file_contents"] = fileContents;
+
             file.close();
         }
     }

@@ -32,6 +32,11 @@ void handleCSS();
 void handleJS();
 
 /**
+ * @brief Handle HTML template file requests
+ */
+void handleHTMLTemplates();
+
+/**
  * @brief Handle favicon request
  */
 void handleFavicon();
@@ -52,7 +57,7 @@ void handleNotFound();
 
 /**
  * @brief Helper function to serve files from LittleFS filesystem
- * @param path The file path to serve (e.g., "/index.html")
+ * @param path The file path to serve (e.g., "/html/index.html")
  * @param contentType The MIME content type (e.g., "text/html")
  * @return true if file was served successfully, false otherwise
  */

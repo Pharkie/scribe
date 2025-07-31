@@ -25,17 +25,37 @@ extern WebServer server;
 
 void handleRoot()
 {
-    serveFileFromLittleFS("/index.html", "text/html");
+    serveFileFromLittleFS("/html/index.html", "text/html");
 }
 
 void handleCSS()
 {
-    serveFileFromLittleFS("/styles.css", "text/css");
+    serveFileFromLittleFS("/css/styles.css", "text/css");
 }
-
 void handleJS()
 {
-    serveFileFromLittleFS("/app.js", "application/javascript");
+    String uri = server.uri();
+    if (uri.startsWith("/js/"))
+    {
+        serveFileFromLittleFS(uri, "application/javascript");
+    }
+    else
+    {
+        handleNotFound();
+    }
+}
+
+void handleHTMLTemplates()
+{
+    String uri = server.uri();
+    if (uri.startsWith("/html/"))
+    {
+        serveFileFromLittleFS(uri, "text/html");
+    }
+    else
+    {
+        handleNotFound();
+    }
 }
 
 void handleFavicon()
@@ -123,7 +143,7 @@ void handleNotFound()
     LOG_WARNING("WEB", "%s", errorDetails.c_str());
 
     // Load 404 template from LittleFS
-    File templateFile = LittleFS.open("/404.html", "r");
+    File templateFile = LittleFS.open("/html/404.html", "r");
     if (!templateFile)
     {
         // Fallback if template file doesn't exist

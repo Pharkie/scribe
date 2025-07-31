@@ -7,6 +7,7 @@ Printer codebase structure after the modular reorganization.
 
 - [Overview](#overview)
 - [Directory Structure](#directory-structure)
+- [Web Assets Directory](#web-assets-directory-data)
 - [Core Components](#core-components)
 - [Web Layer](#web-layer)
 - [Content System](#content-system)
@@ -41,9 +42,59 @@ src/
 ├── hardware/                # Hardware interfaces and drivers
 └── utils/                   # Utility functions and helpers
 
-data/                        # Web assets and configuration files
+data/                        # Web assets organized by type
+├── css/                     # Stylesheets
+├── html/                    # HTML templates and pages
+├── js/                      # Modular JavaScript files
+├── resources/               # Data files and content
+└── favicon.ico              # Website icon
+
 docs/                        # Documentation
 ```
+
+## Web Assets Directory (`data/`)
+
+The `data/` directory contains all web-related assets organized by file type for
+optimal maintainability and professional structure.
+
+### Directory Organization:
+
+- **`css/`**: All stylesheet files
+  - `styles.css`: Main application styles with Tailwind CSS
+- **`html/`**: All HTML files (templates, pages, components)
+  - `index.html`: Main application interface
+  - `404.html`: Error page template
+  - `diagnostics-templates.html`: System diagnostics HTML templates
+- **`js/`**: Modular JavaScript files (replaces monolithic app.js)
+  - `config.js`: Configuration management and global variables
+  - `messaging.js`: Message sending functionality and quick actions
+  - `diagnostics.js`: System diagnostics and status display
+  - `utils.js`: Utility functions and clipboard operations
+  - `settings.js`: Settings panel functionality
+  - `main.js`: Application initialization and event handling
+- **`resources/`**: Data files and content resources
+  - `print-test.txt`: Printer test content
+  - `riddles.ndjson`: Riddles database for content generation
+- **`favicon.ico`**: Website icon (root level per web standards)
+
+### Benefits of Organization:
+
+- **Separation of Concerns**: HTML, CSS, and JavaScript properly separated
+- **Modular JavaScript**: Smaller, focused files instead of monolithic code
+- **Professional Structure**: Follows modern web development conventions
+- **Easy Maintenance**: Developers know exactly where to find specific file
+  types
+- **Scalability**: Simple to add new files in appropriate directories
+
+### Template-Based Architecture:
+
+The web interface now uses a template-based approach instead of
+JavaScript-generated HTML:
+
+- **HTML Templates**: Clean, semantic HTML in separate files
+- **DOM Manipulation**: JavaScript uses templates with data binding
+- **Performance**: Templates loaded once and cloned as needed
+- **Security**: Reduces XSS risks from dynamic HTML generation
 
 ## Core Components
 
@@ -95,9 +146,22 @@ The web layer provides the HTTP interface and web-based control panel.
 ### Key Features:
 
 - **Modular Routing**: Clean separation of static and API endpoints
+- **Organized Asset Serving**: Dedicated routes for CSS, JS, HTML, and resources
 - **Security**: Input validation, rate limiting, content filtering
 - **RESTful API**: Consistent endpoint design for content generation
-- **Static Assets**: Efficient serving of HTML, CSS, and JavaScript files
+- **Template-based UI**: HTML templates with JavaScript DOM manipulation
+
+### Static File Routes:
+
+The web server now serves organized assets with dedicated handlers:
+
+- **`/`**: Main application (serves `/html/index.html`)
+- **`/css/styles.css`**: Application stylesheets
+- **`/js/*.js`**: Modular JavaScript files (config, messaging, diagnostics,
+  etc.)
+- **`/html/*.html`**: HTML templates and pages (index, 404, diagnostics
+  templates)
+- **`/favicon.ico`**: Website icon
 
 ### Architecture:
 
@@ -296,6 +360,34 @@ settings:
 - **Clear Interfaces**: Use well-defined function signatures and data structures
 - **Error Handling**: Implement robust error checking and logging
 - **Documentation**: Comment complex logic and maintain header documentation
+
+### Web Asset Development
+
+1. **File Organization**:
+
+   - Place CSS files in `/data/css/`
+   - Place HTML files in `/data/html/`
+   - Place JavaScript files in `/data/js/`
+   - Place resources in `/data/resources/`
+
+2. **JavaScript Modularity**:
+
+   - Keep modules focused and under 300 lines when possible
+   - Use clear, descriptive function names
+   - Avoid global variables; use module-specific scoping
+   - Document function purposes with JSDoc comments
+
+3. **HTML Templates**:
+
+   - Use semantic HTML with proper accessibility
+   - Include `data-field` attributes for dynamic content
+   - Maintain consistent CSS class usage
+   - Keep templates reusable and focused
+
+4. **CSS Organization**:
+   - Use Tailwind CSS classes for consistent styling
+   - Avoid inline styles; use utility classes
+   - Maintain responsive design principles
 
 ### Testing and Validation
 

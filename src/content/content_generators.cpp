@@ -32,7 +32,7 @@ String generateRiddleContent()
     // LittleFS is already mounted in main.cpp, no need to call begin() again
 
     // Open the riddles.ndjson file
-    File file = LittleFS.open("/riddles.ndjson", "r");
+    File file = LittleFS.open("/resources/riddles.ndjson", "r");
     if (!file)
     {
         return "Failed to open riddles file";

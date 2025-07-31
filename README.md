@@ -19,9 +19,6 @@ This fork includes the following changes to the original repo:
   use this bit (HiveMQ has a free tier).
 - **Automatic timezone handling** - timezone handling inc automatic daylight
   savings and improved date handling elsewhere via the ezTime library.
-- **Modular code structure** - Refactored from monolithic code into different
-  files for better maintainability and development e.g. HTML, CSS and JS are now
-  separate files.
 - **Fun buttons** - Added Riddle, Joke, Quote, and Print Test buttons for
   entertainment and printer testing, local or remote.
 - **Hardware button support** - Physical GPIO buttons can be wired to trigger
