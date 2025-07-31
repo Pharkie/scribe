@@ -72,16 +72,9 @@ void handleContentGeneration(ContentType contentType)
 
     LOG_VERBOSE("WEB", "handle%s() called", typeName);
 
-    // Check rate limiting (applies to all content types)
-    if (isRateLimited())
-    {
-        DynamicJsonDocument errorResponse(512);
-        errorResponse["error"] = getRateLimitReason();
-        String errorString;
-        serializeJson(errorResponse, errorString);
-        server.send(429, "application/json", errorString);
-        return;
-    }
+    // Note: Content generation endpoints are exempt from rate limiting
+    // since they only generate content and don't perform actions.
+    // Rate limiting is applied to the actual delivery endpoints (/print-local, /mqtt-send)
 
     // Generate content based on type
     String content;

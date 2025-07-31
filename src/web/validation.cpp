@@ -35,7 +35,7 @@ bool isRateLimited()
     unsigned long timeSinceLastRequest = currentTime - lastRequestTime;
     if (timeSinceLastRequest < minRequestInterval)
     {
-        lastRateLimitReason = "Too many requests too quickly. Please wait " + String(minRequestInterval) + "ms between requests.";
+        lastRateLimitReason = "Too many requests too quickly. Only " + String(timeSinceLastRequest) + "ms since last request (minimum " + String(minRequestInterval) + "ms required).";
         LOG_WARNING("WEB", "Rate limit triggered: only %lums since last request (min: %lums)",
                     timeSinceLastRequest, minRequestInterval);
         return true;
