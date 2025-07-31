@@ -1,30 +1,34 @@
 /**
- * @file main.js
- * @brief Main application initialization and event handling
+ * @file index.js
+ * @brief Index page specific functionality
  */
 
 /**
- * Initialize the application when DOM is loaded
+ * Initialize index page when DOM is loaded
  */
 document.addEventListener('DOMContentLoaded', function() {
-  // Load initial configuration
-  loadConfig();
-  
-  // Add keyboard event listeners
-  document.addEventListener('keydown', handleKeyPress);
-  
-  // Update character counter on input
-  const messageInput = document.getElementById('message-textarea');
-  if (messageInput) {
-    messageInput.addEventListener('input', updateCharCounter);
-  }
-  
-  // Initialize any other UI elements
-  initializeUI();
+  // Initialize index-specific UI
+  initializeIndexUI();
   
   // Initialize Unbidden Ink settings
   initializeUnbiddenInkSettings();
+  
+  // Initialize printer selection
+  initializeConfigDependentUI();
 });
+
+/**
+ * Initialize index page specific UI elements
+ */
+function initializeIndexUI() {
+  // Update character counter on input for main message textarea
+  const messageInput = document.getElementById('message-textarea');
+  if (messageInput) {
+    messageInput.addEventListener('input', () => updateCharacterCount('message-textarea', 'char-counter', MAX_CHARS));
+    // Set initial character counter
+    updateCharacterCount('message-textarea', 'char-counter', MAX_CHARS);
+  }
+}
 
 /**
  * Initialize Unbidden Ink settings form
@@ -61,7 +65,11 @@ function initializeUnbiddenInkSettings() {
   
   // Initialize character count display  
   updatePromptCharCount();
-  updateFrequencyDisplay();
+  
+  // Only call updateFrequencyDisplay if it exists (unbiddenink.js is loaded)
+  if (typeof updateFrequencyDisplay === 'function') {
+    updateFrequencyDisplay();
+  }
 }
 
 /**
@@ -93,100 +101,6 @@ function populateHourSelects() {
     startHourSelect.value = 9;  // 9 AM
     endHourSelect.value = 17;   // 5 PM
   }
-}
-
-/**
- * Initialize UI elements and state
- */
-function initializeUI() {
-  // Set initial character counter (only if elements exist)
-  if (document.getElementById('message-textarea') && document.getElementById('char-counter')) {
-    updateCharCounter();
-  }
-  
-  // Hide loading states
-  const loadingElements = document.querySelectorAll('.loading');
-  loadingElements.forEach(el => el.classList.add('hidden'));
-  
-  // Initialize any tooltips or interactive elements
-  initializeTooltips();
-  
-  // Check for any startup messages
-  checkStartupMessages();
-}
-
-/**
- * Initialize tooltips and help text
- */
-function initializeTooltips() {
-  // Add hover effects for info icons
-  const infoIcons = document.querySelectorAll('.info-icon');
-  infoIcons.forEach(icon => {
-    icon.addEventListener('mouseenter', function() {
-      // Show tooltip logic here if needed
-    });
-  });
-}
-
-/**
- * Check for any startup messages or notifications
- */
-function checkStartupMessages() {
-  // Check URL parameters for any messages
-  const urlParams = new URLSearchParams(window.location.search);
-  const message = urlParams.get('message');
-  const type = urlParams.get('type');
-  
-  if (message) {
-    if (type === 'success') {
-      showSuccessMessage(decodeURIComponent(message));
-    } else if (type === 'error') {
-      showErrorMessage(decodeURIComponent(message));
-    }
-    
-    // Clean up URL
-    window.history.replaceState({}, document.title, window.location.pathname);
-  }
-}
-
-/**
- * Show error message to user
- */
-function showErrorMessage(message) {
-  const container = document.getElementById('message-container') || document.body;
-  
-  const errorDiv = document.createElement('div');
-  errorDiv.className = 'fixed top-4 right-4 bg-red-500 text-white px-4 py-2 rounded-lg shadow-lg z-50';
-  errorDiv.textContent = message;
-  
-  container.appendChild(errorDiv);
-  
-  // Auto-remove after 5 seconds
-  setTimeout(() => {
-    if (errorDiv.parentNode) {
-      errorDiv.parentNode.removeChild(errorDiv);
-    }
-  }, 5000);
-}
-
-/**
- * Show success message to user
- */
-function showSuccessMessage(message) {
-  const container = document.getElementById('message-container') || document.body;
-  
-  const successDiv = document.createElement('div');
-  successDiv.className = 'fixed top-4 right-4 bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg z-50';
-  successDiv.textContent = message;
-  
-  container.appendChild(successDiv);
-  
-  // Auto-remove after 3 seconds
-  setTimeout(() => {
-    if (successDiv.parentNode) {
-      successDiv.parentNode.removeChild(successDiv);
-    }
-  }, 3000);
 }
 
 /**
@@ -289,4 +203,30 @@ function selectPrinter(value, element) {
  */
 function initializeConfigDependentUI() {
   initializePrinterSelection();
+}
+
+/**
+ * Generic character counter function
+ * @param {string} textareaId - ID of the textarea element
+ * @param {string} counterId - ID of the counter element  
+ * @param {number} defaultMaxLength - Default max length if not set on textarea
+ */
+function updateCharacterCount(textareaId, counterId, defaultMaxLength = 1000) {
+  const textarea = document.getElementById(textareaId);
+  const counter = document.getElementById(counterId);
+  
+  if (textarea && counter) {
+    const length = textarea.value.length;
+    const maxLength = textarea.maxLength || defaultMaxLength;
+    counter.textContent = `${length}/${maxLength} characters`;
+    
+    // Update styling based on character count
+    if (length > maxLength) {
+      counter.className = 'text-red-600 dark:text-red-400';
+    } else if (length >= maxLength * 0.9) {
+      counter.className = 'text-yellow-600 dark:text-yellow-400';
+    } else {
+      counter.className = 'text-gray-600 dark:text-gray-400';
+    }
+  }
 }

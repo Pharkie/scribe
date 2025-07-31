@@ -4,13 +4,6 @@
  */
 
 /**
- * Handle input events for form elements
- */
-function handleInput(el) {
-  updateCharCounter();
-}
-
-/**
  * Unified form submission handler
  */
 function handleSubmit(event) {
@@ -96,21 +89,13 @@ function sendMessage(printerTarget, message, action = null) {
     // Clear the message input for non-action messages
     if (!action) {
       document.getElementById('message-textarea').value = '';
-      updateCharCounter();
+      updateCharacterCount('message-textarea', 'char-counter', MAX_CHARS);
     }
   })
   .catch(error => {
     console.error('Error occurred:', error);
     alert(`Failed to send message. Please try again.\n\nError: ${error.message}`);
   });
-}
-
-/**
- * Helper function to get printer name from topic
- */
-function getPrinterName(topic) {
-  const printer = PRINTERS.find(p => p.topic === topic);
-  return printer ? printer.name : 'remote printer';
 }
 
 /**

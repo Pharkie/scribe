@@ -4,7 +4,7 @@
  */
 
 // Global variables - will be set by the server
-let MAX_CHARS = 1000; // Default value (should match server config), will be updated by config endpoint
+let MAX_CHARS; // Will be set by config endpoint - no default to ensure server provides it
 let PRINTERS = []; // Will store all available printers
 
 // Default prompts - keep in sync with C++ constants
@@ -34,24 +34,8 @@ async function loadConfig() {
     }
     
     // Update character counter (only if elements exist)
-    updateCharCounter();
+    updateCharacterCount('message-textarea', 'char-counter', MAX_CHARS);
   } catch (error) {
     console.error('Failed to load config:', error);
   }
-}
-
-/**
- * Update character counter display
- */
-function updateCharCounter() {
-  const textarea = document.getElementById('message-textarea');
-  const counter = document.getElementById('char-counter');
-  
-  // Only update if both elements exist
-  if (!textarea || !counter) return;
-  
-  const current = textarea.value.length;
-  const remaining = MAX_CHARS - current;
-  counter.textContent = `${current}/${MAX_CHARS} characters`;
-  counter.className = remaining < 20 ? 'text-red-500 dark:text-red-400 text-xs' : 'text-gray-500 dark:text-gray-400 text-xs';
 }

@@ -136,36 +136,6 @@ function toggleUnbiddenInkSettings() {
 }
 
 /**
- * Update the frequency display text
- */
-function updateFrequencyDisplay() {
-  const frequencySlider = document.getElementById('frequency');
-  const display = document.getElementById('frequency-display');
-  if (display && frequencySlider) {
-    // Map slider positions to specific frequency values
-    const frequencyMap = [
-      { value: 15, text: "Every 15 minutes" },    // position 0
-      { value: 30, text: "Every 30 minutes" },    // position 1
-      { value: 60, text: "Every 1 hour" },        // position 2
-      { value: 120, text: "Every 2 hours" },      // position 3
-      { value: 180, text: "Every 3 hours" },      // position 4
-      { value: 240, text: "Every 4 hours" },      // position 5
-      { value: 300, text: "Every 5 hours" },      // position 6
-      { value: 360, text: "Every 6 hours" },      // position 7
-      { value: 420, text: "Every 7 hours" },      // position 8
-      { value: 480, text: "Every 8 hours" }       // position 9
-    ];
-    
-    const position = parseInt(frequencySlider.value);
-    if (position >= 0 && position < frequencyMap.length) {
-      display.textContent = frequencyMap[position].text;
-      // Store the actual frequency value as a data attribute for saving
-      frequencySlider.setAttribute('data-frequency-minutes', frequencyMap[position].value);
-    }
-  }
-}
-
-/**
  * Get the actual frequency value in minutes from the slider
  */
 function getFrequencyValue() {
@@ -218,20 +188,7 @@ function loadPromptPreset(type) {
  * Update prompt character count
  */
 function updatePromptCharCount() {
-  const prompt = document.getElementById('custom-prompt').value;
-  const counter = document.getElementById('prompt-char-count');
-  if (counter) {
-    const current = prompt.length;
-    const remaining = 500 - current;
-    counter.textContent = `${current}/500 characters`;
-    if (remaining < 50) {
-      counter.classList.add('text-red-500', 'dark:text-red-400');
-      counter.classList.remove('text-gray-500', 'dark:text-gray-400');
-    } else {
-      counter.classList.remove('text-red-500', 'dark:text-red-400');
-      counter.classList.add('text-gray-500', 'dark:text-gray-400');
-    }
-  }
+  updateCharacterCount('custom-prompt', 'prompt-char-count', 500);
 }
 
 /**
