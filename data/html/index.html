@@ -73,6 +73,7 @@
                     <label for="message-textarea"
                         class="block text-sm font-medium text-gray-700 dark:text-gray-300">Message:</label>
                     <textarea name="message" id="message-textarea" onkeydown="handleTextareaKeydown(event)"
+                        oninput="updateCharacterCount('message-textarea', 'char-counter', MAX_CHARS || 1000)"
                         placeholder="Type your message…"
                         class="w-full p-4 rounded-xl border border-gray-200 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent resize-none text-gray-800 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 bg-white dark:bg-gray-700"
                         rows="4" required></textarea>
@@ -223,9 +224,10 @@
                             <textarea id="custom-prompt" name="custom-prompt"
                                 placeholder="Override the default AI prompt with your own creative instructions..."
                                 class="w-full p-3 rounded-lg border border-gray-200 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent resize-none text-gray-800 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 bg-white dark:bg-gray-700"
-                                rows="3" oninput="updatePromptCharCount()"></textarea>
+                                rows="3"
+                                oninput="updateCharacterCount('custom-prompt', 'prompt-char-count', MAX_PROMPT_CHARS || 500)"></textarea>
                             <div class="text-xs text-gray-500 dark:text-gray-400 text-right">
-                                <span id="prompt-char-count">0/500 characters</span>
+                                <span id="prompt-char-count">0 characters</span>
                             </div>
                         </div>
 

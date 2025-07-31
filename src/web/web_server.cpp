@@ -44,9 +44,9 @@ void setupWebServerRoutes(int maxChars)
     server.on("/js/config.js", HTTP_GET, handleJS);
     server.on("/js/messaging.js", HTTP_GET, handleJS);
     server.on("/js/diagnostics.js", HTTP_GET, handleJS);
-    server.on("/js/utils.js", HTTP_GET, handleJS);
+    server.on("/js/shared.js", HTTP_GET, handleJS);
+    server.on("/js/index.js", HTTP_GET, handleJS);
     server.on("/js/unbiddenink.js", HTTP_GET, handleJS);
-    server.on("/js/main.js", HTTP_GET, handleJS);
     server.on("/js/darkmode.js", HTTP_GET, handleJS);
     server.on("/html/index.html", HTTP_GET, handleHTMLTemplates);
     server.on("/html/404.html", HTTP_GET, handleHTMLTemplates);

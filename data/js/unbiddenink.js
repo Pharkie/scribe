@@ -29,7 +29,7 @@ async function loadSettings(showToast = false) {
     setFrequencyFromValue(data.frequencyMinutes || 60);
     
     // Update character count
-    updatePromptCharCount();
+    updateCharacterCount('custom-prompt', 'prompt-char-count', MAX_PROMPT_CHARS);
     
     // Update settings visibility based on enabled state
     toggleUnbiddenInkSettings();
@@ -149,6 +149,36 @@ function getFrequencyValue() {
 }
 
 /**
+ * Update the frequency display text for Unbidden Ink frequency slider
+ */
+function updateFrequencyDisplay() {
+  const frequencySlider = document.getElementById('frequency');
+  const display = document.getElementById('frequency-display');
+  if (display && frequencySlider) {
+    // Map slider positions to specific frequency values
+    const frequencyMap = [
+      { value: 15, text: "Every 15 minutes" },    // position 0
+      { value: 30, text: "Every 30 minutes" },    // position 1
+      { value: 60, text: "Every 1 hour" },        // position 2
+      { value: 120, text: "Every 2 hours" },      // position 3
+      { value: 180, text: "Every 3 hours" },      // position 4
+      { value: 240, text: "Every 4 hours" },      // position 5
+      { value: 300, text: "Every 5 hours" },      // position 6
+      { value: 360, text: "Every 6 hours" },      // position 7
+      { value: 420, text: "Every 7 hours" },      // position 8
+      { value: 480, text: "Every 8 hours" }       // position 9
+    ];
+    
+    const position = parseInt(frequencySlider.value);
+    if (position >= 0 && position < frequencyMap.length) {
+      display.textContent = frequencyMap[position].text;
+      // Store the actual frequency value as a data attribute for saving
+      frequencySlider.setAttribute('data-frequency-minutes', frequencyMap[position].value);
+    }
+  }
+}
+
+/**
  * Set the slider position based on frequency value in minutes
  */
 function setFrequencyFromValue(frequencyMinutes) {
@@ -180,17 +210,13 @@ function loadPromptPreset(type) {
   
   if (prompts[type]) {
     promptTextarea.value = prompts[type];
-    updatePromptCharCount();
+    updateCharacterCount('custom-prompt', 'prompt-char-count', MAX_PROMPT_CHARS);
   }
 }
 
 /**
  * Update prompt character count
  */
-function updatePromptCharCount() {
-  updateCharacterCount('custom-prompt', 'prompt-char-count', 500);
-}
-
 /**
  * Test Unbidden Ink by triggering a sample message
  */

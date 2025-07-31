@@ -43,10 +43,6 @@ function initializeUnbiddenInkSettings() {
   }
   
   // Add event listeners for settings form
-  const promptTextarea = document.getElementById('custom-prompt');
-  if (promptTextarea) {
-    promptTextarea.addEventListener('input', updatePromptCharCount);
-  }
   
   const frequencySlider = document.getElementById('frequency');
   if (frequencySlider) {
@@ -64,12 +60,10 @@ function initializeUnbiddenInkSettings() {
   }
   
   // Initialize character count display  
-  updatePromptCharCount();
+  updateCharacterCount('custom-prompt', 'prompt-char-count', MAX_PROMPT_CHARS);
   
-  // Only call updateFrequencyDisplay if it exists (unbiddenink.js is loaded)
-  if (typeof updateFrequencyDisplay === 'function') {
-    updateFrequencyDisplay();
-  }
+  // Initialize frequency display
+  updateFrequencyDisplay();
 }
 
 /**
@@ -217,16 +211,16 @@ function updateCharacterCount(textareaId, counterId, defaultMaxLength = 1000) {
   
   if (textarea && counter) {
     const length = textarea.value.length;
-    const maxLength = textarea.maxLength || defaultMaxLength;
+    const maxLength = defaultMaxLength; // Always use the provided limit, not HTML maxlength
     counter.textContent = `${length}/${maxLength} characters`;
     
     // Update styling based on character count
     if (length > maxLength) {
-      counter.className = 'text-red-600 dark:text-red-400';
+      counter.className = 'text-xs text-red-600 dark:text-red-400 text-right';
     } else if (length >= maxLength * 0.9) {
-      counter.className = 'text-yellow-600 dark:text-yellow-400';
+      counter.className = 'text-xs text-yellow-600 dark:text-yellow-400 text-right';
     } else {
-      counter.className = 'text-gray-600 dark:text-gray-400';
+      counter.className = 'text-xs text-gray-500 dark:text-gray-400 text-right';
     }
   }
 }

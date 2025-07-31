@@ -457,9 +457,9 @@ void handleUnbiddenInkSettingsPost()
             return;
         }
 
-        if (prompt.length() > 500)
+        if (prompt.length() > maxPromptCharacters)
         {
-            sendValidationError(ValidationResult(false, "Prompt must be less than 500 characters"));
+            sendValidationError(ValidationResult(false, "Prompt must be less than " + String(maxPromptCharacters) + " characters"));
             return;
         }
     }
