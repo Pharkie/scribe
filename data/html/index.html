@@ -7,13 +7,32 @@
     <title>Scribe</title>
     <link rel="icon" type="image/x-icon" href="/favicon.ico">
     <link rel="stylesheet" href="/css/tailwind.css">
+
+    <!-- Prevent flash of light mode -->
+    <script>
+        (function () {
+            const savedTheme = localStorage.getItem('theme') || 'system';
+            const html = document.documentElement;
+
+            html.classList.remove('dark', 'light');
+
+            if (savedTheme === 'system') {
+                // Let system preference take control via CSS media queries
+            } else if (savedTheme === 'light') {
+                html.classList.add('light');
+            } else if (savedTheme === 'dark') {
+                html.classList.add('dark');
+            }
+        })();
+    </script>
+
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 </head>
 
 <body
     class="flex flex-col min-h-screen justify-between py-8 px-4 font-sans bg-gray-50 dark:bg-gray-900 transition-colors duration-200">
     <!-- Header with title and dark mode toggle -->
-    <header class="w-full max-w-4xl mx-auto flex justify-between items-center mb-8">
+    <header class="w-full max-w-4xl mx-auto flex justify-between mb-8">
         <!-- Left spacer -->
         <div class="flex-1"></div>
 
@@ -24,8 +43,7 @@
         </h1>
 
         <!-- Theme Selector -->
-        <div class="flex-1 flex items-center justify-end space-x-3">
-            <span class="text-sm text-gray-600 dark:text-gray-400 font-medium">Theme:</span>
+        <div class="flex-1 flex items-center justify-end">
             <select id="theme-selector"
                 class="bg-gray-100 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-300 text-sm rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-600">
                 <option value="system">🌐 System</option>
@@ -72,7 +90,7 @@
             <div class="space-y-4 mt-8">
                 <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
                     <button onclick="sendQuickAction('riddle')"
-                        class="flex flex-col items-center px-4 py-3 bg-amber-50 dark:bg-amber-900/20 hover:bg-amber-100 dark:hover:bg-amber-900/30 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-700 rounded-xl transition-all duration-200 hover:scale-105 hover:shadow-md">
+                        class="flex flex-col items-center px-4 py-3 bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/30 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-700 rounded-xl transition-all duration-200 hover:scale-105 hover:shadow-md">
                         <span class="text-2xl mb-1">🧩</span>
                         <span class="text-sm font-medium">Riddle</span>
                     </button>
@@ -87,7 +105,7 @@
                         <span class="text-sm font-medium">Quote</span>
                     </button>
                     <button onclick="sendQuickAction('quiz')"
-                        class="flex flex-col items-center px-4 py-3 bg-amber-50 dark:bg-amber-900/20 hover:bg-amber-100 dark:hover:bg-amber-900/30 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-700 rounded-xl transition-all duration-200 hover:scale-105 hover:shadow-md">
+                        class="flex flex-col items-center px-4 py-3 bg-teal-50 dark:bg-teal-900/20 hover:bg-teal-100 dark:hover:bg-teal-900/30 text-teal-700 dark:text-teal-300 border border-teal-200 dark:border-teal-600 rounded-xl transition-all duration-200 hover:scale-105 hover:shadow-md">
                         <span class="text-2xl mb-1">🧠</span>
                         <span class="text-sm font-medium">Quiz</span>
                     </button>
@@ -141,7 +159,7 @@
                         <div class="space-y-3">
                             <label for="frequency" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
                                 Frequency: <span id="frequency-display"
-                                    class="text-purple-600 dark:text-purple-400 font-semibold">Every 60
+                                    class="text-purple-600 dark:text-purple-300 font-semibold">Every 60
                                     minutes</span>
                             </label>
                             <input type="range" id="frequency" name="frequency" min="0" max="9" value="2" step="1"
@@ -183,19 +201,19 @@
                             <!-- Preset Buttons -->
                             <div class="grid grid-cols-2 gap-2 mb-3">
                                 <button type="button" onclick="loadPromptPreset('motivation')"
-                                    class="px-3 py-2 bg-blue-100 hover:bg-blue-200 text-blue-700 text-xs rounded-lg font-medium transition-all duration-200 hover:scale-105">
+                                    class="px-3 py-2 bg-blue-100 hover:bg-blue-200 dark:bg-blue-900/20 dark:hover:bg-blue-900/30 text-blue-700 dark:text-blue-300 text-xs rounded-lg font-medium transition-all duration-200 hover:scale-105">
                                     ✨ Motivation
                                 </button>
                                 <button type="button" onclick="loadPromptPreset('doctorwho')"
-                                    class="px-3 py-2 bg-green-100 hover:bg-green-200 text-green-700 text-xs rounded-lg font-medium transition-all duration-200 hover:scale-105">
+                                    class="px-3 py-2 bg-green-100 hover:bg-green-200 dark:bg-green-900/20 dark:hover:bg-green-900/30 text-green-700 dark:text-green-300 text-xs rounded-lg font-medium transition-all duration-200 hover:scale-105">
                                     🎭 Doctor Who
                                 </button>
                                 <button type="button" onclick="loadPromptPreset('wonderful')"
-                                    class="px-3 py-2 bg-yellow-100 hover:bg-yellow-200 text-yellow-700 text-xs rounded-lg font-medium transition-all duration-200 hover:scale-105">
+                                    class="px-3 py-2 bg-yellow-100 hover:bg-yellow-200 dark:bg-yellow-900/20 dark:hover:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300 text-xs rounded-lg font-medium transition-all duration-200 hover:scale-105">
                                     🌟 Wonderful
                                 </button>
                                 <button type="button" onclick="loadPromptPreset('creative')"
-                                    class="px-3 py-2 bg-pink-100 hover:bg-pink-200 text-pink-700 text-xs rounded-lg font-medium transition-all duration-200 hover:scale-105">
+                                    class="px-3 py-2 bg-pink-100 hover:bg-pink-200 dark:bg-pink-800/30 dark:hover:bg-pink-800/40 text-pink-700 dark:text-pink-200 text-xs rounded-lg font-medium transition-all duration-200 hover:scale-105">
                                     🎨 Creative
                                 </button>
                             </div>

@@ -131,6 +131,7 @@ function displayDiagnostics(data) {
   const unbiddenSection = document.getElementById('unbidden-ink-section');
   if (unbiddenSection) {
     const unbiddenInkData = data.unbidden_ink || {};
+    const configData = data.configuration || {};
     const unbiddenInkEnabled = unbiddenInkData.enabled;
     
     populateDataFields(unbiddenSection, {
@@ -140,14 +141,14 @@ function displayDiagnostics(data) {
       'frequency': unbiddenInkData.frequency_minutes ? 
         `${unbiddenInkData.frequency_minutes} minutes` : 'Not configured',
       'next-scheduled': formatTimestamp(unbiddenInkData.next_execution_time),
-      'settings-file-size': unbiddenInkData.settings_file_size ? 
-        `${unbiddenInkData.settings_file_size} bytes` : 'Unknown'
+      'settings-file-size': configData.unbidden_ink_settings_file_size ? 
+        `${configData.unbidden_ink_settings_file_size} bytes` : 'Unknown'
     });
     
     // Populate file contents
     const fileContentsElement = document.getElementById('unbidden-ink-file-contents');
-    if (fileContentsElement && unbiddenInkData.settings_file_contents) {
-      fileContentsElement.textContent = unbiddenInkData.settings_file_contents;
+    if (fileContentsElement && configData.unbidden_ink_settings_file_contents) {
+      fileContentsElement.textContent = configData.unbidden_ink_settings_file_contents;
     } else if (fileContentsElement) {
       fileContentsElement.textContent = 'No file data available';
     }
@@ -176,17 +177,17 @@ function displayDiagnostics(data) {
   
   // Show and populate hardware buttons section
   const hardwareButtonsSection = document.getElementById('hardware-buttons-section');
-  if (hardwareButtonsSection && data.hardware_buttons) {
+  if (hardwareButtonsSection && data.hardware_buttons && data.hardware_buttons.buttons) {
     const buttonsContent = document.getElementById('hardware-buttons-content');
     if (buttonsContent) {
       buttonsContent.innerHTML = ''; // Clear existing content
       
-      data.hardware_buttons.forEach(button => {
+      data.hardware_buttons.buttons.forEach(button => {
         const buttonEntry = document.createElement('div');
         buttonEntry.className = 'flex justify-between';
         buttonEntry.innerHTML = `
-          <span class="text-gray-600 dark:text-gray-400">${button.label || `Pin ${button.pin}`}:</span>
-          <span class="font-medium text-gray-900 dark:text-gray-100">${button.action || 'Not configured'}</span>
+          <span class="text-gray-600 dark:text-gray-400">Pin ${button.gpio}:</span>
+          <span class="font-medium text-gray-900 dark:text-gray-100">Short: ${button.short_endpoint || 'None'}, Long: ${button.long_endpoint || 'None'}</span>
         `;
         buttonsContent.appendChild(buttonEntry);
       });
@@ -233,16 +234,38 @@ function displayDiagnosticsError(message) {
  */
 function copySection(sectionId, button) {
   const section = document.getElementById(`${sectionId}-section`);
-  if (!section) return;
+  if (!section) {
+    console.error(`Could not find section with ID: ${sectionId}-section`);
+    return;
+  }
   
   let content = '';
-  const dataFields = section.querySelectorAll('[data-field]');
-  dataFields.forEach(field => {
-    const label = field.closest('.flex')?.querySelector('.text-gray-600, .text-gray-400')?.textContent;
-    if (label && field.textContent) {
-      content += `${label} ${field.textContent}\n`;
+  
+  if (sectionId === 'unbidden-ink') {
+    // Special handling for unbidden ink which includes file contents
+    const fileContents = document.getElementById('unbidden-ink-file-contents');
+    if (fileContents && fileContents.textContent.trim() !== 'Loading...' && fileContents.textContent.trim() !== 'No file data available') {
+      content = fileContents.textContent;
+    } else {
+      // Fall back to regular data fields if no file contents
+      const dataFields = section.querySelectorAll('[data-field]');
+      dataFields.forEach(field => {
+        const label = field.closest('.flex')?.querySelector('.text-gray-600, .text-gray-400')?.textContent;
+        if (label && field.textContent && field.textContent.trim() !== '-') {
+          content += `${label} ${field.textContent}\n`;
+        }
+      });
     }
-  });
+  } else {
+    // Generic section content copy
+    const dataFields = section.querySelectorAll('[data-field]');
+    dataFields.forEach(field => {
+      const label = field.closest('.flex')?.querySelector('.text-gray-600, .text-gray-400')?.textContent;
+      if (label && field.textContent && field.textContent.trim() !== '-') {
+        content += `${label} ${field.textContent}\n`;
+      }
+    });
+  }
   
   navigator.clipboard.writeText(content).then(() => {
     // Visual feedback
@@ -253,6 +276,8 @@ function copySection(sectionId, button) {
       button.innerHTML = originalText;
       button.disabled = false;
     }, 1000);
+  }).catch(err => {
+    console.error('Failed to copy to clipboard:', err);
   });
 }
 
@@ -260,14 +285,18 @@ function copySection(sectionId, button) {
  * Copy generic section content to clipboard
  */
 function copyGenericSection(sectionName, button) {
-  const section = button.closest('.bg-purple-50, .bg-blue-50, .bg-green-50, .bg-orange-50, .bg-yellow-50');
-  if (!section) return;
+  // Find the parent section div (the one with the ID ending in '-section')
+  const section = button.closest('[id$="-section"]');
+  if (!section) {
+    console.error('Could not find parent section for copy button');
+    return;
+  }
   
   let content = `${sectionName}:\n`;
   const dataFields = section.querySelectorAll('[data-field]');
   dataFields.forEach(field => {
     const label = field.closest('.flex')?.querySelector('.text-gray-600, .text-gray-400')?.textContent;
-    if (label && field.textContent) {
+    if (label && field.textContent && field.textContent.trim() !== '-') {
       content += `${label} ${field.textContent}\n`;
     }
   });
@@ -281,6 +310,8 @@ function copyGenericSection(sectionName, button) {
       button.innerHTML = originalText;
       button.disabled = false;
     }, 1000);
+  }).catch(err => {
+    console.error('Failed to copy to clipboard:', err);
   });
 }
 
@@ -289,9 +320,18 @@ function copyGenericSection(sectionName, button) {
  */
 function copyFileContents(button) {
   const fileContents = document.getElementById('unbidden-ink-file-contents');
-  if (!fileContents) return;
+  if (!fileContents) {
+    console.error('Could not find file contents element');
+    return;
+  }
   
-  navigator.clipboard.writeText(fileContents.textContent).then(() => {
+  const content = fileContents.textContent.trim();
+  if (!content || content === 'Loading...' || content === 'No file data available') {
+    console.warn('No valid file contents to copy');
+    return;
+  }
+  
+  navigator.clipboard.writeText(content).then(() => {
     // Visual feedback
     const originalText = button.innerHTML;
     button.innerHTML = '✓';
@@ -300,5 +340,7 @@ function copyFileContents(button) {
       button.innerHTML = originalText;
       button.disabled = false;
     }, 1000);
+  }).catch(err => {
+    console.error('Failed to copy to clipboard:', err);
   });
 }

@@ -7,6 +7,24 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="icon" type="image/x-icon" href="/favicon.ico">
     <link rel="stylesheet" href="/css/tailwind.css">
+
+    <!-- Prevent flash of light mode -->
+    <script>
+        (function () {
+            const savedTheme = localStorage.getItem('theme') || 'system';
+            const html = document.documentElement;
+
+            html.classList.remove('dark', 'light');
+
+            if (savedTheme === 'system') {
+                // Let system preference take control via CSS media queries
+            } else if (savedTheme === 'light') {
+                html.classList.add('light');
+            } else if (savedTheme === 'dark') {
+                html.classList.add('dark');
+            }
+        })();
+    </script>
 </head>
 
 <body class="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-200">
@@ -32,23 +50,31 @@
                 <ul class="mt-3 space-y-2">
                     <li><a href="/"
                             class="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-200 transition-colors">🏠
-                            Home</a> - Main interface</li>
+                            Home</a> <span class="text-gray-600 dark:text-gray-400">- Main interface</span></li>
                     <li><a href="/status"
                             class="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-200 transition-colors">📊
-                            Status</a> - System information</li>
+                            Status</a> <span class="text-gray-600 dark:text-gray-400">- System information</span></li>
                     <li><a href="/config"
                             class="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-200 transition-colors">⚙️
-                            Config</a> - Configuration data (JSON)</li>
+                            Config</a> <span class="text-gray-600 dark:text-gray-400">- Configuration data (JSON)</span>
+                    </li>
                 </ul>
                 <strong class="text-green-800 dark:text-green-300 block mt-4">🎯 API Endpoints (POST):</strong><br>
                 <ul class="mt-3 space-y-1 text-sm text-gray-700 dark:text-gray-300">
-                    <li><span class="font-mono">/joke</span> - Get a random joke</li>
-                    <li><span class="font-mono">/quote</span> - Get an inspirational quote</li>
-                    <li><span class="font-mono">/quiz</span> - Get a trivia question</li>
-                    <li><span class="font-mono">/riddle</span> - Get a brain teaser</li>
-                    <li><span class="font-mono">/test-print</span> - Character test content</li>
-                    <li><span class="font-mono">/print-local</span> - Submit receipt for printing</li>
-                    <li><span class="font-mono">/mqtt-send</span> - Send to remote printer</li>
+                    <li><span class="font-mono">/joke</span> <span class="text-gray-600 dark:text-gray-400">- Get a
+                            random joke</span></li>
+                    <li><span class="font-mono">/quote</span> <span class="text-gray-600 dark:text-gray-400">- Get an
+                            inspirational quote</span></li>
+                    <li><span class="font-mono">/quiz</span> <span class="text-gray-600 dark:text-gray-400">- Get a
+                            trivia question</span></li>
+                    <li><span class="font-mono">/riddle</span> <span class="text-gray-600 dark:text-gray-400">- Get a
+                            brain teaser</span></li>
+                    <li><span class="font-mono">/test-print</span> <span class="text-gray-600 dark:text-gray-400">-
+                            Character test content</span></li>
+                    <li><span class="font-mono">/print-local</span> <span class="text-gray-600 dark:text-gray-400">-
+                            Submit receipt for printing</span></li>
+                    <li><span class="font-mono">/mqtt-send</span> <span class="text-gray-600 dark:text-gray-400">- Send
+                            to remote printer</span></li>
                 </ul>
             </div>
 

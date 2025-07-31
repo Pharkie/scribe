@@ -140,25 +140,25 @@ void handleStatus()
     // Configuration health
     JsonObject config = doc.createNestedObject("configuration");
     bool fileExists = LittleFS.exists("/unbidden_ink_settings.json");
-    config["settings_file_exists"] = fileExists;
+    config["unbidden_ink_settings_file_exists"] = fileExists;
 
     if (fileExists)
     {
         File file = LittleFS.open("/unbidden_ink_settings.json", "r");
         if (file)
         {
-            config["settings_file_size"] = file.size();
+            config["unbidden_ink_settings_file_size"] = file.size();
 
             // Read and include actual file contents
             String fileContents = file.readString();
-            config["settings_file_contents"] = fileContents;
+            config["unbidden_ink_settings_file_contents"] = fileContents;
 
             file.close();
         }
         else
         {
             // File exists but can't be opened - indicate error
-            config["settings_file_error"] = "File exists but cannot be opened";
+            config["unbidden_ink_settings_file_error"] = "File exists but cannot be opened";
         }
     }
 
@@ -203,7 +203,7 @@ void handleStatus()
     float temp = temperatureRead();
     if (!isnan(temp))
     {
-        doc["temperature_celsius"] = temp;
+        doc["temperature"] = temp;
     }
 #endif
 
