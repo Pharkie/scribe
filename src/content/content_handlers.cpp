@@ -33,16 +33,19 @@ void handleRiddle()
 {
     LOG_VERBOSE("WEB", "handleRiddle() called");
 
-    // Validate optional parameters
-    ValidationResult remoteValidation = validateRemoteParameter();
-    if (!remoteValidation.isValid)
-    {
-        sendValidationError(remoteValidation);
-        return;
-    }
+    // Get and parse JSON body
+    String body = server.arg("plain");
+    String source = "local-direct"; // Default value
 
-    // Check for source parameter - determines routing
-    String source = server.hasArg("source") ? server.arg("source") : "local-direct";
+    if (body.length() > 0)
+    {
+        DynamicJsonDocument doc(1024);
+        DeserializationError error = deserializeJson(doc, body);
+        if (!error && doc.containsKey("printer"))
+        {
+            source = doc["printer"].as<String>();
+        }
+    }
 
     // Use unified endpoint processing
     if (processEndpoint("/riddle", source.c_str()))
@@ -57,16 +60,21 @@ void handleRiddle()
 
 void handleJoke()
 {
-    // Validate optional parameters
-    ValidationResult remoteValidation = validateRemoteParameter();
-    if (!remoteValidation.isValid)
-    {
-        sendValidationError(remoteValidation);
-        return;
-    }
+    LOG_VERBOSE("WEB", "handleJoke() called");
 
-    // Check for source parameter - determines routing
-    String source = server.hasArg("source") ? server.arg("source") : "local-direct";
+    // Get and parse JSON body
+    String body = server.arg("plain");
+    String source = "local-direct"; // Default value
+
+    if (body.length() > 0)
+    {
+        DynamicJsonDocument doc(1024);
+        DeserializationError error = deserializeJson(doc, body);
+        if (!error && doc.containsKey("printer"))
+        {
+            source = doc["printer"].as<String>();
+        }
+    }
 
     // Use unified endpoint processing
     if (processEndpoint("/joke", source.c_str()))
@@ -81,16 +89,21 @@ void handleJoke()
 
 void handleQuote()
 {
-    // Validate optional parameters
-    ValidationResult remoteValidation = validateRemoteParameter();
-    if (!remoteValidation.isValid)
-    {
-        sendValidationError(remoteValidation);
-        return;
-    }
+    LOG_VERBOSE("WEB", "handleQuote() called");
 
-    // Check for source parameter - determines routing
-    String source = server.hasArg("source") ? server.arg("source") : "local-direct";
+    // Get and parse JSON body
+    String body = server.arg("plain");
+    String source = "local-direct"; // Default value
+
+    if (body.length() > 0)
+    {
+        DynamicJsonDocument doc(1024);
+        DeserializationError error = deserializeJson(doc, body);
+        if (!error && doc.containsKey("printer"))
+        {
+            source = doc["printer"].as<String>();
+        }
+    }
 
     // Use unified endpoint processing
     if (processEndpoint("/quote", source.c_str()))
@@ -105,16 +118,21 @@ void handleQuote()
 
 void handleQuiz()
 {
-    // Validate optional parameters
-    ValidationResult remoteValidation = validateRemoteParameter();
-    if (!remoteValidation.isValid)
-    {
-        sendValidationError(remoteValidation);
-        return;
-    }
+    LOG_VERBOSE("WEB", "handleQuiz() called");
 
-    // Check for source parameter - determines routing
-    String source = server.hasArg("source") ? server.arg("source") : "local-direct";
+    // Get and parse JSON body
+    String body = server.arg("plain");
+    String source = "local-direct"; // Default value
+
+    if (body.length() > 0)
+    {
+        DynamicJsonDocument doc(1024);
+        DeserializationError error = deserializeJson(doc, body);
+        if (!error && doc.containsKey("printer"))
+        {
+            source = doc["printer"].as<String>();
+        }
+    }
 
     // Use unified endpoint processing
     if (processEndpoint("/quiz", source.c_str()))
@@ -129,16 +147,21 @@ void handleQuiz()
 
 void handleUnbiddenInk()
 {
-    // Validate optional parameters
-    ValidationResult remoteValidation = validateRemoteParameter();
-    if (!remoteValidation.isValid)
-    {
-        sendValidationError(remoteValidation);
-        return;
-    }
+    LOG_VERBOSE("WEB", "handleUnbiddenInk() called");
 
-    // Check for source parameter - determines routing
-    String source = server.hasArg("source") ? server.arg("source") : "local-direct";
+    // Get and parse JSON body
+    String body = server.arg("plain");
+    String source = "local-direct"; // Default value
+
+    if (body.length() > 0)
+    {
+        DynamicJsonDocument doc(1024);
+        DeserializationError error = deserializeJson(doc, body);
+        if (!error && doc.containsKey("printer"))
+        {
+            source = doc["printer"].as<String>();
+        }
+    }
 
     // Use unified endpoint processing
     if (processEndpoint("/unbidden-ink", source.c_str()))
@@ -153,16 +176,21 @@ void handleUnbiddenInk()
 
 void handlePrintTest()
 {
-    // Validate optional parameters
-    ValidationResult remoteValidation = validateRemoteParameter();
-    if (!remoteValidation.isValid)
-    {
-        sendValidationError(remoteValidation);
-        return;
-    }
+    LOG_VERBOSE("WEB", "handlePrintTest() called");
 
-    // Check for source parameter - determines routing
-    String source = server.hasArg("source") ? server.arg("source") : "local-direct";
+    // Get and parse JSON body
+    String body = server.arg("plain");
+    String source = "local-direct"; // Default value
+
+    if (body.length() > 0)
+    {
+        DynamicJsonDocument doc(1024);
+        DeserializationError error = deserializeJson(doc, body);
+        if (!error && doc.containsKey("printer"))
+        {
+            source = doc["printer"].as<String>();
+        }
+    }
 
     // Use unified endpoint processing
     if (processEndpoint("/print-test", source.c_str()))

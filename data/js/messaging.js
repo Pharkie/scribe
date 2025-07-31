@@ -44,7 +44,7 @@ function getActionConfig(action) {
     case 'print-test':
       return { colors: ['#6b7280', '#4b5563', '#9ca3af'], name: 'Print Test' }; // Gray
     case 'scribe-message':
-      return { colors: ['#8b5cf6', '#7c3aed', '#a78bfa'], name: 'Scribed' }; // Purple
+      return { colors: ['#8b5cf6', '#7c3aed', '#a78bfa'], name: 'Message' }; // Purple
     case 'unbidden-ink':
       return { colors: ['#8b5cf6', '#7c3aed', '#a78bfa'], name: 'Unbidden Ink' }; // Purple
     default:
