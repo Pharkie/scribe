@@ -27,6 +27,7 @@
 #include <stdio.h>
 #include <ctype.h>
 #include <Arduino.h>
+#include "../web/validation.h"
 
 // ========================================
 // STRING BUILDING UTILITIES
@@ -69,16 +70,6 @@ inline const char *buildPersistentMqttTopic(int index, const char *key)
 // ========================================
 // SIMPLIFIED CONFIGURATION VALIDATION
 // ========================================
-
-// Simple validation result structure
-struct ValidationResult
-{
-    bool isValid;
-    String errorMessage;
-
-    ValidationResult(bool valid = true, const String &message = "")
-        : isValid(valid), errorMessage(message) {}
-};
 
 // Unified string validation helper
 inline bool isValidString(const char *str, int maxLen, const char *fieldName, String &error)

@@ -1,6 +1,6 @@
 #include "mqtt_handler.h"
-#include "time_utils.h"
-#include "printer.h"
+#include "../utils/time_utils.h"
+#include "../hardware/printer.h"
 #include "logging.h"
 #include "config_utils.h"
 #include <WiFi.h>

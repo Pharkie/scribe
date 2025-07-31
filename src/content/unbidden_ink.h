@@ -27,6 +27,16 @@
 // Default prompts for Unbidden Ink
 const char *const DEFAULT_MOTIVATION_PROMPT = "Generate a short, encouraging motivational message to help me stay focused and positive. Keep it brief, uplifting, and practical.";
 
+// Settings structure for diagnostics and external access
+struct UnbiddenInkSettings
+{
+    bool enabled;
+    String prompt;
+    int startHour;
+    int endHour;
+    int frequencyMinutes;
+};
+
 /**
  * @brief Unbidden Ink feature for automated AI-generated content
  *
@@ -72,5 +82,17 @@ void scheduleNextUnbiddenInk();
  * @return Current prompt string
  */
 String getUnbiddenInkPrompt();
+
+/**
+ * @brief Get current Unbidden Ink settings for status display
+ * @return Current settings structure
+ */
+UnbiddenInkSettings getCurrentUnbiddenInkSettings();
+
+/**
+ * @brief Get next scheduled Unbidden Ink message time
+ * @return Next message time in milliseconds since boot
+ */
+unsigned long getNextUnbiddenInkTime();
 
 #endif // UNBIDDEN_INK_H

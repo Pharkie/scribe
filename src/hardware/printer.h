@@ -4,9 +4,9 @@
 #include <Arduino.h>
 #include <HardwareSerial.h>
 #include <vector>
-#include "config.h"
-#include "character_mapping.h"
-#include "web_server.h"
+#include "../core/config.h"
+#include "../utils/character_mapping.h"
+#include "../web/web_server.h"
 
 // External printer object and configuration
 extern HardwareSerial printer;

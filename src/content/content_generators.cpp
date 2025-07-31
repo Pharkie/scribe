@@ -20,9 +20,9 @@
  */
 
 #include "content_generators.h"
-#include "api_client.h"
-#include "config.h"
-#include "logging.h"
+#include "../utils/api_client.h"
+#include "../core/config.h"
+#include "../core/logging.h"
 #include "unbidden_ink.h"
 #include <LittleFS.h>
 #include <ArduinoJson.h>

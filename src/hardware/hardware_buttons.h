@@ -1,8 +1,8 @@
 #ifndef HARDWARE_BUTTONS_H
 #define HARDWARE_BUTTONS_H
 
-#include "config.h"
-#include "logging.h"
+#include "../core/config.h"
+#include "../core/logging.h"
 #include <Arduino.h>
 
 // ========================================

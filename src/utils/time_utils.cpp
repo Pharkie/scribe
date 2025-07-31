@@ -1,6 +1,6 @@
 #include "time_utils.h"
-#include "logging.h"
-#include "config_utils.h"
+#include "../core/logging.h"
+#include "../core/config_utils.h"
 #include <esp_task_wdt.h>
 
 // Timezone object

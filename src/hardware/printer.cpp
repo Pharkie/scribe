@@ -1,7 +1,8 @@
 #include "printer.h"
-#include "time_utils.h"
-#include "logging.h"
-#include "config_utils.h"
+#include "../utils/time_utils.h"
+#include "../core/logging.h"
+#include "../core/config_utils.h"
+#include "../core/shared_types.h"
 #include <WiFi.h>
 #include <esp_task_wdt.h>
 

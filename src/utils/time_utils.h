@@ -3,7 +3,7 @@
 
 #include <Arduino.h>
 #include <ezTime.h>
-#include "config.h"
+#include "../core/config.h"
 
 // External timezone object
 extern Timezone myTZ;

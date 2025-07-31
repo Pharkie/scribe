@@ -26,21 +26,22 @@
 #include <ezTime.h>
 #include <LittleFS.h>
 #include <PubSubClient.h>
-#include "config.h"
-#include "config_utils.h"
+#include "core/config.h"
+#include "core/config_utils.h"
+#include "core/shared_types.h"
 
 // Local module includes
-#include "character_mapping.h"
-#include "web_server.h"
-#include "network.h"
-#include "printer.h"
-#include "mqtt_handler.h"
-#include "time_utils.h"
-#include "logging.h"
-#include "hardware_buttons.h"
-#include "content_generators.h"
-#include "api_client.h"
-#include "unbidden_ink.h"
+#include "utils/character_mapping.h"
+#include "web/web_server.h"
+#include "core/network.h"
+#include "hardware/printer.h"
+#include "core/mqtt_handler.h"
+#include "utils/time_utils.h"
+#include "core/logging.h"
+#include "hardware/hardware_buttons.h"
+#include "content/content_generators.h"
+#include "utils/api_client.h"
+#include "content/unbidden_ink.h"
 
 // === Web Server ===
 WebServer server(webServerPort);
@@ -165,11 +166,11 @@ void loop()
   }
 
   // Check if we have a new message to print
-  if (currentMessage.queuedForPrint)
+  if (currentMessage.shouldPrintLocally)
   {
     LOG_VERBOSE("MAIN", "Printing message from main loop");
     printMessage();
-    currentMessage.queuedForPrint = false; // Reset flag
+    currentMessage.shouldPrintLocally = false; // Reset flag
   }
 
   // Monitor memory usage periodically

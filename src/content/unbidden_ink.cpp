@@ -20,26 +20,18 @@
  */
 
 #include "unbidden_ink.h"
-#include "config.h"
-#include "time_utils.h"
-#include "logging.h"
-#include "web_server.h"
+#include "../core/config.h"
+#include "../utils/time_utils.h"
+#include "../core/logging.h"
+#include "../web/web_server.h"
+#include "content_handlers.h"
 #include <LittleFS.h>
 #include <ArduinoJson.h>
 
 // Unbidden Ink timing variables
 static unsigned long nextUnbiddenInkTime = 0;
 
-// Dynamic settings structure
-struct UnbiddenInkSettings
-{
-    bool enabled = enableUnbiddenInk;
-    String prompt = DEFAULT_MOTIVATION_PROMPT;
-    int startHour = unbiddenInkStartHour;
-    int endHour = unbiddenInkEndHour;
-    int frequencyMinutes = unbiddenInkFrequencyMinutes;
-};
-
+// Dynamic settings instance
 static UnbiddenInkSettings currentSettings;
 
 // Load settings from file or use config defaults
@@ -162,4 +154,15 @@ void checkUnbiddenInk()
 String getUnbiddenInkPrompt()
 {
     return currentSettings.prompt;
+}
+
+// Get current settings for status display
+UnbiddenInkSettings getCurrentUnbiddenInkSettings()
+{
+    return currentSettings;
+}
+
+unsigned long getNextUnbiddenInkTime()
+{
+    return nextUnbiddenInkTime;
 }

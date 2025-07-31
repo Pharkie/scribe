@@ -18,15 +18,9 @@
         <h1 class="text-3xl font-bold text-gray-800">Scribe</h1>
         <div class="flex-1 flex justify-end items-center">
             <button onclick="toggleSettings()"
-                class="flex items-center space-x-2 px-4 py-3 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-full transition-all duration-200 hover:scale-105 hover:shadow-md">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z">
-                    </path>
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                </svg>
-                <span class="text-sm font-medium">Unbidden Ink Settings</span>
+                class="flex items-center space-x-2 px-4 py-3 bg-purple-100 hover:bg-purple-200 text-purple-700 border border-purple-200 rounded-full transition-all duration-200 hover:scale-105 hover:shadow-md">
+                <span class="text-lg">✨</span>
+                <span class="text-sm font-medium">Unbidden Ink</span>
             </button>
         </div>
     </header>
@@ -166,11 +160,34 @@
         </div>
     </div>
 
+    <!-- Diagnostics Panel Overlay -->
+    <div id="diagnostics-overlay"
+        class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden opacity-0 transition-opacity duration-300">
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div
+                class="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto transform scale-95 transition-transform duration-300">
+                <div class="p-6">
+                    <div class="flex justify-between items-center mb-6">
+                        <h3 class="text-xl font-semibold text-gray-800">📊 Scribe Diagnostics</h3>
+                        <button onclick="closeDiagnostics()"
+                            class="text-gray-400 hover:text-gray-600 text-2xl transition-colors duration-200">&times;</button>
+                    </div>
+
+                    <!-- Diagnostics Content -->
+                    <div id="diagnostics-content" class="space-y-6">
+                        <div class="flex items-center justify-center py-8">
+                            <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                            <span class="ml-3 text-gray-600">Loading diagnostics...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <main class="w-full max-w-4xl mx-auto flex-1">
         <!-- Unified Printer Interface -->
         <div class="bg-white shadow-2xl rounded-3xl p-8 border border-gray-100">
-            <h2 class="text-2xl font-semibold mb-6 text-gray-900 text-center">🖨️ Scribe</h2>
-
             <form id="printer-form" onsubmit="handleSubmit(event)" class="space-y-6">
                 <!-- Target Printer Selection -->
                 <div class="space-y-2">
@@ -219,7 +236,7 @@
                         🧠 Quiz
                     </button>
                     <button onclick="sendQuickAction('test-print')"
-                        class="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white text-sm rounded-lg font-medium transition-all duration-200 hover:scale-105">
+                        class="px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white text-sm rounded-lg font-medium transition-all duration-200 hover:scale-105">
                         🔤 Test Print
                     </button>
                 </div>

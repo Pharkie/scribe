@@ -83,7 +83,7 @@ function getActionConfig(action) {
     case 'joke':
       return { colors: ['#f97316', '#ea580c', '#fb923c'], name: 'Joke' }; // Orange
     case 'test-print':
-      return { colors: ['#3b82f6', '#1e40af', '#60a5fa'], name: 'Test print' }; // Blue
+      return { colors: ['#6b7280', '#4b5563', '#9ca3af'], name: 'Test print' }; // Gray
     case 'quote':
       return { colors: ['#14b8a6', '#0f766e', '#5eead4'], name: 'Quote' }; // Teal
     case 'quiz':
@@ -255,6 +255,15 @@ function showSuccessMessage(message) {
 
 // System status modal functionality
 function showSystemStatus() {
+  // Show the overlay
+  const overlay = document.getElementById('diagnostics-overlay');
+  overlay.classList.remove('hidden');
+  setTimeout(() => {
+    overlay.classList.remove('opacity-0');
+    overlay.querySelector('.transform').classList.remove('scale-95');
+  }, 10);
+
+  // Fetch and display the data
   fetch('/status')
     .then(response => response.json())
     .then(data => {
@@ -263,33 +272,378 @@ function showSystemStatus() {
       const memoryUsedPercent = Math.round((1 - (data.free_heap / data.total_heap)) * 100);
       const flashUsedPercent = data.flash_total > 0 ? Math.round((data.flash_used / data.flash_total) * 100) : 0;
       const flashFree = data.flash_total - data.flash_used;
+      const sketchUsedPercent = data.free_sketch_space > 0 ? Math.round((data.sketch_size / (data.sketch_size + data.free_sketch_space)) * 100) : 0;
       
-      const status = `📊 Scribe Printer Diagnostics
+      let content = `
+        <!-- Network Status -->
+        <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+          <h4 class="font-semibold text-blue-800 mb-3 flex items-center">
+            <span class="text-lg mr-2">🌐</span> Network Status
+          </h4>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+            <div class="flex justify-between">
+              <span class="text-gray-600">WiFi:</span>
+              <span class="font-medium ${data.wifi_connected ? 'text-green-600' : 'text-red-600'}">
+                ${data.wifi_connected ? '✅ Connected' : '❌ Disconnected'}
+              </span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-gray-600">Network:</span>
+              <span class="font-medium">${data.wifi_ssid || 'Unknown'}</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-gray-600">IP Address:</span>
+              <span class="font-medium font-mono">${data.ip_address}</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-gray-600">Hostname:</span>
+              <span class="font-medium font-mono">${data.mdns_hostname}.local</span>
+            </div>
+          </div>
+        </div>
 
-🌐 Network Status:
-• WiFi: ${data.wifi_connected ? '✅ Connected' : '❌ Disconnected'}
-• Network: ${data.wifi_ssid || 'Unknown'}
-• IP Address: ${data.ip_address}
-• Hostname: ${data.mdns_hostname}.local
+        <!-- MQTT Status -->
+        <div class="bg-green-50 border border-green-200 rounded-lg p-4">
+          <h4 class="font-semibold text-green-800 mb-3 flex items-center">
+            <span class="text-lg mr-2">📡</span> MQTT Status
+          </h4>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+            <div class="flex justify-between">
+              <span class="text-gray-600">Broker:</span>
+              <span class="font-medium ${data.mqtt_connected ? 'text-green-600' : 'text-red-600'}">
+                ${data.mqtt_connected ? '✅ Connected' : '❌ Disconnected'}
+              </span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-gray-600">Server:</span>
+              <span class="font-medium font-mono">${data.mqtt_server}</span>
+            </div>
+            <div class="flex justify-between col-span-1 md:col-span-2">
+              <span class="text-gray-600">Topic:</span>
+              <span class="font-medium font-mono">${data.local_topic}</span>
+            </div>
+          </div>
+        </div>
 
-📡 MQTT Status:
-• Broker: ${data.mqtt_connected ? '✅ Connected' : '❌ Disconnected'}
-• Server: ${data.mqtt_server}
-• Topic: ${data.local_topic}
+        <!-- Unbidden Ink Status -->
+        <div class="bg-purple-50 border border-purple-200 rounded-lg p-4">
+          <h4 class="font-semibold text-purple-800 mb-3 flex items-center">
+            <span class="text-lg mr-2">✨</span> Unbidden Ink Status
+          </h4>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+            <div class="flex justify-between">
+              <span class="text-gray-600">Feature:</span>
+              <span class="font-medium ${data.unbidden_ink?.enabled ? 'text-green-600' : 'text-red-600'}">
+                ${data.unbidden_ink?.enabled ? '✅ Enabled' : '❌ Disabled'}
+              </span>
+            </div>`;
 
-💾 System Resources:
-• RAM: ${Math.round(data.free_heap / 1024)}KB free / ${Math.round(data.total_heap / 1024)}KB total (${memoryUsedPercent}% used)
-• Flash: ${Math.round(flashFree / 1024)}KB free / ${Math.round(data.flash_total / 1024)}KB total (${flashUsedPercent}% used)
-• Uptime: ${uptimeHours}h ${uptimeMinutes}m
-• Chip: ${data.chip_model}
-• CPU: ${data.cpu_freq}MHz`;
+      if (data.unbidden_ink?.enabled) {
+        const nextMessage = calculateNextMessage(data.unbidden_ink);
+        content += `
+            <div class="flex justify-between">
+              <span class="text-gray-600">Schedule:</span>
+              <span class="font-medium">${data.unbidden_ink.start_hour}:00 - ${data.unbidden_ink.end_hour}:00</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-gray-600">Frequency:</span>
+              <span class="font-medium">Every ${data.unbidden_ink.frequency_minutes} minutes</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-gray-600">Next Message:</span>
+              <span class="font-medium">${nextMessage}</span>
+            </div>`;
+      }
+
+      content += `
+          </div>
+        </div>
+
+        <!-- System Resources -->
+        <div class="bg-orange-50 border border-orange-200 rounded-lg p-4">
+          <h4 class="font-semibold text-orange-800 mb-3 flex items-center">
+            <span class="text-lg mr-2">💾</span> System Resources
+          </h4>
+          <div class="space-y-3">
+            <div class="flex justify-between items-center">
+              <span class="text-gray-600">RAM Usage:</span>
+              <div class="flex items-center space-x-2">
+                <div class="w-24 bg-gray-200 rounded-full h-2">
+                  <div class="bg-orange-500 h-2 rounded-full" style="width: ${memoryUsedPercent}%"></div>
+                </div>
+                <span class="font-medium text-sm">${memoryUsedPercent}%</span>
+              </div>
+            </div>
+            <div class="text-xs text-gray-500 text-right">
+              ${Math.round(data.free_heap / 1024)}KB free / ${Math.round(data.total_heap / 1024)}KB total
+            </div>
+            
+            <div class="flex justify-between items-center">
+              <span class="text-gray-600">Flash Usage:</span>
+              <div class="flex items-center space-x-2">
+                <div class="w-24 bg-gray-200 rounded-full h-2">
+                  <div class="bg-orange-500 h-2 rounded-full" style="width: ${flashUsedPercent}%"></div>
+                </div>
+                <span class="font-medium text-sm">${flashUsedPercent}%</span>
+              </div>
+            </div>
+            <div class="text-xs text-gray-500 text-right">
+              ${Math.round(flashFree / 1024)}KB free / ${Math.round(data.flash_total / 1024)}KB total
+            </div>
+            
+            <div class="flex justify-between items-center">
+              <span class="text-gray-600">Sketch Usage:</span>
+              <div class="flex items-center space-x-2">
+                <div class="w-24 bg-gray-200 rounded-full h-2">
+                  <div class="bg-orange-500 h-2 rounded-full" style="width: ${sketchUsedPercent}%"></div>
+                </div>
+                <span class="font-medium text-sm">${sketchUsedPercent}%</span>
+              </div>
+            </div>
+            <div class="text-xs text-gray-500 text-right">
+              ${Math.round(data.sketch_size / 1024)}KB used / ${Math.round(data.free_sketch_space / 1024)}KB free
+            </div>
+            
+            <div class="flex justify-between">
+              <span class="text-gray-600">Uptime:</span>
+              <span class="font-medium">${uptimeHours}h ${uptimeMinutes}m</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Configuration -->
+        <div class="bg-gray-50 border border-gray-200 rounded-lg p-4">
+          <h4 class="font-semibold text-gray-800 mb-3 flex items-center">
+            <span class="text-lg mr-2">🔧</span> Configuration
+          </h4>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+            <div class="flex justify-between">
+              <span class="text-gray-600">Settings File:</span>
+              <span class="font-medium ${data.configuration?.settings_file_exists ? 'text-green-600' : 'text-red-600'}">
+                ${data.configuration?.settings_file_exists ? '✅ Present' : '❌ Missing'}
+              </span>
+            </div>`;
+
+      if (data.configuration?.settings_file_size) {
+        content += `
+            <div class="flex justify-between">
+              <span class="text-gray-600">File Size:</span>
+              <span class="font-medium">${data.configuration.settings_file_size} bytes</span>
+            </div>`;
+      }
+
+      content += `
+          </div>
+        </div>
+
+        <!-- Hardware Info -->
+        <div class="bg-slate-50 border border-slate-200 rounded-lg p-4">
+          <h4 class="font-semibold text-slate-800 mb-3 flex items-center">
+            <span class="text-lg mr-2">💻</span> Hardware Info
+          </h4>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+            <div class="flex justify-between">
+              <span class="text-gray-600">Chip:</span>
+              <span class="font-medium">${data.chip_model} Rev ${data.chip_revision || 'Unknown'}</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-gray-600">CPU:</span>
+              <span class="font-medium">${data.cpu_freq}MHz</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-gray-600">SDK:</span>
+              <span class="font-medium">${data.sdk_version || 'Unknown'}</span>
+            </div>`;
+
+      if (data.temperature_celsius) {
+        content += `
+            <div class="flex justify-between">
+              <span class="text-gray-600">Temperature:</span>
+              <span class="font-medium">${Math.round(data.temperature_celsius)}°C</span>
+            </div>`;
+      }
+
+      content += `
+          </div>
+        </div>
+
+        <!-- Hardware Buttons Configuration -->
+        <div class="bg-indigo-50 border border-indigo-200 rounded-lg p-4">
+          <h4 class="font-semibold text-indigo-800 mb-3 flex items-center">
+            <span class="text-lg mr-2">🔘</span> Hardware Buttons
+          </h4>
+          <div class="space-y-3">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm">
+              <div class="flex justify-between">
+                <span class="text-gray-600">Button Count:</span>
+                <span class="font-medium">${data.hardware_buttons?.num_buttons || 0}</span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-gray-600">Debounce:</span>
+                <span class="font-medium">${data.hardware_buttons?.debounce_ms || 0}ms</span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-gray-600">Long Press:</span>
+                <span class="font-medium">${data.hardware_buttons?.long_press_ms || 0}ms</span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-gray-600">Active Low:</span>
+                <span class="font-medium ${data.hardware_buttons?.active_low ? 'text-green-600' : 'text-red-600'}">
+                  ${data.hardware_buttons?.active_low ? '✅ Yes' : '❌ No'}
+                </span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-gray-600">Min Interval:</span>
+                <span class="font-medium">${data.hardware_buttons?.min_interval_ms || 0}ms</span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-gray-600">Max/Minute:</span>
+                <span class="font-medium">${data.hardware_buttons?.max_per_minute || 0}</span>
+              </div>
+            </div>`;
+
+      if (data.hardware_buttons?.buttons && data.hardware_buttons.buttons.length > 0) {
+        content += `
+            <div class="mt-4">
+              <h5 class="font-medium text-indigo-700 mb-2">Button Mapping:</h5>
+              <div class="bg-white rounded border overflow-hidden">
+                <table class="w-full text-xs">
+                  <thead class="bg-indigo-100">
+                    <tr>
+                      <th class="px-2 py-1 text-left">GPIO</th>
+                      <th class="px-2 py-1 text-left">Short Press</th>
+                      <th class="px-2 py-1 text-left">Long Press</th>
+                    </tr>
+                  </thead>
+                  <tbody>`;
+        
+        data.hardware_buttons.buttons.forEach((button, index) => {
+          content += `
+                    <tr class="${index % 2 === 0 ? 'bg-gray-50' : 'bg-white'}">
+                      <td class="px-2 py-1 font-mono font-medium">${button.gpio}</td>
+                      <td class="px-2 py-1 font-mono text-blue-600">${button.short_endpoint}</td>
+                      <td class="px-2 py-1 font-mono ${button.long_endpoint ? 'text-green-600' : 'text-gray-400'}">${button.long_endpoint || 'None'}</td>
+                    </tr>`;
+        });
+        
+        content += `
+                  </tbody>
+                </table>
+              </div>
+            </div>`;
+      }
+
+      content += `
+          </div>
+        </div>
+
+        <!-- Logging Configuration -->
+        <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+          <h4 class="font-semibold text-yellow-800 mb-3 flex items-center">
+            <span class="text-lg mr-2">📝</span> Logging Configuration
+          </h4>
+          <div class="space-y-3">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+              <div class="flex justify-between">
+                <span class="text-gray-600">Log Level:</span>
+                <span class="font-medium">${data.logging?.level_name || 'Unknown'} (${data.logging?.level || 'N/A'})</span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-gray-600">Serial:</span>
+                <span class="font-medium ${data.logging?.serial_enabled ? 'text-green-600' : 'text-red-600'}">
+                  ${data.logging?.serial_enabled ? '✅ Enabled' : '❌ Disabled'}
+                </span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-gray-600">File Logging:</span>
+                <span class="font-medium ${data.logging?.file_enabled ? 'text-green-600' : 'text-red-600'}">
+                  ${data.logging?.file_enabled ? '✅ Enabled' : '❌ Disabled'}
+                </span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-gray-600">MQTT Logging:</span>
+                <span class="font-medium ${data.logging?.mqtt_enabled ? 'text-green-600' : 'text-red-600'}">
+                  ${data.logging?.mqtt_enabled ? '✅ Enabled' : '❌ Disabled'}
+                </span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-gray-600">BetterStack:</span>
+                <span class="font-medium ${data.logging?.betterstack_enabled ? 'text-green-600' : 'text-red-600'}">
+                  ${data.logging?.betterstack_enabled ? '✅ Enabled' : '❌ Disabled'}
+                </span>
+              </div>
+            </div>`;
+
+      if (data.logging?.file_enabled && data.logging?.file_name) {
+        content += `
+            <div class="mt-3 p-2 bg-yellow-100 rounded text-xs">
+              <div class="flex justify-between">
+                <span class="text-gray-600">Log File:</span>
+                <span class="font-mono">${data.logging.file_name}</span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-gray-600">Max Size:</span>
+                <span class="font-medium">${Math.round(data.logging.max_file_size / 1024)}KB</span>
+              </div>
+            </div>`;
+      }
+
+      if (data.logging?.mqtt_enabled && data.logging?.mqtt_topic) {
+        content += `
+            <div class="mt-3 p-2 bg-yellow-100 rounded text-xs">
+              <div class="flex justify-between">
+                <span class="text-gray-600">MQTT Topic:</span>
+                <span class="font-mono">${data.logging.mqtt_topic}</span>
+              </div>
+            </div>`;
+      }
+
+      content += `
+          </div>
+        </div>`;
       
-      alert(status);
+      document.getElementById('diagnostics-content').innerHTML = content;
     })
     .catch(error => {
       console.error('Error fetching status:', error);
-      alert('Failed to fetch system diagnostics');
+      document.getElementById('diagnostics-content').innerHTML = `
+        <div class="bg-red-50 border border-red-200 rounded-lg p-4 text-center">
+          <span class="text-red-600 font-medium">Failed to fetch system diagnostics</span>
+          <p class="text-red-500 text-sm mt-2">${error.message}</p>
+        </div>`;
     });
+}
+
+function closeDiagnostics() {
+  const overlay = document.getElementById('diagnostics-overlay');
+  overlay.classList.add('opacity-0');
+  overlay.querySelector('.transform').classList.add('scale-95');
+  setTimeout(() => {
+    overlay.classList.add('hidden');
+  }, 300);
+}
+
+// Helper function to calculate next Unbidden Ink message time
+function calculateNextMessage(unbiddenInkData) {
+  if (!unbiddenInkData.enabled) return 'N/A';
+  
+  const now = new Date();
+  const currentHour = now.getHours();
+  
+  // If outside active hours
+  if (currentHour < unbiddenInkData.start_hour || currentHour >= unbiddenInkData.end_hour) {
+    const tomorrow = new Date(now);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    tomorrow.setHours(unbiddenInkData.start_hour, 0, 0, 0);
+    return `Tomorrow at ${unbiddenInkData.start_hour}:00`;
+  }
+  
+  // For active hours, show a simpler status
+  if (unbiddenInkData.next_message_time && unbiddenInkData.next_message_time > 0) {
+    return 'Scheduled (within frequency window)';
+  }
+  
+  return 'Ready to send';
 }
 
 // Keyboard shortcut handling

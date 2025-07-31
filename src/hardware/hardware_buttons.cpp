@@ -1,6 +1,7 @@
 #include "hardware_buttons.h"
-#include "web_server.h"
+#include "../web/web_server.h"
 #include "printer.h"
+#include "../content/content_handlers.h"
 #include <ArduinoJson.h>
 #include <esp_task_wdt.h>
 
