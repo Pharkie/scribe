@@ -1,29 +1,41 @@
 <!DOCTYPE html>
-<html lang="en" class="bg-gray-50 text-gray-900">
+<html lang="en" class="bg-gray-50 text-gray-900 dark:bg-gray-900 dark:text-gray-100">
 
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Scribe</title>
     <link rel="icon" type="image/x-icon" href="/favicon.ico">
-    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="/css/tailwind.css">
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <link rel="stylesheet" href="/css/styles.css">
 </head>
 
-<body class="flex flex-col min-h-screen justify-between py-8 px-4 font-sans">
-    <!-- Header with title -->
-    <header class="w-full max-w-4xl mx-auto flex justify-center items-center mb-8">
-        <h1 class="text-3xl font-bold text-gray-800">Scribe</h1>
+<body
+    class="flex flex-col min-h-screen justify-between py-8 px-4 font-sans bg-gray-50 dark:bg-gray-900 transition-colors duration-200">
+    <!-- Header with title and dark mode toggle -->
+    <header class="w-full max-w-4xl mx-auto flex justify-between items-center mb-8">
+        <h1 class="text-3xl font-bold text-gray-800 dark:text-gray-100">Scribe</h1>
+
+        <!-- Theme Selector -->
+        <div class="flex items-center space-x-3">
+            <span class="text-sm text-gray-600 dark:text-gray-400 font-medium">Theme:</span>
+            <select id="theme-selector"
+                class="bg-gray-100 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-300 text-sm rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-600">
+                <option value="system">🌐 System</option>
+                <option value="light">☀️ Light</option>
+                <option value="dark">🌙 Dark</option>
+            </select>
+        </div>
     </header>
 
     <main class="w-full max-w-4xl mx-auto flex-1 space-y-6">
         <!-- Main Printer Interface -->
-        <div class="bg-white shadow-2xl rounded-3xl p-8 border border-gray-100">
+        <div class="bg-white dark:bg-gray-800 shadow-2xl rounded-3xl p-8 border border-gray-100 dark:border-gray-700">
             <form id="printer-form" onsubmit="handleSubmit(event)" class="space-y-6">
                 <!-- Printer Selection -->
                 <div class="space-y-3">
-                    <label class="block text-sm font-medium text-gray-700">Print to:</label>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Print to:</label>
                     <div id="printer-selection" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                         <!-- Printer options will be populated dynamically -->
                     </div>
@@ -32,17 +44,18 @@
 
                 <!-- Message Input -->
                 <div class="space-y-2">
-                    <label for="message-textarea" class="block text-sm font-medium text-gray-700">Message:</label>
+                    <label for="message-textarea"
+                        class="block text-sm font-medium text-gray-700 dark:text-gray-300">Message:</label>
                     <textarea name="message" id="message-textarea" oninput="handleInput(this)"
                         onkeydown="handleTextareaKeydown(event)" placeholder="Type your message…"
-                        class="w-full p-4 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent resize-none text-gray-800 placeholder-gray-400"
+                        class="w-full p-4 rounded-xl border border-gray-200 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent resize-none text-gray-800 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 bg-white dark:bg-gray-700"
                         rows="4" required></textarea>
-                    <div id="char-counter" class="text-sm text-gray-500 text-right"></div>
+                    <div id="char-counter" class="text-sm text-gray-500 dark:text-gray-400 text-right"></div>
                 </div>
 
                 <!-- Submit Button -->
                 <button type="submit" id="submit-button"
-                    class="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl font-medium transition-all duration-200 hover:scale-[1.02] hover:shadow-lg">
+                    class="w-full bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-600 text-white py-3 rounded-xl font-medium transition-all duration-200 hover:scale-[1.02] hover:shadow-lg">
                     🖨️ Scribe
                 </button>
             </form>
@@ -51,27 +64,27 @@
             <div class="space-y-4 mt-8">
                 <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
                     <button onclick="sendQuickAction('riddle')"
-                        class="flex flex-col items-center px-4 py-3 bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-200 rounded-xl transition-all duration-200 hover:scale-105 hover:shadow-md">
+                        class="flex flex-col items-center px-4 py-3 bg-amber-50 dark:bg-amber-900/20 hover:bg-amber-100 dark:hover:bg-amber-900/30 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-700 rounded-xl transition-all duration-200 hover:scale-105 hover:shadow-md">
                         <span class="text-2xl mb-1">🧩</span>
                         <span class="text-sm font-medium">Riddle</span>
                     </button>
                     <button onclick="sendQuickAction('joke')"
-                        class="flex flex-col items-center px-4 py-3 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 rounded-xl transition-all duration-200 hover:scale-105 hover:shadow-md">
+                        class="flex flex-col items-center px-4 py-3 bg-emerald-50 dark:bg-emerald-900/20 hover:bg-emerald-100 dark:hover:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-700 rounded-xl transition-all duration-200 hover:scale-105 hover:shadow-md">
                         <span class="text-2xl mb-1">😄</span>
                         <span class="text-sm font-medium">Joke</span>
                     </button>
                     <button onclick="sendQuickAction('quote')"
-                        class="flex flex-col items-center px-4 py-3 bg-purple-50 hover:bg-purple-100 text-purple-700 border border-purple-200 rounded-xl transition-all duration-200 hover:scale-105 hover:shadow-md">
+                        class="flex flex-col items-center px-4 py-3 bg-purple-50 dark:bg-purple-900/20 hover:bg-purple-100 dark:hover:bg-purple-900/30 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-700 rounded-xl transition-all duration-200 hover:scale-105 hover:shadow-md">
                         <span class="text-2xl mb-1">💭</span>
                         <span class="text-sm font-medium">Quote</span>
                     </button>
                     <button onclick="sendQuickAction('quiz')"
-                        class="flex flex-col items-center px-4 py-3 bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-200 rounded-xl transition-all duration-200 hover:scale-105 hover:shadow-md">
+                        class="flex flex-col items-center px-4 py-3 bg-amber-50 dark:bg-amber-900/20 hover:bg-amber-100 dark:hover:bg-amber-900/30 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-700 rounded-xl transition-all duration-200 hover:scale-105 hover:shadow-md">
                         <span class="text-2xl mb-1">🧠</span>
                         <span class="text-sm font-medium">Quiz</span>
                     </button>
                     <button onclick="sendQuickAction('print-test')"
-                        class="flex flex-col items-center px-4 py-3 bg-gray-50 hover:bg-gray-100 text-gray-700 border border-gray-200 rounded-xl transition-all duration-200 hover:scale-105 hover:shadow-md">
+                        class="flex flex-col items-center px-4 py-3 bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-600 rounded-xl transition-all duration-200 hover:scale-105 hover:shadow-md">
                         <span class="text-2xl mb-1">🧪</span>
                         <span class="text-sm font-medium">Test</span>
                     </button>
@@ -80,26 +93,27 @@
 
             <!-- Success Messages -->
             <div id="success-message"
-                class="text-green-600 font-semibold text-lg mt-6 text-center min-h-[2rem] flex items-center justify-center opacity-0">
+                class="text-green-600 dark:text-green-400 font-semibold text-lg mt-6 text-center min-h-[2rem] flex items-center justify-center opacity-0">
                 ✅ Action completed successfully!
             </div>
         </div>
 
         <!-- Unbidden Ink Section (Collapsible) -->
-        <div class="bg-white shadow-xl rounded-3xl border border-gray-100 overflow-hidden">
+        <div
+            class="bg-white dark:bg-gray-800 shadow-xl rounded-3xl border border-gray-100 dark:border-gray-700 overflow-hidden">
             <!-- Header with Enable Toggle -->
             <div class="p-6 flex items-center justify-between">
                 <div class="flex items-center space-x-3">
                     <span class="text-2xl">🪄</span>
                     <div class="flex items-center space-x-4">
-                        <h3 class="text-lg font-semibold text-gray-800">Unbidden Ink</h3>
+                        <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-100">Unbidden Ink</h3>
                         <div class="flex items-center space-x-2">
-                            <label class="text-sm font-medium text-gray-700">Enable</label>
+                            <label class="text-sm font-medium text-gray-700 dark:text-gray-300">Enable</label>
                             <label class="relative inline-flex items-center cursor-pointer">
                                 <input type="checkbox" id="unbidden-ink-enabled" name="enabled" class="sr-only peer"
                                     onchange="toggleUnbiddenInkSettings()">
                                 <div
-                                    class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-purple-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600">
+                                    class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-purple-300 dark:peer-focus:ring-purple-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-purple-600">
                                 </div>
                             </label>
                         </div>
@@ -107,8 +121,8 @@
                 </div>
                 <!-- Settings Collapsible Button -->
                 <button id="unbidden-ink-settings-button" onclick="toggleUnbiddenInkSection()"
-                    class="flex items-center space-x-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-gray-100">
-                    <span class="text-sm font-medium text-gray-700">Settings</span>
+                    class="flex items-center space-x-2 px-4 py-2 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-gray-100 dark:disabled:hover:bg-gray-700">
+                    <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Settings</span>
                     <svg id="unbidden-ink-arrow"
                         class="w-4 h-4 text-gray-400 transform transition-transform duration-200" fill="none"
                         stroke="currentColor" viewBox="0 0 24 24">
@@ -127,7 +141,7 @@
                                 Frequency: <span id="frequency-display" class="text-purple-600 font-semibold">Every 60
                                     minutes</span>
                             </label>
-                            <input type="range" id="frequency" name="frequency" min="15" max="480" value="60" step="15"
+                            <input type="range" id="frequency" name="frequency" min="0" max="9" value="2" step="1"
                                 class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider"
                                 oninput="updateFrequencyDisplay()">
                             <div class="flex justify-between text-xs text-gray-500">
@@ -206,28 +220,29 @@
         </div>
     </main>
 
-    <footer class="text-sm text-gray-400 mt-8 text-center space-y-3">
+    <footer class="text-sm text-gray-400 dark:text-gray-500 mt-8 text-center space-y-3">
         <a href="/diagnostics.html"
-            class="inline-block px-4 py-2 bg-slate-500 hover:bg-slate-600 text-white text-sm rounded-lg font-medium transition-all duration-200 hover:scale-105 hover:shadow-lg">
+            class="inline-block px-4 py-2 bg-slate-500 hover:bg-slate-600 dark:bg-slate-600 dark:hover:bg-slate-500 text-white text-sm rounded-lg font-medium transition-all duration-200 hover:scale-105 hover:shadow-lg">
             📊 Diagnostics
         </a>
         <div>
             Designed with love by <a href="https://urbancircles.club" target="_blank"
-                class="text-gray-500 hover:text-gray-700 transition-colors duration-200 underline decoration-gray-300 hover:decoration-gray-500 underline-offset-2">Peter
+                class="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors duration-200 underline decoration-gray-300 dark:decoration-gray-600 hover:decoration-gray-500 dark:hover:decoration-gray-400 underline-offset-2">Peter
                 / Urban Circles</a>
         </div>
         <div>
             Extended with joy by <a href="https://github.com/Pharkie/scribe" target="_blank"
-                class="text-gray-500 hover:text-gray-700 transition-colors duration-200 underline decoration-gray-300 hover:decoration-gray-500 underline-offset-2">Pharkie</a>
+                class="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors duration-200 underline decoration-gray-300 dark:decoration-gray-600 hover:decoration-gray-500 dark:hover:decoration-gray-400 underline-offset-2">Pharkie</a>
         </div>
         <div>
             Quotes from <a href="https://zenquotes.io/" target="_blank"
-                class="text-gray-500 hover:text-gray-700 transition-colors duration-200 underline decoration-gray-300 hover:decoration-gray-500 underline-offset-2">ZenQuotes
+                class="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors duration-200 underline decoration-gray-300 dark:decoration-gray-600 hover:decoration-gray-500 dark:hover:decoration-gray-400 underline-offset-2">ZenQuotes
                 API</a>
         </div>
     </footer>
 
     <!-- Load modular JavaScript files in dependency order -->
+    <script src="/js/darkmode.js"></script>
     <script src="/js/config.js"></script>
     <script src="/js/messaging.js"></script>
     <script src="/js/utils.js"></script>

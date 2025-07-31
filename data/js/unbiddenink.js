@@ -24,10 +24,9 @@ async function loadSettings(showToast = false) {
     document.getElementById('custom-prompt').value = data.prompt || '';
     document.getElementById('start-hour').value = data.startHour || 9;
     document.getElementById('end-hour').value = data.endHour || 17;
-    document.getElementById('frequency').value = data.frequencyMinutes || 60;
     
-    // Update frequency display
-    updateFrequencyDisplay();
+    // Set frequency using the new mapping function
+    setFrequencyFromValue(data.frequencyMinutes || 60);
     
     // Update character count
     updatePromptCharCount();
@@ -64,7 +63,7 @@ async function saveSettings(event) {
     prompt: document.getElementById('custom-prompt').value || (enabled ? 'Write a short, interesting message.' : ''),
     startHour: parseInt(document.getElementById('start-hour').value) || 9,
     endHour: parseInt(document.getElementById('end-hour').value) || 17,
-    frequencyMinutes: parseInt(document.getElementById('frequency').value) || 60
+    frequencyMinutes: getFrequencyValue() // Use the new mapping function
   };
   
   // Validate settings before sending
@@ -140,20 +139,60 @@ function toggleUnbiddenInkSettings() {
  * Update the frequency display text
  */
 function updateFrequencyDisplay() {
-  const frequency = document.getElementById('frequency').value;
+  const frequencySlider = document.getElementById('frequency');
   const display = document.getElementById('frequency-display');
-  if (display) {
-    if (frequency >= 60) {
-      const hours = Math.floor(frequency / 60);
-      const minutes = frequency % 60;
-      if (minutes === 0) {
-        display.textContent = `Every ${hours} hour${hours > 1 ? 's' : ''}`;
-      } else {
-        display.textContent = `Every ${hours}h ${minutes}m`;
-      }
-    } else {
-      display.textContent = `Every ${frequency} minutes`;
+  if (display && frequencySlider) {
+    // Map slider positions to specific frequency values
+    const frequencyMap = [
+      { value: 15, text: "Every 15 minutes" },    // position 0
+      { value: 30, text: "Every 30 minutes" },    // position 1
+      { value: 60, text: "Every 1 hour" },        // position 2
+      { value: 120, text: "Every 2 hours" },      // position 3
+      { value: 180, text: "Every 3 hours" },      // position 4
+      { value: 240, text: "Every 4 hours" },      // position 5
+      { value: 300, text: "Every 5 hours" },      // position 6
+      { value: 360, text: "Every 6 hours" },      // position 7
+      { value: 420, text: "Every 7 hours" },      // position 8
+      { value: 480, text: "Every 8 hours" }       // position 9
+    ];
+    
+    const position = parseInt(frequencySlider.value);
+    if (position >= 0 && position < frequencyMap.length) {
+      display.textContent = frequencyMap[position].text;
+      // Store the actual frequency value as a data attribute for saving
+      frequencySlider.setAttribute('data-frequency-minutes', frequencyMap[position].value);
     }
+  }
+}
+
+/**
+ * Get the actual frequency value in minutes from the slider
+ */
+function getFrequencyValue() {
+  const frequencySlider = document.getElementById('frequency');
+  if (frequencySlider) {
+    const frequencyMap = [15, 30, 60, 120, 180, 240, 300, 360, 420, 480];
+    const position = parseInt(frequencySlider.value);
+    return frequencyMap[position] || 60; // default to 1 hour
+  }
+  return 60;
+}
+
+/**
+ * Set the slider position based on frequency value in minutes
+ */
+function setFrequencyFromValue(frequencyMinutes) {
+  const frequencySlider = document.getElementById('frequency');
+  if (frequencySlider) {
+    const frequencyMap = [15, 30, 60, 120, 180, 240, 300, 360, 420, 480];
+    const position = frequencyMap.indexOf(frequencyMinutes);
+    if (position !== -1) {
+      frequencySlider.value = position;
+    } else {
+      // Default to 1 hour if value not found
+      frequencySlider.value = 2;
+    }
+    updateFrequencyDisplay();
   }
 }
 

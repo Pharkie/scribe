@@ -1,0 +1,16 @@
+{
+    "name": "scribe-css-build",
+    "version": "1.0.0",
+    "description": "Build tools for Scribe ESP32-C3 Thermal Printer CSS",
+    "private": true,
+    "scripts": {
+        "build-css": "source ~/.nvm/nvm.sh && nvm use 24.4.1 && timeout 30s npx @tailwindcss/cli --input ./src/input.css --output ./data/css/tailwind.css --minify",
+        "build-css-prod": "source ~/.nvm/nvm.sh && nvm use 24.4.1 && timeout 30s npx @tailwindcss/cli --input ./src/input.css --output ./data/css/tailwind.css --minify",
+        "build-css-dev": "source ~/.nvm/nvm.sh && nvm use 24.4.1 && npx @tailwindcss/cli --input ./src/input.css --output ./data/css/tailwind.css --watch",
+        "watch-css": "source ~/.nvm/nvm.sh && nvm use 24.4.1 && npx @tailwindcss/cli --input ./src/input.css --output ./data/css/tailwind.css --watch"
+    },
+    "dependencies": {
+        "@tailwindcss/cli": "^4.1.11",
+        "tailwindcss": "^4.1.11"
+    }
+}

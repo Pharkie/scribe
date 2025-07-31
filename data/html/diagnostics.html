@@ -1,12 +1,12 @@
 <!DOCTYPE html>
-<html lang="en" class="bg-gray-50 text-gray-900">
+<html lang="en" class="bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
 
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Scribe - Diagnostics</title>
     <link rel="icon" type="image/x-icon" href="/favicon.ico">
-    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="/css/tailwind.css">
     <link rel="stylesheet" href="/css/styles.css">
 </head>
 
@@ -14,36 +14,46 @@
     <!-- Header with title and navigation -->
     <header class="w-full max-w-6xl mx-auto flex justify-between items-center mb-8">
         <button onclick="goBack()"
-            class="flex items-center space-x-2 px-4 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 border border-gray-200 rounded-full transition-all duration-200 hover:scale-105 hover:shadow-md">
+            class="flex items-center space-x-2 px-4 py-3 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-600 rounded-full transition-all duration-200 hover:scale-105 hover:shadow-md">
             <span class="text-lg">←</span>
             <span class="text-sm font-medium">Back to Scribe</span>
         </button>
-        <h1 class="text-3xl font-bold text-gray-800">📊 Diagnostics</h1>
-        <div class="flex-1"></div>
+        <h1 class="text-3xl font-bold text-gray-800 dark:text-gray-100">📊 Diagnostics</h1>
+
+        <!-- Theme Selector -->
+        <div class="flex items-center space-x-3">
+            <span class="text-sm text-gray-600 dark:text-gray-400 font-medium">Theme:</span>
+            <select id="theme-selector"
+                class="bg-gray-100 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-300 text-sm rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-600">
+                <option value="system">🌐 System</option>
+                <option value="light">☀️ Light</option>
+                <option value="dark">🌙 Dark</option>
+            </select>
+        </div>
     </header>
 
     <main class="w-full max-w-6xl mx-auto flex-1">
         <!-- Diagnostics Content -->
-        <div class="bg-white shadow-2xl rounded-3xl p-8 border border-gray-100">
+        <div class="bg-white dark:bg-gray-800 shadow-2xl rounded-3xl p-8 border border-gray-100 dark:border-gray-700">
             <div id="diagnostics-content" class="space-y-6">
                 <!-- Loading indicator -->
                 <div class="flex items-center justify-center py-8">
                     <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-                    <span class="ml-3 text-gray-600">Loading diagnostics...</span>
+                    <span class="ml-3 text-gray-600 dark:text-gray-400">Loading diagnostics...</span>
                 </div>
             </div>
         </div>
     </main>
 
-    <footer class="text-sm text-gray-400 mt-8 text-center space-y-3">
+    <footer class="text-sm text-gray-400 dark:text-gray-500 mt-8 text-center space-y-3">
         <div>
             Designed with love by <a href="https://urbancircles.club" target="_blank"
-                class="text-gray-500 hover:text-gray-700 transition-colors duration-200 underline decoration-gray-300 hover:decoration-gray-500 underline-offset-2">Peter
+                class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors duration-200 underline decoration-gray-300 dark:decoration-gray-600 hover:decoration-gray-500 dark:hover:decoration-gray-400 underline-offset-2">Peter
                 / Urban Circles</a>
         </div>
         <div>
             Extended with joy by <a href="https://github.com/Pharkie/scribe" target="_blank"
-                class="text-gray-500 hover:text-gray-700 transition-colors duration-200 underline decoration-gray-300 hover:decoration-gray-500 underline-offset-2">Pharkie</a>
+                class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors duration-200 underline decoration-gray-300 dark:decoration-gray-600 hover:decoration-gray-500 dark:hover:decoration-gray-400 underline-offset-2">Pharkie</a>
         </div>
     </footer>
 
@@ -51,6 +61,7 @@
     <script src="/js/config.js"></script>
     <script src="/js/utils.js"></script>
     <script src="/js/diagnostics.js"></script>
+    <script src="/js/darkmode.js"></script>
     <script>
         function goBack() {
             window.location.href = '/';

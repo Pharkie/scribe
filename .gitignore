@@ -24,3 +24,6 @@ Thumbs.db
 *.bak
 *.tmp
 
+# Add build artifacts to gitignore
+node_modules/
+package-lock.json
