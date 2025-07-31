@@ -75,7 +75,11 @@ void handleContentGeneration(ContentType contentType)
     // Check rate limiting (applies to all content types)
     if (isRateLimited())
     {
-        server.send(429, "application/json", "{\"error\":\"Rate limit exceeded. Please wait before making another request.\"}");
+        DynamicJsonDocument errorResponse(512);
+        errorResponse["error"] = getRateLimitReason();
+        String errorString;
+        serializeJson(errorResponse, errorString);
+        server.send(429, "application/json", errorString);
         return;
     }
 
@@ -181,7 +185,7 @@ void handleMessage()
     {
         DynamicJsonDocument errorResponse(256);
         errorResponse["success"] = false;
-        errorResponse["error"] = "Rate limit exceeded. Please wait before making another request.";
+        errorResponse["error"] = getRateLimitReason();
 
         String errorString;
         serializeJson(errorResponse, errorString);

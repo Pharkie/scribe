@@ -24,13 +24,20 @@ static int localMaxMessageChars = maxCharacters;
 // RATE LIMITING
 // ========================================
 
+// Static variable to store the last rate limit reason
+static String lastRateLimitReason = "";
+
 bool isRateLimited()
 {
     unsigned long currentTime = millis();
 
     // Basic timing rate limit (prevent rapid-fire requests)
-    if (currentTime - lastRequestTime < minRequestInterval)
+    unsigned long timeSinceLastRequest = currentTime - lastRequestTime;
+    if (timeSinceLastRequest < minRequestInterval)
     {
+        lastRateLimitReason = "Too many requests too quickly. Please wait " + String(minRequestInterval) + "ms between requests.";
+        LOG_WARNING("WEB", "Rate limit triggered: only %lums since last request (min: %lums)",
+                    timeSinceLastRequest, minRequestInterval);
         return true;
     }
 
@@ -45,12 +52,20 @@ bool isRateLimited()
     requestCount++;
     if (requestCount > maxRequestsPerMinute)
     {
+        lastRateLimitReason = "Too many requests per minute. Maximum " + String(maxRequestsPerMinute) + " requests allowed per minute.";
         LOG_WARNING("WEB", "Rate limit exceeded: %lu requests in current window", requestCount);
         return true;
     }
 
     lastRequestTime = currentTime;
+    LOG_VERBOSE("WEB", "Rate limit OK: %lums since last, request #%lu in window",
+                timeSinceLastRequest, requestCount);
     return false;
+}
+
+String getRateLimitReason()
+{
+    return lastRateLimitReason;
 }
 
 // ========================================

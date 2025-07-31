@@ -37,6 +37,12 @@ struct ValidationResult
  */
 bool isRateLimited();
 
+/**
+ * @brief Get the reason for the last rate limit (if any)
+ * @return String describing why the request was rate limited
+ */
+String getRateLimitReason();
+
 // ========================================
 // VALIDATION FUNCTIONS
 // ========================================

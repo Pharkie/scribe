@@ -246,7 +246,7 @@ void handleMQTTSend()
     {
         DynamicJsonDocument errorResponse(256);
         errorResponse["success"] = false;
-        errorResponse["error"] = "Rate limit exceeded. Please wait before sending another request.";
+        errorResponse["error"] = getRateLimitReason();
 
         String errorString;
         serializeJson(errorResponse, errorString);
@@ -333,7 +333,7 @@ void handleUnbiddenInkSettingsGet()
     {
         DynamicJsonDocument errorResponse(256);
         errorResponse["success"] = false;
-        errorResponse["error"] = "Rate limit exceeded. Please wait before making another request.";
+        errorResponse["error"] = getRateLimitReason();
 
         String errorString;
         serializeJson(errorResponse, errorString);
@@ -379,7 +379,7 @@ void handleUnbiddenInkSettingsPost()
     {
         DynamicJsonDocument errorResponse(256);
         errorResponse["success"] = false;
-        errorResponse["error"] = "Rate limit exceeded. Please wait before making another request.";
+        errorResponse["error"] = getRateLimitReason();
 
         String errorString;
         serializeJson(errorResponse, errorString);

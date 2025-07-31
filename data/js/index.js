@@ -214,13 +214,20 @@ function updateCharacterCount(textareaId, counterId, defaultMaxLength = 1000) {
     const maxLength = defaultMaxLength; // Always use the provided limit, not HTML maxlength
     counter.textContent = `${length}/${maxLength} characters`;
     
-    // Update styling based on character count
-    if (length > maxLength) {
-      counter.className = 'text-xs text-red-600 dark:text-red-400 text-right';
-    } else if (length >= maxLength * 0.8) {
-      counter.className = 'text-xs text-yellow-600 dark:text-yellow-400 text-right';
-    } else {
-      counter.className = 'text-xs text-gray-500 dark:text-gray-400 text-right';
+    // Get the parent div that contains the styling
+    const parentDiv = counter.parentElement;
+    if (parentDiv) {
+      // Remove existing color classes from parent
+      parentDiv.classList.remove('text-gray-500', 'text-yellow-700', 'text-red-600', 'dark:text-gray-400', 'dark:text-yellow-300', 'dark:text-red-400');
+      
+      // Update styling based on character count
+      if (length > maxLength) {
+        parentDiv.classList.add('text-red-600', 'dark:text-red-400');
+      } else if (length >= maxLength * 0.8) {
+        parentDiv.classList.add('text-yellow-700', 'dark:text-yellow-300');
+      } else {
+        parentDiv.classList.add('text-gray-500', 'dark:text-gray-400');
+      }
     }
   }
 }

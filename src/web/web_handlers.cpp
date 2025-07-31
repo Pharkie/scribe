@@ -106,7 +106,7 @@ void handleNotFound()
     // Rate limit 404 requests to prevent abuse
     if (isRateLimited())
     {
-        server.send(429, "text/plain", "Rate limit exceeded");
+        server.send(429, "text/plain", getRateLimitReason());
         return;
     }
 
