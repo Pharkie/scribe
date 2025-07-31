@@ -221,12 +221,15 @@ function updatePromptCharCount() {
   const prompt = document.getElementById('custom-prompt').value;
   const counter = document.getElementById('prompt-char-count');
   if (counter) {
-    const remaining = 500 - prompt.length;
-    counter.textContent = `${remaining} characters remaining`;
+    const current = prompt.length;
+    const remaining = 500 - current;
+    counter.textContent = `${current}/500 characters`;
     if (remaining < 50) {
-      counter.classList.add('text-red-500');
+      counter.classList.add('text-red-500', 'dark:text-red-400');
+      counter.classList.remove('text-gray-500', 'dark:text-gray-400');
     } else {
-      counter.classList.remove('text-red-500');
+      counter.classList.remove('text-red-500', 'dark:text-red-400');
+      counter.classList.add('text-gray-500', 'dark:text-gray-400');
     }
   }
 }

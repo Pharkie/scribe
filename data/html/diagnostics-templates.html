@@ -127,13 +127,13 @@
 
     <!-- Unbidden Ink Section Template -->
     <template id="unbidden-ink-section-template">
-        <div class="bg-purple-50 border border-purple-200 rounded-lg p-4">
+        <div class="bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-700 rounded-lg p-4">
             <div class="flex items-center justify-between mb-3">
-                <h4 class="text-lg font-semibold text-purple-800 flex items-center">
+                <h4 class="text-lg font-semibold text-purple-800 dark:text-purple-300 flex items-center">
                     <span class="mr-2">🪄</span>Unbidden Ink
                 </h4>
                 <button onclick="copySection('unbidden-ink', this)"
-                    class="px-2 py-1 text-xs bg-purple-100 hover:bg-purple-200 text-purple-700 rounded transition-colors">
+                    class="px-2 py-1 text-xs bg-purple-100 dark:bg-purple-900/30 hover:bg-purple-200 dark:hover:bg-purple-900/40 text-purple-700 dark:text-purple-300 rounded transition-colors">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
                         <path
                             d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z" />
@@ -142,40 +142,42 @@
             </div>
             <div id="unbidden-ink-content" class="space-y-2">
                 <div class="flex justify-between">
-                    <span class="text-gray-600">Status:</span>
-                    <span class="font-medium" data-field="unbidden-ink-status">-</span>
+                    <span class="text-gray-600 dark:text-gray-400">Status:</span>
+                    <span class="font-medium text-gray-900 dark:text-gray-100" data-field="unbidden-ink-status">-</span>
                 </div>
                 <div class="flex justify-between">
-                    <span class="text-gray-600">Working Hours:</span>
-                    <span class="font-medium" data-field="working-hours">-</span>
+                    <span class="text-gray-600 dark:text-gray-400">Working Hours:</span>
+                    <span class="font-medium text-gray-900 dark:text-gray-100" data-field="working-hours">-</span>
                 </div>
                 <div class="flex justify-between">
-                    <span class="text-gray-600">Frequency:</span>
-                    <span class="font-medium" data-field="frequency">-</span>
+                    <span class="text-gray-600 dark:text-gray-400">Frequency:</span>
+                    <span class="font-medium text-gray-900 dark:text-gray-100" data-field="frequency">-</span>
                 </div>
                 <div class="flex justify-between">
-                    <span class="text-gray-600">Next Scheduled:</span>
-                    <span class="font-medium" data-field="next-scheduled">-</span>
+                    <span class="text-gray-600 dark:text-gray-400">Next Scheduled:</span>
+                    <span class="font-medium text-gray-900 dark:text-gray-100" data-field="next-scheduled">-</span>
                 </div>
 
                 <!-- Settings File Content (nested within Unbidden Ink) -->
-                <div class="mt-4 pt-3 border-t border-purple-200">
+                <div class="mt-4 pt-3 border-t border-purple-200 dark:border-purple-700">
                     <div class="flex items-center justify-between mb-2">
-                        <h5 class="text-sm font-medium text-purple-700">📄 Settings File</h5>
+                        <h5 class="text-sm font-medium text-purple-700 dark:text-purple-300">📄 Settings File</h5>
                         <button onclick="copyFileContents(this)"
-                            class="px-2 py-1 text-xs bg-purple-100 hover:bg-purple-200 text-purple-700 rounded transition-colors">
+                            class="px-2 py-1 text-xs bg-purple-100 dark:bg-purple-900/30 hover:bg-purple-200 dark:hover:bg-purple-900/40 text-purple-700 dark:text-purple-300 rounded transition-colors">
                             <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
                                 <path
                                     d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z" />
                             </svg>
                         </button>
                     </div>
-                    <div class="bg-gray-800 text-green-400 p-2 rounded text-xs max-h-32 overflow-y-auto">
+                    <div
+                        class="bg-gray-800 dark:bg-gray-900 text-green-400 dark:text-green-300 p-2 rounded text-xs max-h-32 overflow-y-auto">
                         <pre id="unbidden-ink-file-contents" class="whitespace-pre-wrap break-words">Loading...</pre>
                     </div>
                     <div class="flex justify-between text-xs mt-2">
-                        <span class="text-gray-600">File Size:</span>
-                        <span class="font-medium" data-field="settings-file-size">-</span>
+                        <span class="text-gray-600 dark:text-gray-400">File Size:</span>
+                        <span class="font-medium text-gray-900 dark:text-gray-100"
+                            data-field="settings-file-size">-</span>
                     </div>
                 </div>
             </div>
@@ -306,6 +308,15 @@
                     </div>
                 </div>
             </div>
+        </div>
+    </template>
+
+    <!-- Individual Button Entry Template -->
+    <template id="button-entry-template">
+        <div class="bg-blue-100 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-700 p-2 rounded text-xs">
+            <div class="font-medium text-blue-800 dark:text-blue-300" data-field="button-title">Button X (GPIO Y)</div>
+            <div class="text-gray-600 dark:text-gray-400">Short: <span data-field="short-endpoint">None</span></div>
+            <div class="text-gray-600 dark:text-gray-400">Long: <span data-field="long-endpoint">None</span></div>
         </div>
     </template>
 

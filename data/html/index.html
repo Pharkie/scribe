@@ -14,10 +14,17 @@
     class="flex flex-col min-h-screen justify-between py-8 px-4 font-sans bg-gray-50 dark:bg-gray-900 transition-colors duration-200">
     <!-- Header with title and dark mode toggle -->
     <header class="w-full max-w-4xl mx-auto flex justify-between items-center mb-8">
-        <h1 class="text-3xl font-bold text-gray-800 dark:text-gray-100">Scribe</h1>
+        <!-- Left spacer -->
+        <div class="flex-1"></div>
+
+        <!-- Centered title with printer icon -->
+        <h1 class="text-3xl font-bold text-gray-800 dark:text-gray-100 flex items-center space-x-2">
+            <span class="text-4xl">🖨️</span>
+            <span>Scribe</span>
+        </h1>
 
         <!-- Theme Selector -->
-        <div class="flex items-center space-x-3">
+        <div class="flex-1 flex items-center justify-end space-x-3">
             <span class="text-sm text-gray-600 dark:text-gray-400 font-medium">Theme:</span>
             <select id="theme-selector"
                 class="bg-gray-100 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-300 text-sm rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-600">
@@ -49,7 +56,9 @@
                         onkeydown="handleTextareaKeydown(event)" placeholder="Type your message…"
                         class="w-full p-4 rounded-xl border border-gray-200 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent resize-none text-gray-800 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 bg-white dark:bg-gray-700"
                         rows="4" required></textarea>
-                    <div id="char-counter" class="text-sm text-gray-500 dark:text-gray-400 text-right"></div>
+                    <div class="text-xs text-gray-500 dark:text-gray-400 text-right">
+                        <span id="char-counter"></span>
+                    </div>
                 </div>
 
                 <!-- Submit Button -->
@@ -112,7 +121,7 @@
                                 <input type="checkbox" id="unbidden-ink-enabled" name="enabled" class="sr-only peer"
                                     onchange="toggleUnbiddenInkSettings()">
                                 <div
-                                    class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-purple-300 dark:peer-focus:ring-purple-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-purple-600">
+                                    class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-purple-300 dark:peer-focus:ring-purple-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white dark:after:bg-gray-200 after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-purple-600 dark:peer-checked:bg-purple-500">
                                 </div>
                             </label>
                         </div>
@@ -137,13 +146,14 @@
                         <!-- Frequency Slider -->
                         <div class="space-y-3">
                             <label for="frequency" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                Frequency: <span id="frequency-display" class="text-purple-600 font-semibold">Every 60
+                                Frequency: <span id="frequency-display"
+                                    class="text-purple-600 dark:text-purple-400 font-semibold">Every 60
                                     minutes</span>
                             </label>
                             <input type="range" id="frequency" name="frequency" min="0" max="9" value="2" step="1"
-                                class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider"
+                                class="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-lg appearance-none cursor-pointer slider"
                                 oninput="updateFrequencyDisplay()">
-                            <div class="flex justify-between text-xs text-gray-500">
+                            <div class="flex justify-between text-xs text-gray-500 dark:text-gray-400">
                                 <span>15 min</span>
                                 <span>8 hours</span>
                             </div>
@@ -201,7 +211,7 @@
                                 class="w-full p-3 rounded-lg border border-gray-200 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent resize-none text-gray-800 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 bg-white dark:bg-gray-700"
                                 rows="3" oninput="updatePromptCharCount()"></textarea>
                             <div class="text-xs text-gray-500 dark:text-gray-400 text-right">
-                                <span id="prompt-char-count">500 characters remaining</span>
+                                <span id="prompt-char-count">0/500 characters</span>
                             </div>
                         </div>
 

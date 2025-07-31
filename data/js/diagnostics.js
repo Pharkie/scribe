@@ -125,6 +125,7 @@ async function loadDiagnosticsTemplates() {
       'unbidden-ink-section-template',
       'microcontroller-section-template',
       'hardware-buttons-section-template',
+      'button-entry-template',
       'logging-section-template',
       'settings-file-section-template',
       'loading-template',
@@ -155,6 +156,7 @@ async function loadDiagnosticsTemplates() {
       unbiddenInk: foundTemplates['unbidden-ink-section-template'],
       microcontroller: foundTemplates['microcontroller-section-template'],
       hardwareButtons: foundTemplates['hardware-buttons-section-template'],
+      buttonEntry: foundTemplates['button-entry-template'],
       logging: foundTemplates['logging-section-template'],
       settingsFile: foundTemplates['settings-file-section-template'],
       loading: foundTemplates['loading-template'],
@@ -359,17 +361,16 @@ function displayDiagnostics(data) {
     if (buttonsList && hardwareData.buttons && hardwareData.buttons.length > 0) {
       buttonsList.innerHTML = '';
       hardwareData.buttons.forEach((button, index) => {
-        const buttonDiv = document.createElement('div');
-        buttonDiv.className = 'bg-blue-100 p-2 rounded text-xs';
-        buttonDiv.innerHTML = `
-          <div class="font-medium">Button ${index + 1} (GPIO ${button.gpio})</div>
-          <div class="text-gray-600">Short: ${button.short_endpoint || 'None'}</div>
-          <div class="text-gray-600">Long: ${button.long_endpoint || 'None'}</div>
-        `;
-        buttonsList.appendChild(buttonDiv);
+        const buttonEntry = diagnosticsTemplates.buttonEntry.cloneNode(true);
+        populateDataFields(buttonEntry, {
+          'button-title': `Button ${index + 1} (GPIO ${button.gpio})`,
+          'short-endpoint': button.short_endpoint || 'None',
+          'long-endpoint': button.long_endpoint || 'None'
+        });
+        buttonsList.appendChild(buttonEntry);
       });
     } else if (buttonsList) {
-      buttonsList.innerHTML = '<div class="text-gray-500 italic">No buttons configured</div>';
+      buttonsList.innerHTML = '<div class="text-gray-500 dark:text-gray-400 italic">No buttons configured</div>';
     }
     content.appendChild(hardwareSection);
     

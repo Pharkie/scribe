@@ -44,7 +44,8 @@ async function loadConfig() {
 function updateCharCounter() {
   const textarea = document.getElementById('message-textarea');
   const counter = document.getElementById('char-counter');
-  const remaining = MAX_CHARS - textarea.value.length;
-  counter.textContent = `${remaining} characters remaining`;
-  counter.className = remaining < 20 ? 'text-red-500 text-sm' : 'text-gray-500 text-sm';
+  const current = textarea.value.length;
+  const remaining = MAX_CHARS - current;
+  counter.textContent = `${current}/${MAX_CHARS} characters`;
+  counter.className = remaining < 20 ? 'text-red-500 dark:text-red-400 text-xs' : 'text-gray-500 dark:text-gray-400 text-xs';
 }
