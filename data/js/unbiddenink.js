@@ -93,9 +93,16 @@ async function saveSettings(event) {
       console.log('Server response:', message);
       showSuccessMessage('Unbidden Ink settings saved');
     } else {
-      const errorMessage = await response.text();
+      // Try to parse as JSON first, fall back to text if that fails
+      let errorMessage;
+      try {
+        const errorData = await response.json();
+        errorMessage = errorData.error || errorData.message || 'Failed to save Unbidden Ink settings';
+      } catch (parseError) {
+        errorMessage = await response.text() || 'Failed to save Unbidden Ink settings';
+      }
       console.error('Server error response:', errorMessage);
-      showErrorMessage(errorMessage || 'Failed to save Unbidden Ink settings');
+      showErrorMessage(errorMessage);
     }
   } catch (error) {
     console.error('Error saving Unbidden Ink settings:', error);

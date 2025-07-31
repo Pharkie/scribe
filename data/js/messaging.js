@@ -18,6 +18,12 @@ function handleSubmit(event) {
     return;
   }
   
+  // Check character limit
+  if (message.length > MAX_CHARS) {
+    alert(`Message is too long. Maximum ${MAX_CHARS} characters allowed, but your message is ${message.length} characters.`);
+    return;
+  }
+  
   sendMessage(printerTarget, message);
 }
 
@@ -80,7 +86,14 @@ function sendMessage(printerTarget, message, action = null) {
     if (response.ok) {
       return response.json();
     }
-    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    // For error responses, try to parse JSON to get better error messages
+    return response.json().then(errorData => {
+      const errorMessage = errorData.error || errorData.message || `HTTP ${response.status}: ${response.statusText}`;
+      throw new Error(errorMessage);
+    }).catch(parseError => {
+      // If JSON parsing fails, fall back to status text
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    });
   })
   .then(result => {
     // Show success message in a toast instead of full screen
@@ -177,7 +190,14 @@ function sendQuickAction(action) {
     if (response.ok) {
       return response.json();
     }
-    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    // For error responses, try to parse JSON to get better error messages
+    return response.json().then(errorData => {
+      const errorMessage = errorData.error || errorData.message || `HTTP ${response.status}: ${response.statusText}`;
+      throw new Error(errorMessage);
+    }).catch(parseError => {
+      // If JSON parsing fails, fall back to status text
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    });
   })
   .then(result => {
     if (result.success || result.status === 'success') {

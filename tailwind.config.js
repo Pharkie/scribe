@@ -6,4 +6,5 @@ export default {
     "./src/**/*.{js,ts,jsx,tsx}",
     "./**/*.html"
   ],
+  darkMode: 'media', // Automatic system preference detection
 }

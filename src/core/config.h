@@ -153,7 +153,7 @@ extern const int unbiddenInkFrequencyMinutes; // Send 1 message in every X minut
 // ========================================
 // APPLICATION SETTINGS
 // ========================================
-static const int maxCharacters = 1200;      // Max characters per message (single source of truth) - increased for print test
+static const int maxCharacters = 1000;      // Max characters per message (single source of truth)
 static const int maxPromptCharacters = 500; // Max characters for Unbidden Ink prompts
 static const int totalRiddles = 545;        // Total riddles in riddles.ndjson
 static const char *apiUserAgent = "Scribe Thermal Printer (https://github.com/Pharkie/scribe)";

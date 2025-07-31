@@ -7,24 +7,6 @@
     <title>Scribe - Diagnostics</title>
     <link rel="icon" type="image/x-icon" href="/favicon.ico">
     <link rel="stylesheet" href="/css/tailwind.css">
-
-    <!-- Prevent flash of light mode -->
-    <script>
-        (function () {
-            const savedTheme = localStorage.getItem('theme') || 'system';
-            const html = document.documentElement;
-
-            html.classList.remove('dark', 'light');
-
-            if (savedTheme === 'system') {
-                // Let system preference take control via CSS media queries
-            } else if (savedTheme === 'light') {
-                html.classList.add('light');
-            } else if (savedTheme === 'dark') {
-                html.classList.add('dark');
-            }
-        })();
-    </script>
 </head>
 
 <body
@@ -45,14 +27,8 @@
             <h1 class="text-3xl font-bold text-gray-800 dark:text-gray-100">📊 Diagnostics</h1>
         </div>
 
-        <!-- Right section with theme selector -->
-        <div class="flex-1 flex items-center">
-            <select id="theme-selector"
-                class="bg-gray-100 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-300 text-sm rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-600 w-auto flex-shrink-0 ml-auto">
-                <option value="system">🌐 System</option>
-                <option value="light">☀️ Light</option>
-                <option value="dark">🌙 Dark</option>
-            </select>
+        <!-- Right section (empty now - balanced layout) -->
+        <div class="flex-1">
         </div>
     </header>
 
@@ -434,7 +410,6 @@
     <script src="/js/config.js"></script>
     <script src="/js/shared.js"></script>
     <script src="/js/diagnostics.js"></script>
-    <script src="/js/darkmode.js"></script>
     <script>
         function goBack() {
             window.location.href = '/';
