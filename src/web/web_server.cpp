@@ -25,6 +25,7 @@
 #include "../content/content_handlers.h"
 #include "api_handlers.h"
 #include "../core/shared_types.h"
+#include <LittleFS.h>
 
 // External variable declarations
 extern WebServer server;
@@ -38,18 +39,14 @@ void setupWebServerRoutes(int maxChars)
     setMaxCharacters(maxChars);
 
     // Static file handlers
-    server.on("/", HTTP_GET, handleRoot);
-    server.on("/diagnostics.html", HTTP_GET, handleDiagnosticsPage);
-    server.on("/css/tailwind.css", HTTP_GET, handleCSS);
-    server.on("/js/config.js", HTTP_GET, handleJS);
-    server.on("/js/messaging.js", HTTP_GET, handleJS);
-    server.on("/js/diagnostics.js", HTTP_GET, handleJS);
-    server.on("/js/shared.js", HTTP_GET, handleJS);
-    server.on("/js/index.js", HTTP_GET, handleJS);
-    server.on("/js/unbiddenink.js", HTTP_GET, handleJS);
-    server.on("/html/index.html", HTTP_GET, handleHTMLTemplates);
-    server.on("/html/404.html", HTTP_GET, handleHTMLTemplates);
-    server.on("/favicon.ico", HTTP_GET, handleFavicon);
+    server.serveStatic("/", LittleFS, "/html/index.html");
+
+    // Generic static file serving from LittleFS
+    server.serveStatic("/css/", LittleFS, "/css/");
+    server.serveStatic("/js/", LittleFS, "/js/");
+    server.serveStatic("/html/", LittleFS, "/html/");
+    server.serveStatic("/favicon.ico", LittleFS, "/favicon.ico");
+    server.serveStatic("/diagnostics.html", LittleFS, "/html/diagnostics.html");
 
     // Configuration endpoint for JavaScript
     server.on("/config", HTTP_GET, handleConfig);

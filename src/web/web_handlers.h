@@ -17,36 +17,6 @@
 // ========================================
 
 /**
- * @brief Handle root page request
- */
-void handleRoot();
-
-/**
- * @brief Handle diagnostics page request
- */
-void handleDiagnosticsPage();
-
-/**
- * @brief Handle CSS file request
- */
-void handleCSS();
-
-/**
- * @brief Handle JavaScript file request
- */
-void handleJS();
-
-/**
- * @brief Handle HTML template file requests
- */
-void handleHTMLTemplates();
-
-/**
- * @brief Handle favicon request
- */
-void handleFavicon();
-
-/**
  * @brief Handle configuration endpoint for JavaScript
  */
 void handleConfig();

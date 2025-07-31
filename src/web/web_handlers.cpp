@@ -24,51 +24,6 @@ extern WebServer server;
 // STATIC FILE HANDLERS
 // ========================================
 
-void handleRoot()
-{
-    serveFileFromLittleFS("/html/index.html", "text/html");
-}
-
-void handleDiagnosticsPage()
-{
-    serveFileFromLittleFS("/html/diagnostics.html", "text/html");
-}
-
-void handleCSS()
-{
-    serveFileFromLittleFS("/css/tailwind.css", "text/css");
-}
-void handleJS()
-{
-    String uri = server.uri();
-    if (uri.startsWith("/js/"))
-    {
-        serveFileFromLittleFS(uri, "application/javascript");
-    }
-    else
-    {
-        handleNotFound();
-    }
-}
-
-void handleHTMLTemplates()
-{
-    String uri = server.uri();
-    if (uri.startsWith("/html/"))
-    {
-        serveFileFromLittleFS(uri, "text/html");
-    }
-    else
-    {
-        handleNotFound();
-    }
-}
-
-void handleFavicon()
-{
-    serveFileFromLittleFS("/favicon.ico", "image/x-icon");
-}
-
 void handleConfig()
 {
     DynamicJsonDocument doc(jsonDocumentSize);
