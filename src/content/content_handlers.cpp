@@ -34,43 +34,32 @@ void handleRiddle()
 {
     LOG_VERBOSE("WEB", "handleRiddle() called");
 
-    // Get and parse JSON body
-    String body = server.arg("plain");
-    String source = "local-direct"; // Default value
-
-    if (body.length() > 0)
+    // Check rate limiting
+    if (isRateLimited())
     {
-        DynamicJsonDocument doc(1024);
-        DeserializationError error = deserializeJson(doc, body);
-        if (!error && doc.containsKey("printer"))
-        {
-            source = doc["printer"].as<String>();
-        }
+        server.send(429, "application/json", "{\"error\":\"Rate limit exceeded. Please wait before making another request.\"}");
+        return;
     }
 
-    // Use unified endpoint processing
-    if (processEndpoint("/riddle", source.c_str()))
+    // Generate riddle content only
+    String content = generateRiddleContent();
+
+    if (content.length() > 0)
     {
-        // Return consistent JSON response
-        DynamicJsonDocument responseDoc(1024);
-        responseDoc["success"] = true;
-        responseDoc["message"] = currentMessage.message;
-        responseDoc["timestamp"] = currentMessage.timestamp;
+        // Return JSON with content only
+        DynamicJsonDocument doc(2048); // Increased buffer size for longer content
+        doc["content"] = content;
 
         String response;
-        serializeJson(responseDoc, response);
+        serializeJson(doc, response);
+
         server.send(200, "application/json", response);
+        LOG_VERBOSE("WEB", "Riddle content generated successfully");
     }
     else
     {
-        // Return consistent JSON error response
-        DynamicJsonDocument errorDoc(512);
-        errorDoc["success"] = false;
-        errorDoc["error"] = "Failed to generate riddle content";
-
-        String errorResponse;
-        serializeJson(errorDoc, errorResponse);
-        server.send(500, "application/json", errorResponse);
+        server.send(500, "application/json", "{\"error\":\"Failed to generate riddle content\"}");
+        LOG_ERROR("WEB", "Failed to generate riddle content");
     }
 }
 
@@ -78,43 +67,33 @@ void handleJoke()
 {
     LOG_VERBOSE("WEB", "handleJoke() called");
 
-    // Get and parse JSON body
-    String body = server.arg("plain");
-    String source = "local-direct"; // Default value
-
-    if (body.length() > 0)
+    // Check rate limiting
+    if (isRateLimited())
     {
-        DynamicJsonDocument doc(1024);
-        DeserializationError error = deserializeJson(doc, body);
-        if (!error && doc.containsKey("printer"))
-        {
-            source = doc["printer"].as<String>();
-        }
+        server.send(429, "application/json", "{\"error\":\"Rate limit exceeded. Please wait before making another request.\"}");
+        return;
     }
 
-    // Use unified endpoint processing
-    if (processEndpoint("/joke", source.c_str()))
+    // Generate joke content only
+    String content = generateJokeContent(); // Uses default 5000ms timeout
+
+    if (content.length() > 0)
     {
-        // Return consistent JSON response
-        DynamicJsonDocument responseDoc(1024);
-        responseDoc["success"] = true;
-        responseDoc["message"] = currentMessage.message;
-        responseDoc["timestamp"] = currentMessage.timestamp;
+        // Return JSON with content only
+        DynamicJsonDocument doc(2048); // Increased buffer size for longer content
+        doc["content"] = content;
 
         String response;
-        serializeJson(responseDoc, response);
+        serializeJson(doc, response);
+
+        LOG_VERBOSE("WEB", "Generated JSON response: %s", response.c_str());
         server.send(200, "application/json", response);
+        LOG_VERBOSE("WEB", "Joke content generated successfully");
     }
     else
     {
-        // Return consistent JSON error response
-        DynamicJsonDocument errorDoc(512);
-        errorDoc["success"] = false;
-        errorDoc["error"] = "Failed to generate joke content";
-
-        String errorResponse;
-        serializeJson(errorDoc, errorResponse);
-        server.send(500, "application/json", errorResponse);
+        server.send(500, "application/json", "{\"error\":\"Failed to generate joke content\"}");
+        LOG_ERROR("WEB", "Failed to generate joke content");
     }
 }
 
@@ -122,43 +101,32 @@ void handleQuote()
 {
     LOG_VERBOSE("WEB", "handleQuote() called");
 
-    // Get and parse JSON body
-    String body = server.arg("plain");
-    String source = "local-direct"; // Default value
-
-    if (body.length() > 0)
+    // Check rate limiting
+    if (isRateLimited())
     {
-        DynamicJsonDocument doc(1024);
-        DeserializationError error = deserializeJson(doc, body);
-        if (!error && doc.containsKey("printer"))
-        {
-            source = doc["printer"].as<String>();
-        }
+        server.send(429, "application/json", "{\"error\":\"Rate limit exceeded. Please wait before making another request.\"}");
+        return;
     }
 
-    // Use unified endpoint processing
-    if (processEndpoint("/quote", source.c_str()))
+    // Generate quote content only
+    String content = generateQuoteContent(); // Uses default 5000ms timeout
+
+    if (content.length() > 0)
     {
-        // Return consistent JSON response
-        DynamicJsonDocument responseDoc(1024);
-        responseDoc["success"] = true;
-        responseDoc["message"] = currentMessage.message;
-        responseDoc["timestamp"] = currentMessage.timestamp;
+        // Return JSON with content only
+        DynamicJsonDocument doc(2048); // Increased buffer size for longer content
+        doc["content"] = content;
 
         String response;
-        serializeJson(responseDoc, response);
+        serializeJson(doc, response);
+
         server.send(200, "application/json", response);
+        LOG_VERBOSE("WEB", "Quote content generated successfully");
     }
     else
     {
-        // Return consistent JSON error response
-        DynamicJsonDocument errorDoc(512);
-        errorDoc["success"] = false;
-        errorDoc["error"] = "Failed to generate quote content";
-
-        String errorResponse;
-        serializeJson(errorDoc, errorResponse);
-        server.send(500, "application/json", errorResponse);
+        server.send(500, "application/json", "{\"error\":\"Failed to generate quote content\"}");
+        LOG_ERROR("WEB", "Failed to generate quote content");
     }
 }
 
@@ -166,43 +134,32 @@ void handleQuiz()
 {
     LOG_VERBOSE("WEB", "handleQuiz() called");
 
-    // Get and parse JSON body
-    String body = server.arg("plain");
-    String source = "local-direct"; // Default value
-
-    if (body.length() > 0)
+    // Check rate limiting
+    if (isRateLimited())
     {
-        DynamicJsonDocument doc(1024);
-        DeserializationError error = deserializeJson(doc, body);
-        if (!error && doc.containsKey("printer"))
-        {
-            source = doc["printer"].as<String>();
-        }
+        server.send(429, "application/json", "{\"error\":\"Rate limit exceeded. Please wait before making another request.\"}");
+        return;
     }
 
-    // Use unified endpoint processing
-    if (processEndpoint("/quiz", source.c_str()))
+    // Generate quiz content only
+    String content = generateQuizContent(); // Uses default 5000ms timeout
+
+    if (content.length() > 0)
     {
-        // Return consistent JSON response
-        DynamicJsonDocument responseDoc(1024);
-        responseDoc["success"] = true;
-        responseDoc["message"] = currentMessage.message;
-        responseDoc["timestamp"] = currentMessage.timestamp;
+        // Return JSON with content only
+        DynamicJsonDocument doc(2048); // Increased buffer size for longer content
+        doc["content"] = content;
 
         String response;
-        serializeJson(responseDoc, response);
+        serializeJson(doc, response);
+
         server.send(200, "application/json", response);
+        LOG_VERBOSE("WEB", "Quiz content generated successfully");
     }
     else
     {
-        // Return consistent JSON error response
-        DynamicJsonDocument errorDoc(512);
-        errorDoc["success"] = false;
-        errorDoc["error"] = "Failed to generate quiz content";
-
-        String errorResponse;
-        serializeJson(errorDoc, errorResponse);
-        server.send(500, "application/json", errorResponse);
+        server.send(500, "application/json", "{\"error\":\"Failed to generate quiz content\"}");
+        LOG_ERROR("WEB", "Failed to generate quiz content");
     }
 }
 
@@ -292,18 +249,67 @@ void handleSubmit()
         return;
     }
 
-    // Validate message parameter exists
-    if (!server.hasArg("message"))
+    String message;
+    String customDate;
+
+    // ALL requests to /print-local MUST be JSON - no form parsing
+    String body = server.arg("plain");
+    String contentType = server.header("Content-Type");
+
+    LOG_VERBOSE("WEB", "handleSubmit: body.length=%d, Content-Type='%s'", body.length(), contentType.c_str());
+
+    // Strict JSON-only validation
+    bool hasJsonContentType = (contentType.length() > 0 && contentType.indexOf("application/json") >= 0);
+    bool hasJsonBody = false;
+
+    if (body.length() > 0)
     {
-        sendValidationError(ValidationResult(false, "Missing required parameter 'message'"));
+        body.trim();
+        hasJsonBody = (body.startsWith("{") && body.endsWith("}"));
+    }
+
+    // Require JSON format
+    if (!hasJsonContentType && !hasJsonBody)
+    {
+        LOG_ERROR("WEB", "/print-local endpoint requires JSON format. Content-Type: '%s', Body: '%s'",
+                  contentType.c_str(), body.c_str());
+        server.send(400, "application/json",
+                    "{\"error\":\"This endpoint only accepts JSON requests with Content-Type: application/json\"}");
         return;
     }
 
-    String message = server.arg("message");
+    if (body.length() == 0)
+    {
+        LOG_ERROR("WEB", "JSON request requires body content");
+        server.send(400, "application/json", "{\"error\":\"Request body cannot be empty\"}");
+        return;
+    }
 
-    // URL decode the message (handles %20 for spaces, etc.)
-    message.replace("+", " "); // Handle + as space in URL encoding
-    message = urlDecode(message);
+    // Parse JSON
+    LOG_VERBOSE("WEB", "Processing JSON request: %s", body.c_str());
+
+    DynamicJsonDocument doc(4096);
+    DeserializationError error = deserializeJson(doc, body);
+    if (error)
+    {
+        LOG_ERROR("WEB", "JSON parse error: %s", error.c_str());
+        server.send(400, "application/json", "{\"error\":\"Invalid JSON format\"}");
+        return;
+    }
+
+    if (!doc.containsKey("message"))
+    {
+        LOG_ERROR("WEB", "Missing 'message' field in JSON");
+        server.send(400, "application/json", "{\"error\":\"Missing required field: message\"}");
+        return;
+    }
+
+    message = doc["message"].as<String>();
+    if (doc.containsKey("date"))
+    {
+        customDate = doc["date"].as<String>();
+    }
+    LOG_VERBOSE("WEB", "JSON message extracted: '%s'", message.c_str());
 
     // Debug: Log message details
     LOG_VERBOSE("WEB", "Received message: length=%d, content: '%.50s'", message.length(), message.c_str());
@@ -313,18 +319,25 @@ void handleSubmit()
     if (!messageValidation.isValid)
     {
         LOG_WARNING("WEB", "Message validation failed: %s", messageValidation.errorMessage.c_str());
-        sendValidationError(messageValidation);
+        DynamicJsonDocument responseDoc(512);
+        responseDoc["error"] = messageValidation.errorMessage;
+        String response;
+        serializeJson(responseDoc, response);
+        server.send(400, "application/json", response);
         return;
     }
 
     // Validate custom date if provided
-    if (server.hasArg("date"))
+    if (customDate.length() > 0)
     {
-        String customDate = server.arg("date");
         ValidationResult dateValidation = validateParameter(customDate, "date", 50, false);
         if (!dateValidation.isValid)
         {
-            sendValidationError(dateValidation);
+            DynamicJsonDocument responseDoc(512);
+            responseDoc["error"] = dateValidation.errorMessage;
+            String response;
+            serializeJson(responseDoc, response);
+            server.send(400, "application/json", response);
             return;
         }
 
@@ -343,7 +356,13 @@ void handleSubmit()
 
     LOG_VERBOSE("WEB", "Valid message received for printing: %d characters", message.length());
 
-    server.send(200, "text/plain", "Message received and sent to printer");
+    // Always return JSON response since this endpoint only accepts JSON
+    DynamicJsonDocument responseDoc(512);
+    responseDoc["status"] = "success";
+    responseDoc["message"] = "Message received and sent to printer";
+    String response;
+    serializeJson(responseDoc, response);
+    server.send(200, "application/json", response);
 }
 
 void handleMessage()
@@ -588,6 +607,10 @@ bool processCustomMessage(const String &message, const String &timestamp, const 
 
     return true;
 }
+
+// ========================================
+// DELIVERY ENDPOINTS
+// ========================================
 
 // ========================================
 // UTILITY FUNCTIONS

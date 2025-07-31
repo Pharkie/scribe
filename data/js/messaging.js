@@ -58,24 +58,18 @@ function sendMessage(printerTarget, message, action = null) {
   let endpoint, payload;
   
   if (printerTarget === 'local-direct') {
-    // Local direct printing - use scribe-message endpoint
-    endpoint = '/scribe-message';
+    // Local printing - use print-local endpoint
+    endpoint = '/print-local';
     payload = {
-      printer: printerTarget,
       message: message
     };
   } else {
-    // MQTT printing (local via MQTT or remote) - use mqtt-send endpoint
+    // MQTT printing (remote) - use mqtt-send endpoint
     endpoint = '/mqtt-send';
     payload = {
       topic: printerTarget,
       message: message
     };
-  }
-
-  // If action is specified, include it
-  if (action) {
-    payload.action = action;
   }
 
   // Get action config for display
@@ -125,23 +119,23 @@ function getPrinterName(topic) {
 function sendQuickAction(action) {
   const printerTarget = document.getElementById('printer-target').value;
   
-  // Map action to endpoint
-  let endpoint;
+  // Map action to content endpoint
+  let contentEndpoint;
   switch (action) {
     case 'riddle':
-      endpoint = '/riddle';
+      contentEndpoint = '/riddle';
       break;
     case 'joke':
-      endpoint = '/joke';
+      contentEndpoint = '/joke';
       break;
     case 'quote':
-      endpoint = '/quote';
+      contentEndpoint = '/quote';
       break;
     case 'quiz':
-      endpoint = '/quiz';
+      contentEndpoint = '/quiz';
       break;
     case 'print-test':
-      endpoint = '/print-test';
+      contentEndpoint = '/print-test';
       break;
     default:
       console.error('Unknown action:', action);
@@ -155,23 +149,57 @@ function sendQuickAction(action) {
   // Show confetti immediately
   triggerConfetti();
 
-  fetch(endpoint, {
+  // Step 1: Fetch content from content generation endpoint
+  fetch(contentEndpoint, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ printer: printerTarget })
+    body: JSON.stringify({}) // Content endpoints no longer need printer parameter
   })
   .then(response => {
     if (response.ok) {
-      return response.json(); // These endpoints now return JSON, not plain text
+      return response.json();
+    }
+    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+  })
+  .then(contentResult => {
+    if (!contentResult.content) {
+      throw new Error('No content received from server');
+    }
+    
+    // Step 2: Determine delivery endpoint based on printer target
+    let deliveryEndpoint;
+    let deliveryPayload;
+    
+    if (printerTarget === 'local-direct') {
+      deliveryEndpoint = '/print-local';
+      deliveryPayload = { message: contentResult.content };
+    } else {
+      deliveryEndpoint = '/mqtt-send';
+      deliveryPayload = { 
+        topic: printerTarget,
+        message: contentResult.content
+      };
+    }
+    
+    // Step 3: Send content to delivery endpoint
+    return fetch(deliveryEndpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(deliveryPayload)
+    });
+  })
+  .then(response => {
+    if (response.ok) {
+      return response.json();
     }
     throw new Error(`HTTP ${response.status}: ${response.statusText}`);
   })
   .then(result => {
-    if (result.success) {
+    if (result.success || result.status === 'success') {
       // Show success message in a toast/notification instead of full screen
       showSuccessToast(`${config.name} scribed`);
     } else {
-      throw new Error(result.error || 'Unknown error occurred');
+      throw new Error(result.error || result.message || 'Unknown error occurred');
     }
   })
   .catch(error => {

@@ -123,11 +123,11 @@ void handleStatus()
 
     // Unbidden Ink status
     JsonObject unbiddenInk = doc.createNestedObject("unbidden_ink");
-    
+
     // Reload settings from file to ensure we have the latest values
     loadUnbiddenInkSettings();
     UnbiddenInkSettings settings = getCurrentUnbiddenInkSettings();
-    
+
     unbiddenInk["enabled"] = settings.enabled;
     if (settings.enabled)
     {
