@@ -60,7 +60,7 @@ void setupWebServerRoutes(int maxChars)
     server.on("/scribe-message", HTTP_POST, handleMessage);
 
     // Content generation endpoints
-    server.on("/test-print", HTTP_POST, handlePrintTest);
+    server.on("/print-test", HTTP_POST, handlePrintTest);
     server.on("/riddle", HTTP_POST, handleRiddle);
     server.on("/joke", HTTP_POST, handleJoke);
     server.on("/quote", HTTP_POST, handleQuote);

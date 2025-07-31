@@ -247,18 +247,32 @@ void handleMessage()
         return;
     }
 
-    // Validate message parameter exists
-    if (!server.hasArg("message"))
+    // Get and validate JSON body
+    String body = server.arg("plain");
+    if (body.length() == 0)
     {
-        sendValidationError(ValidationResult(false, "Missing required parameter 'message'"));
+        sendValidationError(ValidationResult(false, "No JSON body provided"));
         return;
     }
 
-    String message = server.arg("message");
+    // Parse JSON
+    DynamicJsonDocument doc(1024);
+    DeserializationError error = deserializeJson(doc, body);
+    if (error)
+    {
+        sendValidationError(ValidationResult(false, "Invalid JSON format: " + String(error.c_str())));
+        return;
+    }
 
-    // URL decode the message (handles %20 for spaces, etc.)
-    message.replace("+", " "); // Handle + as space in URL encoding
-    message = urlDecode(message);
+    // Validate required message field
+    if (!doc.containsKey("message"))
+    {
+        sendValidationError(ValidationResult(false, "Missing required field 'message' in JSON"));
+        return;
+    }
+
+    String message = doc["message"].as<String>();
+    String source = doc.containsKey("source") ? doc["source"].as<String>() : "local-direct";
 
     // Debug: Log message details
     LOG_VERBOSE("WEB", "Received message: length=%d, content: '%.50s'", message.length(), message.c_str());
@@ -272,37 +286,17 @@ void handleMessage()
         return;
     }
 
-    // Check for source parameter - determines routing
-    String source = server.hasArg("source") ? server.arg("source") : "local-direct";
-
-    // Validate custom date if provided
-    String timestamp;
-    if (server.hasArg("date"))
-    {
-        String customDate = server.arg("date");
-        ValidationResult dateValidation = validateParameter(customDate, "date", 50, false);
-        if (!dateValidation.isValid)
-        {
-            sendValidationError(dateValidation);
-            return;
-        }
-        timestamp = formatCustomDate(customDate);
-        LOG_VERBOSE("WEB", "Using custom date: %s", customDate.c_str());
-    }
-    else
-    {
-        timestamp = getFormattedDateTime();
-        LOG_VERBOSE("WEB", "Using current date");
-    }
+    // Use current timestamp (no custom date support in JSON API)
+    String timestamp = getFormattedDateTime();
 
     // Process the message using unified routing
     if (processCustomMessage(message, timestamp, source.c_str()))
     {
-        server.send(200, "text/plain", "Message processed successfully");
+        server.send(200, "application/json", "{\"success\":true,\"message\":\"Message processed successfully\"}");
     }
     else
     {
-        server.send(500, "text/plain", "Failed to process message");
+        server.send(500, "application/json", "{\"success\":false,\"message\":\"Failed to process message\"}");
     }
 }
 

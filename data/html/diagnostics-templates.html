@@ -170,6 +170,10 @@
                             </svg>
                         </button>
                     </div>
+                    <div class="flex justify-between text-xs mb-2">
+                        <span class="text-gray-600">File Size:</span>
+                        <span class="font-medium" data-field="settings-file-size">-</span>
+                    </div>
                     <div class="bg-gray-800 text-green-400 p-2 rounded text-xs max-h-32 overflow-y-auto">
                         <pre id="unbidden-ink-file-contents" class="whitespace-pre-wrap break-words">Loading...</pre>
                     </div>
@@ -242,10 +246,10 @@
                             </div>
                         </div>
 
-                        <!-- Sketch Size -->
+                        <!-- Firmware Size -->
                         <div>
                             <div class="flex justify-between text-sm mb-1">
-                                <span class="text-gray-600">Sketch Size</span>
+                                <span class="text-gray-600">Firmware Size</span>
                                 <span class="font-medium" data-field="sketch-usage">-</span>
                             </div>
                             <div class="w-full bg-orange-200 rounded-full h-2">
@@ -294,7 +298,6 @@
 
                 <!-- Button List -->
                 <div class="mt-3 pt-2 border-t border-blue-200">
-                    <h5 class="text-sm font-medium text-blue-700 mb-2">Configured Buttons</h5>
                     <div id="buttons-list" class="space-y-1 text-xs">
                         <!-- Button entries will be populated by JavaScript -->
                     </div>

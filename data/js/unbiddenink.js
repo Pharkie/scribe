@@ -17,7 +17,10 @@ function toggleSettings() {
       overlay.classList.remove('opacity-0');
       panel.classList.remove('scale-95');
     }, 10);
-    loadSettings();
+    // Only load settings if the form is empty (first time opening)
+    if (!document.getElementById('custom-prompt').value) {
+      loadSettings();
+    }
   } else {
     // Hide the overlay
     overlay.classList.add('opacity-0');

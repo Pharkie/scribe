@@ -139,13 +139,15 @@
                             </div>
 
                             <!-- Action Buttons -->
-                            <div class="flex space-x-3 pt-4 border-t border-gray-200">
+                            <div class="space-y-3 pt-4 border-t border-gray-200">
+                                <!-- Main Save Button -->
                                 <button type="button" onclick="saveSettings()"
-                                    class="flex-1 bg-purple-600 hover:bg-purple-700 text-white py-3 rounded-lg font-medium transition-all duration-200 hover:scale-[1.02]">
-                                    💾 Save Settings
+                                    class="w-full bg-purple-600 hover:bg-purple-700 text-white py-3 rounded-lg font-medium transition-all duration-200 hover:scale-[1.02]">
+                                    💾 Save
                                 </button>
+                                <!-- Secondary Test Button -->
                                 <button type="button" onclick="testUnbiddenInk()"
-                                    class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white py-3 rounded-lg font-medium transition-all duration-200 hover:scale-[1.02]">
+                                    class="w-full bg-indigo-500 hover:bg-indigo-600 text-white py-2 rounded-lg text-sm font-medium transition-all duration-200 hover:scale-[1.01]">
                                     🧪 Print sample
                                 </button>
                             </div>
@@ -167,20 +169,21 @@
         onclick="if(event.target === this) closeDiagnostics()">
         <div class="flex items-center justify-center min-h-screen p-4">
             <div
-                class="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto transform scale-95 transition-transform duration-300">
-                <div class="p-6">
-                    <div class="flex justify-between items-center mb-6">
+                class="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden transform scale-95 transition-transform duration-300">
+                <!-- Sticky Header -->
+                <div class="sticky top-0 bg-white border-b border-gray-200 z-10 p-6 rounded-t-2xl">
+                    <div class="flex justify-between items-center">
                         <h3 class="text-xl font-semibold text-gray-800">📊 Diagnostics</h3>
                         <button onclick="closeDiagnostics()"
                             class="text-gray-400 hover:text-gray-600 text-2xl transition-colors duration-200">&times;</button>
                     </div>
+                </div>
 
-                    <!-- Diagnostics Content -->
-                    <div id="diagnostics-content" class="space-y-6">
-                        <div class="flex items-center justify-center py-8">
-                            <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-                            <span class="ml-3 text-gray-600">Loading diagnostics...</span>
-                        </div>
+                <!-- Scrollable Content -->
+                <div id="diagnostics-content" class="p-6 pt-0 space-y-6 overflow-y-auto max-h-[calc(90vh-6rem)]">
+                    <div class="flex items-center justify-center py-8">
+                        <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                        <span class="ml-3 text-gray-600">Loading diagnostics...</span>
                     </div>
                 </div>
             </div>
@@ -239,7 +242,7 @@
                     </button>
                     <button onclick="sendQuickAction('print-test')"
                         class="px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white text-sm rounded-lg font-medium transition-all duration-200 hover:scale-105">
-                        🔤 Test Print
+                        🔤 Print Test
                     </button>
                 </div>
             </div>

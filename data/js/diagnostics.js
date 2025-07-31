@@ -3,6 +3,40 @@
  * @brief System diagnostics and status display functionality using HTML templates
  */
 
+/**
+ * Format a timestamp (in seconds since epoch) to a readable date/time string
+ */
+function formatTimestamp(timestamp) {
+  if (!timestamp || timestamp == 0) return 'Not scheduled';
+  
+  // Convert to milliseconds for JavaScript Date
+  const date = new Date(timestamp * 1000);
+  const now = new Date();
+  
+  // Check if it's today
+  const isToday = date.toDateString() === now.toDateString();
+  
+  if (isToday) {
+    return `Today at ${date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+  } else {
+    // Check if it's tomorrow
+    const tomorrow = new Date(now);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const isTomorrow = date.toDateString() === tomorrow.toDateString();
+    
+    if (isTomorrow) {
+      return `Tomorrow at ${date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+    } else {
+      return date.toLocaleString([], { 
+        month: 'short', 
+        day: 'numeric', 
+        hour: '2-digit', 
+        minute: '2-digit' 
+      });
+    }
+  }
+}
+
 // Global templates cache
 let diagnosticsTemplates = null;
 
@@ -160,7 +194,10 @@ function displayDiagnostics(data) {
       ? `${unbiddenInkData.start_hour}:00 - ${unbiddenInkData.end_hour}:00` 
       : 'Not configured',
     'frequency': unbiddenInkData.frequency_minutes ? `${unbiddenInkData.frequency_minutes} minutes` : 'Not configured',
-    'next-scheduled': unbiddenInkData.next_message_time || 'Not scheduled'
+    'next-scheduled': unbiddenInkData.next_message_time ? formatTimestamp(unbiddenInkData.next_message_time) : 'Not scheduled',
+    'settings-file-size': data.configuration && data.configuration.settings_file_size 
+      ? `${data.configuration.settings_file_size} bytes` 
+      : 'Not available'
   });
   
   // Add settings file content if available
@@ -204,13 +241,29 @@ function displayDiagnostics(data) {
   const hardwareSection = diagnosticsTemplates.hardwareButtons.cloneNode(true);
   const hardwareData = data.hardware_buttons || {};
   populateDataFields(hardwareSection, {
-    'paper-button-pin': hardwareData.paper_button_pin || 'Not configured',
-    'paper-button-enabled': hardwareData.paper_button_enabled ? 'Enabled' : 'Disabled',
-    'print-button-pin': hardwareData.print_button_pin || 'Not configured', 
-    'print-button-enabled': hardwareData.print_button_enabled ? 'Enabled' : 'Disabled',
-    'debounce-delay': hardwareData.debounce_delay ? `${hardwareData.debounce_delay} ms` : 'Default',
-    'last-button-press': hardwareData.last_button_press || 'None'
+    'num-buttons': hardwareData.num_buttons || '0',
+    'debounce-time': hardwareData.debounce_ms ? `${hardwareData.debounce_ms} ms` : 'Default',
+    'long-press-time': hardwareData.long_press_ms ? `${hardwareData.long_press_ms} ms` : 'Default',
+    'active-state': hardwareData.active_low ? 'Active Low' : 'Active High'
   });
+
+  // Populate button list
+  const buttonsList = hardwareSection.querySelector('#buttons-list');
+  if (buttonsList && hardwareData.buttons && hardwareData.buttons.length > 0) {
+    buttonsList.innerHTML = '';
+    hardwareData.buttons.forEach((button, index) => {
+      const buttonDiv = document.createElement('div');
+      buttonDiv.className = 'bg-blue-100 p-2 rounded text-xs';
+      buttonDiv.innerHTML = `
+        <div class="font-medium">Button ${index + 1} (GPIO ${button.gpio})</div>
+        <div class="text-gray-600">Short: ${button.short_endpoint || 'None'}</div>
+        <div class="text-gray-600">Long: ${button.long_endpoint || 'None'}</div>
+      `;
+      buttonsList.appendChild(buttonDiv);
+    });
+  } else if (buttonsList) {
+    buttonsList.innerHTML = '<div class="text-gray-500 italic">No buttons configured</div>';
+  }
   content.appendChild(hardwareSection);
   
   // Create and populate logging section
