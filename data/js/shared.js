@@ -120,7 +120,7 @@ function showErrorMessage(message) {
   const container = document.getElementById('message-container') || document.body;
   
   const errorDiv = document.createElement('div');
-  errorDiv.className = 'fixed top-4 right-4 bg-red-500 text-white px-4 py-2 rounded-lg shadow-lg z-50';
+  errorDiv.className = 'fixed top-4 right-4 bg-red-500 dark:bg-red-600 text-white px-4 py-2 rounded-lg shadow-lg dark:shadow-2xl z-50';
   errorDiv.textContent = message;
   
   container.appendChild(errorDiv);
@@ -140,7 +140,7 @@ function showSuccessMessage(message) {
   const container = document.getElementById('message-container') || document.body;
   
   const successDiv = document.createElement('div');
-  successDiv.className = 'fixed top-4 right-4 bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg z-50';
+  successDiv.className = 'fixed top-4 right-4 bg-green-500 dark:bg-green-600 text-white px-4 py-2 rounded-lg shadow-lg dark:shadow-2xl z-50';
   successDiv.textContent = message;
   
   container.appendChild(successDiv);

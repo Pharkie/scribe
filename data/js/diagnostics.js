@@ -30,20 +30,46 @@ function formatTimestamp(timestamp) {
   if (!timestamp || timestamp == 0) return 'Not scheduled';
   
   // For ESP32 millis() values, show relative time
-  if (timestamp < 946684800) { // Less than year 2000 in seconds - this is millis() since boot
-    // Convert milliseconds to minutes/hours for display
-    const minutes = Math.floor(timestamp / (1000 * 60));
-    const hours = Math.floor(minutes / 60);
-    const days = Math.floor(hours / 24);
+  if (timestamp < 946684800000) { // Less than year 2000 in milliseconds - this is millis() since boot
+    // Get current uptime from data.uptime if available
+    const currentUptime = window.lastDiagnosticsData?.uptime || 0;
     
-    if (days > 0) {
-      return `In ${days} day(s)`;
-    } else if (hours > 0) {
-      return `In ${hours} hour(s)`;
-    } else if (minutes > 0) {
-      return `In ${minutes} minute(s)`;
+    if (currentUptime > 0) {
+      // Calculate relative time from current uptime
+      const timeDiffMs = timestamp - currentUptime;
+      
+      if (timeDiffMs <= 0) {
+        return 'Overdue';
+      }
+      
+      const minutes = Math.floor(timeDiffMs / (1000 * 60));
+      const hours = Math.floor(minutes / 60);
+      const days = Math.floor(hours / 24);
+      
+      if (days > 0) {
+        return `In ${days} day(s), ${hours % 24} hour(s)`;
+      } else if (hours > 0) {
+        return `In ${hours} hour(s), ${minutes % 60} minute(s)`;
+      } else if (minutes > 0) {
+        return `In ${minutes} minute(s)`;
+      } else {
+        return `In ${Math.floor(timeDiffMs / 1000)} second(s)`;
+      }
     } else {
-      return 'Very soon';
+      // Fallback to absolute time calculation (less accurate)
+      const minutes = Math.floor(timestamp / (1000 * 60));
+      const hours = Math.floor(minutes / 60);
+      const days = Math.floor(hours / 24);
+      
+      if (days > 0) {
+        return `In ${days} day(s)`;
+      } else if (hours > 0) {
+        return `In ${hours} hour(s)`;
+      } else if (minutes > 0) {
+        return `In ${minutes} minute(s)`;
+      } else {
+        return 'Very soon';
+      }
     }
   }
   
@@ -74,6 +100,9 @@ function populateDataFields(element, data) {
  * Display diagnostics data
  */
 function displayDiagnostics(data) {
+  // Store data globally for timestamp formatting
+  window.lastDiagnosticsData = data;
+  
   // Hide loading indicator
   const loadingIndicator = document.getElementById('loading-indicator');
   if (loadingIndicator) {
@@ -142,7 +171,7 @@ function displayDiagnostics(data) {
         `${unbiddenInkData.start_hour}:00 - ${unbiddenInkData.end_hour}:00` : 'Not configured',
       'frequency': unbiddenInkData.frequency_minutes ? 
         `${unbiddenInkData.frequency_minutes} minutes` : 'Not configured',
-      'next-scheduled': formatTimestamp(unbiddenInkData.next_execution_time),
+      'next-scheduled': formatTimestamp(unbiddenInkData.next_message_time),
       'ai-prompt-char-limit': configData.max_prompt_chars ? 
         `${configData.max_prompt_chars} characters` : 'Unknown',
       'settings-file-size': configData.unbidden_ink_settings_file_size ? 
@@ -181,20 +210,51 @@ function displayDiagnostics(data) {
   
   // Show and populate hardware buttons section
   const hardwareButtonsSection = document.getElementById('hardware-buttons-section');
-  if (hardwareButtonsSection && data.hardware_buttons && data.hardware_buttons.buttons) {
+  if (hardwareButtonsSection && data.hardware_buttons) {
     const buttonsContent = document.getElementById('hardware-buttons-content');
     if (buttonsContent) {
       buttonsContent.innerHTML = ''; // Clear existing content
       
-      data.hardware_buttons.buttons.forEach(button => {
-        const buttonEntry = document.createElement('div');
-        buttonEntry.className = 'flex justify-between';
-        buttonEntry.innerHTML = `
-          <span class="text-gray-600 dark:text-gray-400">Pin ${button.gpio}:</span>
-          <span class="font-medium text-gray-900 dark:text-gray-100">Short: ${button.short_endpoint || 'None'}, Long: ${button.long_endpoint || 'None'}</span>
+      // Add hardware button configuration attributes
+      const configAttributes = [
+        { label: 'Number of Buttons', value: data.hardware_buttons.num_buttons || 'Unknown' },
+        { label: 'Debounce Time', value: data.hardware_buttons.debounce_ms ? `${data.hardware_buttons.debounce_ms} ms` : 'Unknown' },
+        { label: 'Long Press Time', value: data.hardware_buttons.long_press_ms ? `${data.hardware_buttons.long_press_ms} ms` : 'Unknown' },
+        { label: 'Active Low', value: data.hardware_buttons.active_low !== undefined ? (data.hardware_buttons.active_low ? 'Yes' : 'No') : 'Unknown' },
+        { label: 'Min Interval', value: data.hardware_buttons.min_interval_ms ? `${data.hardware_buttons.min_interval_ms} ms` : 'Unknown' },
+        { label: 'Max Per Minute', value: data.hardware_buttons.max_per_minute || 'Unknown' }
+      ];
+      
+      configAttributes.forEach(attr => {
+        const configEntry = document.createElement('div');
+        configEntry.className = 'flex justify-between';
+        configEntry.innerHTML = `
+          <span class="text-gray-600 dark:text-gray-400">${attr.label}:</span>
+          <span class="font-medium text-gray-900 dark:text-gray-100">${attr.value}</span>
         `;
-        buttonsContent.appendChild(buttonEntry);
+        buttonsContent.appendChild(configEntry);
       });
+      
+      // Add a separator if we have both config and button data
+      if (data.hardware_buttons.buttons && data.hardware_buttons.buttons.length > 0) {
+        const separator = document.createElement('div');
+        separator.className = 'border-t border-gray-200 dark:border-gray-600 my-3 pt-3';
+        separator.innerHTML = '<div class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Button Mappings:</div>';
+        buttonsContent.appendChild(separator);
+      }
+      
+      // Add individual button configurations
+      if (data.hardware_buttons.buttons) {
+        data.hardware_buttons.buttons.forEach(button => {
+          const buttonEntry = document.createElement('div');
+          buttonEntry.className = 'flex justify-between';
+          buttonEntry.innerHTML = `
+            <span class="text-gray-600 dark:text-gray-400">Pin ${button.gpio}:</span>
+            <span class="font-medium text-gray-900 dark:text-gray-100">Short: ${button.short_endpoint || 'None'}, Long: ${button.long_endpoint || 'None'}</span>
+          `;
+          buttonsContent.appendChild(buttonEntry);
+        });
+      }
     }
     hardwareButtonsSection.classList.remove('hidden');
   }

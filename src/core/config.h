@@ -100,7 +100,7 @@ struct ButtonConfig
 // Hardware button mapping - customize for your setup
 static const ButtonConfig hardwareButtons[] = {
     // GPIO, Short Press Endpoint, Long Press Endpoint (use "" for no long press action)
-    {5, "/joke", "/keep-going"}, // GPIO 5 -> joke (short press), keep-going (long press)
+    {5, "/joke", "/test-print"}, // GPIO 5 -> joke (short press), test print (long press)
     {6, "/riddle", ""},          // GPIO 6 -> riddle (short press only)
     {7, "/quote", ""},           // GPIO 7 -> quote (short press only)
     {8, "/quiz", ""},            // GPIO 8 -> quiz (short press only)

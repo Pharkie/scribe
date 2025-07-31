@@ -218,10 +218,20 @@ function sendQuickAction(action) {
  */
 function triggerConfetti() {
   if (typeof confetti !== 'undefined') {
+    // Detect if dark mode is active
+    const isDarkMode = document.documentElement.classList.contains('dark') || 
+                      window.matchMedia('(prefers-color-scheme: dark)').matches;
+    
+    // Choose colors that work well in both light and dark modes
+    const colors = isDarkMode 
+      ? ['#fbbf24', '#f59e0b', '#d97706', '#92400e', '#78350f'] // Warmer yellows/oranges for dark mode
+      : ['#3b82f6', '#1d4ed8', '#1e40af', '#1e3a8a', '#1e3a8a']; // Blues for light mode
+    
     confetti({
       particleCount: 100,
       spread: 70,
-      origin: { y: 0.6 }
+      origin: { y: 0.6 },
+      colors: colors
     });
   }
 }
@@ -232,7 +242,7 @@ function triggerConfetti() {
 function showSuccessToast(message) {
   // Create toast element
   const toast = document.createElement('div');
-  toast.className = 'fixed top-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50 transform translate-x-full transition-transform duration-300';
+  toast.className = 'fixed top-4 right-4 bg-green-500 dark:bg-green-600 text-white px-6 py-3 rounded-lg shadow-lg dark:shadow-2xl z-50 transform translate-x-full transition-transform duration-300';
   toast.textContent = message;
   
   document.body.appendChild(toast);

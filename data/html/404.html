@@ -7,24 +7,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="icon" type="image/x-icon" href="/favicon.ico">
     <link rel="stylesheet" href="/css/tailwind.css">
-
-    <!-- Prevent flash of light mode -->
-    <script>
-        (function () {
-            const savedTheme = localStorage.getItem('theme') || 'system';
-            const html = document.documentElement;
-
-            html.classList.remove('dark', 'light');
-
-            if (savedTheme === 'system') {
-                // Let system preference take control via CSS media queries
-            } else if (savedTheme === 'light') {
-                html.classList.add('light');
-            } else if (savedTheme === 'dark') {
-                html.classList.add('dark');
-            }
-        })();
-    </script>
 </head>
 
 <body class="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-200">
