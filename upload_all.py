@@ -220,20 +220,42 @@ def upload_filesystem_and_firmware(source, target, env):
         print("❌ npm not found! Please ensure Node.js and npm are installed.")
         env.Exit(1)
 
-    # Step 2: Upload filesystem
+    # Step 2: Build and minify JavaScript
+    print("📦 Building and minifying JavaScript...")
+    try:
+        # Run npm build-js command
+        result = subprocess.run(
+            ["npm", "run", "build-js-prod"],
+            cwd=os.getcwd(),  # Current working directory
+            check=True,
+            capture_output=True,
+            text=True,
+        )
+        print("✅ JavaScript build completed successfully!")
+        if result.stdout:
+            print(f"   Output: {result.stdout.strip()}")
+    except subprocess.CalledProcessError as e:
+        print("❌ JavaScript build failed!")
+        print(f"   Error: {e.stderr}")
+        env.Exit(1)
+    except FileNotFoundError:
+        print("❌ npm not found! Please ensure Node.js and npm are installed.")
+        env.Exit(1)
+
+    # Step 3: Upload filesystem
     print("📁 Uploading filesystem...")
     fs_result = env.Execute("pio run --target uploadfs")
     if fs_result != 0:
         print("❌ Filesystem upload failed!")
         env.Exit(1)
 
-    # Step 2.5: Reset connection before firmware upload
+    # Step 3.5: Reset connection before firmware upload
     print("🔄 Resetting connection for firmware upload...")
     time.sleep(1)  # Brief pause between uploads
     kill_serial_processes()  # Additional cleanup
     reset_esp32_connection()
 
-    # Step 3: Upload firmware
+    # Step 4: Upload firmware
     print("💾 Uploading firmware...")
     fw_result = env.Execute("pio run --target upload")
     if fw_result != 0:
