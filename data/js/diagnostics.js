@@ -4,13 +4,38 @@
  */
 
 /**
- * Format a timestamp (in seconds since epoch) to a readable date/time string
+ * Format a timestamp to a readable date/time string
+ * Handles millis() values from ESP32 (milliseconds since device boot)
  */
 function formatTimestamp(timestamp) {
   if (!timestamp || timestamp == 0) return 'Not scheduled';
   
-  // Convert to milliseconds for JavaScript Date
-  const date = new Date(timestamp * 1000);
+  // For ESP32 millis() values, show relative time
+  if (timestamp < 946684800) { // Less than year 2000 in seconds - this is millis() since boot
+    // Convert milliseconds to minutes/hours for display
+    const minutes = Math.floor(timestamp / (1000 * 60));
+    const hours = Math.floor(minutes / 60);
+    const days = Math.floor(hours / 24);
+    
+    if (days > 0) {
+      return `In ${days} day(s)`;
+    } else if (hours > 0) {
+      return `In ${hours} hour(s)`;
+    } else if (minutes > 0) {
+      return `In ${minutes} minute(s)`;
+    } else {
+      return 'Very soon';
+    }
+  }
+  
+  // Handle proper timestamps (Unix epoch)
+  let date;
+  if (timestamp > 946684800000) { // Jan 1, 2000 in milliseconds since epoch
+    date = new Date(timestamp);
+  } else {
+    date = new Date(timestamp * 1000); // Convert seconds to milliseconds
+  }
+  
   const now = new Date();
   
   // Check if it's today

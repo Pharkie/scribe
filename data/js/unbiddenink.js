@@ -17,10 +17,7 @@ function toggleSettings() {
       overlay.classList.remove('opacity-0');
       panel.classList.remove('scale-95');
     }, 10);
-    // Only load settings if the form is empty (first time opening)
-    if (!document.getElementById('custom-prompt').value) {
-      loadSettings();
-    }
+    // Don't automatically load settings - let the user manually refresh if needed
   } else {
     // Hide the overlay
     overlay.classList.add('opacity-0');
@@ -100,11 +97,7 @@ async function saveSettings(event) {
     if (response.ok) {
       const message = await response.text();
       console.log('Server response:', message);
-      showSuccessMessage('Unbidden Ink settings saved successfully');
-      // Reload config to reflect changes
-      if (typeof loadConfig === 'function') {
-        loadConfig();
-      }
+      showSuccessMessage('Unbidden Ink settings saved');
     } else {
       const errorMessage = await response.text();
       console.error('Server error response:', errorMessage);
@@ -150,7 +143,7 @@ function updateFrequencyDisplay() {
 function loadPromptPreset(type) {
   const promptTextarea = document.getElementById('custom-prompt');
   const prompts = {
-    motivation: "Write a short, uplifting message to motivate someone during their workday. Keep it under 100 characters and focus on positivity and encouragement.",
+    motivation: "Generate a short, encouraging motivational message to help me stay focused and positive. Keep it brief, uplifting, and practical.",
     doctorwho: "Share an interesting fact about Doctor Who - could be about the show, characters, or science fiction concepts from the series. Keep it under 150 characters.",
     wonderful: "Write about something wonderful in the world - could be nature, science, human achievement, or something beautiful. Keep it positive and under 120 characters.",
     creative: "Generate a creative writing prompt or artistic inspiration. Something to spark imagination and creativity. Keep it under 100 characters."

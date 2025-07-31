@@ -28,12 +28,6 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
   
-  // Add settings form event listener
-  const settingsForm = document.getElementById('settings-form');
-  if (settingsForm) {
-    settingsForm.addEventListener('submit', saveSettings);
-  }
-  
   // Update character counter on input
   const messageInput = document.getElementById('message');
   if (messageInput) {
@@ -68,6 +62,9 @@ function initializeUnbiddenInkSettings() {
   // Initialize character count display
   updatePromptCharCount();
   updateFrequencyDisplay();
+  
+  // Load current settings from server on page load
+  loadSettings();
 }
 
 /**
