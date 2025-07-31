@@ -220,7 +220,7 @@ void handlePrintTest()
         // Return consistent JSON response
         DynamicJsonDocument responseDoc(1024);
         responseDoc["success"] = true;
-        responseDoc["message"] = currentMessage.message;
+        responseDoc["content"] = currentMessage.message; // Use "content" field for consistency
         responseDoc["timestamp"] = currentMessage.timestamp;
 
         String response;

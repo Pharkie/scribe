@@ -32,20 +32,22 @@
 <body
     class="flex flex-col min-h-screen justify-between py-8 px-4 font-sans bg-gray-50 dark:bg-gray-900 transition-colors duration-200">
     <!-- Header with title and dark mode toggle -->
-    <header class="w-full max-w-4xl mx-auto flex justify-between mb-8">
+    <header class="w-full max-w-4xl mx-auto flex items-center mb-8">
         <!-- Left spacer -->
         <div class="flex-1"></div>
 
         <!-- Centered title with printer icon -->
-        <h1 class="text-3xl font-bold text-gray-800 dark:text-gray-100 flex items-center space-x-2">
-            <span class="text-4xl">🖨️</span>
-            <span>Scribe</span>
-        </h1>
+        <div class="flex-1 flex justify-center">
+            <h1 class="text-3xl font-bold text-gray-800 dark:text-gray-100 flex items-center space-x-2">
+                <span class="text-4xl">🖨️</span>
+                <span>Scribe</span>
+            </h1>
+        </div>
 
         <!-- Theme Selector -->
-        <div class="flex-1 flex items-center justify-end">
+        <div class="flex-1 flex items-center">
             <select id="theme-selector"
-                class="bg-gray-100 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-300 text-sm rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-600">
+                class="bg-gray-100 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-300 text-sm rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-600 w-auto flex-shrink-0 ml-auto">
                 <option value="system">🌐 System</option>
                 <option value="light">☀️ Light</option>
                 <option value="dark">🌙 Dark</option>
@@ -105,12 +107,12 @@
                         <span class="text-sm font-medium">Quote</span>
                     </button>
                     <button onclick="sendQuickAction('quiz')"
-                        class="flex flex-col items-center px-4 py-3 bg-teal-50 dark:bg-teal-900/20 hover:bg-teal-100 dark:hover:bg-teal-900/30 text-teal-700 dark:text-teal-300 border border-teal-200 dark:border-teal-600 rounded-xl transition-all duration-200 hover:scale-105 hover:shadow-md">
+                        class="flex flex-col items-center px-4 py-3 bg-indigo-50 dark:bg-indigo-900/20 hover:bg-indigo-100 dark:hover:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-700 rounded-xl transition-all duration-200 hover:scale-105 hover:shadow-md">
                         <span class="text-2xl mb-1">🧠</span>
                         <span class="text-sm font-medium">Quiz</span>
                     </button>
                     <button onclick="sendQuickAction('print-test')"
-                        class="flex flex-col items-center px-4 py-3 bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-600 rounded-xl transition-all duration-200 hover:scale-105 hover:shadow-md">
+                        class="flex flex-col items-center px-4 py-3 bg-gray-50 dark:bg-gray-900/20 hover:bg-gray-100 dark:hover:bg-gray-900/30 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700 rounded-xl transition-all duration-200 hover:scale-105 hover:shadow-md">
                         <span class="text-2xl mb-1">🧪</span>
                         <span class="text-sm font-medium">Test</span>
                     </button>

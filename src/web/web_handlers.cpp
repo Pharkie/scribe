@@ -74,7 +74,7 @@ void handleConfig()
     DynamicJsonDocument doc(jsonDocumentSize);
 
     // Set max message chars - we'll need to get this from somewhere
-    doc["maxMessageChars"] = maxMessageChars;
+    doc["maxMessageChars"] = maxCharacters;
 
     // Create remote printers array
     JsonArray printers = doc.createNestedArray("remotePrinters");

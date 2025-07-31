@@ -92,10 +92,13 @@ function displayDiagnostics(data) {
   // Show and populate device configuration section
   const deviceConfigSection = document.getElementById('device-config-section');
   if (deviceConfigSection) {
+    const configData = data.configuration || {};
     populateDataFields(deviceConfigSection, {
       'device-owner': data.device_owner || 'Unknown',
       'timezone': data.timezone || 'Not configured',
-      'mdns-hostname': data.mdns_hostname || 'Unknown'
+      'mdns-hostname': data.mdns_hostname || 'Unknown',
+      'max-message-chars': configData.max_message_chars || 'Unknown',
+      'max-line-length': configData.max_line_length || 'Unknown'
     });
     deviceConfigSection.classList.remove('hidden');
   }
@@ -199,11 +202,11 @@ function displayDiagnostics(data) {
   const loggingSection = document.getElementById('logging-section');
   if (loggingSection) {
     populateDataFields(loggingSection, {
-      'log-level': data.log_level || 'Unknown',
-      'serial-logging': data.serial_logging ? 'Enabled' : 'Disabled',
-      'file-logging': data.file_logging ? 'Enabled' : 'Disabled',
-      'mqtt-logging': data.mqtt_logging ? 'Enabled' : 'Disabled',
-      'betterstack-logging': data.betterstack_logging ? 'Enabled' : 'Disabled'
+      'log-level': data.logging?.level_name || 'Unknown',
+      'serial-logging': data.logging?.serial_enabled ? 'Enabled' : 'Disabled',
+      'file-logging': data.logging?.file_enabled ? 'Enabled' : 'Disabled',
+      'mqtt-logging': data.logging?.mqtt_enabled ? 'Enabled' : 'Disabled',
+      'betterstack-logging': data.logging?.betterstack_enabled ? 'Enabled' : 'Disabled'
     });
     loggingSection.classList.remove('hidden');
   }
@@ -232,115 +235,4 @@ function displayDiagnosticsError(message) {
 /**
  * Copy section content to clipboard
  */
-function copySection(sectionId, button) {
-  const section = document.getElementById(`${sectionId}-section`);
-  if (!section) {
-    console.error(`Could not find section with ID: ${sectionId}-section`);
-    return;
-  }
-  
-  let content = '';
-  
-  if (sectionId === 'unbidden-ink') {
-    // Special handling for unbidden ink which includes file contents
-    const fileContents = document.getElementById('unbidden-ink-file-contents');
-    if (fileContents && fileContents.textContent.trim() !== 'Loading...' && fileContents.textContent.trim() !== 'No file data available') {
-      content = fileContents.textContent;
-    } else {
-      // Fall back to regular data fields if no file contents
-      const dataFields = section.querySelectorAll('[data-field]');
-      dataFields.forEach(field => {
-        const label = field.closest('.flex')?.querySelector('.text-gray-600, .text-gray-400')?.textContent;
-        if (label && field.textContent && field.textContent.trim() !== '-') {
-          content += `${label} ${field.textContent}\n`;
-        }
-      });
-    }
-  } else {
-    // Generic section content copy
-    const dataFields = section.querySelectorAll('[data-field]');
-    dataFields.forEach(field => {
-      const label = field.closest('.flex')?.querySelector('.text-gray-600, .text-gray-400')?.textContent;
-      if (label && field.textContent && field.textContent.trim() !== '-') {
-        content += `${label} ${field.textContent}\n`;
-      }
-    });
-  }
-  
-  navigator.clipboard.writeText(content).then(() => {
-    // Visual feedback
-    const originalText = button.innerHTML;
-    button.innerHTML = '✓';
-    button.disabled = true;
-    setTimeout(() => {
-      button.innerHTML = originalText;
-      button.disabled = false;
-    }, 1000);
-  }).catch(err => {
-    console.error('Failed to copy to clipboard:', err);
-  });
-}
-
-/**
- * Copy generic section content to clipboard
- */
-function copyGenericSection(sectionName, button) {
-  // Find the parent section div (the one with the ID ending in '-section')
-  const section = button.closest('[id$="-section"]');
-  if (!section) {
-    console.error('Could not find parent section for copy button');
-    return;
-  }
-  
-  let content = `${sectionName}:\n`;
-  const dataFields = section.querySelectorAll('[data-field]');
-  dataFields.forEach(field => {
-    const label = field.closest('.flex')?.querySelector('.text-gray-600, .text-gray-400')?.textContent;
-    if (label && field.textContent && field.textContent.trim() !== '-') {
-      content += `${label} ${field.textContent}\n`;
-    }
-  });
-  
-  navigator.clipboard.writeText(content).then(() => {
-    // Visual feedback
-    const originalText = button.innerHTML;
-    button.innerHTML = '✓';
-    button.disabled = true;
-    setTimeout(() => {
-      button.innerHTML = originalText;
-      button.disabled = false;
-    }, 1000);
-  }).catch(err => {
-    console.error('Failed to copy to clipboard:', err);
-  });
-}
-
-/**
- * Copy file contents to clipboard
- */
-function copyFileContents(button) {
-  const fileContents = document.getElementById('unbidden-ink-file-contents');
-  if (!fileContents) {
-    console.error('Could not find file contents element');
-    return;
-  }
-  
-  const content = fileContents.textContent.trim();
-  if (!content || content === 'Loading...' || content === 'No file data available') {
-    console.warn('No valid file contents to copy');
-    return;
-  }
-  
-  navigator.clipboard.writeText(content).then(() => {
-    // Visual feedback
-    const originalText = button.innerHTML;
-    button.innerHTML = '✓';
-    button.disabled = true;
-    setTimeout(() => {
-      button.innerHTML = originalText;
-      button.disabled = false;
-    }, 1000);
-  }).catch(err => {
-    console.error('Failed to copy to clipboard:', err);
-  });
-}
+// Copy functions are now handled by utils.js - no duplicate functions needed here

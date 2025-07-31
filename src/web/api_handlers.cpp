@@ -142,6 +142,9 @@ void handleStatus()
     bool fileExists = LittleFS.exists("/unbidden_ink_settings.json");
     config["unbidden_ink_settings_file_exists"] = fileExists;
 
+    // Add message configuration limits
+    config["max_message_chars"] = maxCharacters;
+
     if (fileExists)
     {
         File file = LittleFS.open("/unbidden_ink_settings.json", "r");

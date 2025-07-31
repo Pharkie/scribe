@@ -103,6 +103,6 @@ void sendValidationError(const ValidationResult &result, int statusCode = 400);
  * @brief Set maximum message characters for validation
  * @param maxChars Maximum allowed characters
  */
-void setMaxMessageChars(int maxChars);
+void setMaxCharacters(int maxChars);
 
 #endif // VALIDATION_H

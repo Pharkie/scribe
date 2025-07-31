@@ -99,8 +99,10 @@ function populateHourSelects() {
  * Initialize UI elements and state
  */
 function initializeUI() {
-  // Set initial character counter
-  updateCharCounter();
+  // Set initial character counter (only if elements exist)
+  if (document.getElementById('message-textarea') && document.getElementById('char-counter')) {
+    updateCharCounter();
+  }
   
   // Hide loading states
   const loadingElements = document.querySelectorAll('.loading');

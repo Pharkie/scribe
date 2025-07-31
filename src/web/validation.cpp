@@ -18,7 +18,7 @@ static unsigned long requestCount = 0;
 static unsigned long rateLimitWindow = 0;
 
 // Local storage for max message chars
-static int localMaxMessageChars = maxMessageChars;
+static int localMaxMessageChars = maxCharacters;
 
 // ========================================
 // RATE LIMITING
@@ -112,34 +112,6 @@ ValidationResult validateMessage(const String &message, int maxLength)
         messageLower.indexOf("onerror=") != -1)
     {
         return ValidationResult(false, "Message contains potentially malicious content");
-    }
-
-    // Check for excessively long lines (might cause formatting issues)
-    int maxLineLengthFound = 0;
-    int currentLineLength = 0;
-    for (unsigned int i = 0; i < message.length(); i++)
-    {
-        if (message.charAt(i) == '\n' || message.charAt(i) == '\r')
-        {
-            if (currentLineLength > maxLineLengthFound)
-            {
-                maxLineLengthFound = currentLineLength;
-            }
-            currentLineLength = 0;
-        }
-        else
-        {
-            currentLineLength++;
-        }
-    }
-    if (currentLineLength > maxLineLengthFound)
-    {
-        maxLineLengthFound = currentLineLength;
-    }
-
-    if (maxLineLengthFound > maxLineLength)
-    {
-        return ValidationResult(false, "Message contains lines that are too long (max " + String(maxLineLength) + " chars per line)");
     }
 
     return ValidationResult(true);
@@ -280,7 +252,7 @@ void sendValidationError(const ValidationResult &result, int statusCode)
     server.send(statusCode, "text/plain", "Validation Error: " + result.errorMessage);
 }
 
-void setMaxMessageChars(int maxChars)
+void setMaxCharacters(int maxChars)
 {
     localMaxMessageChars = maxChars;
 }

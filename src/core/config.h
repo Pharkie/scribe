@@ -153,8 +153,8 @@ extern const int unbiddenInkFrequencyMinutes; // Send 1 message in every X minut
 // ========================================
 // APPLICATION SETTINGS
 // ========================================
-static const int maxMessageChars = 1000; // Max characters per message
-static const int totalRiddles = 545;     // Total riddles in riddles.ndjson
+static const int maxCharacters = 1000; // Max characters per message (single source of truth)
+static const int totalRiddles = 545;   // Total riddles in riddles.ndjson
 static const char *apiUserAgent = "Scribe Thermal Printer (https://github.com/Pharkie/scribe)";
 
 // ========================================
@@ -178,7 +178,6 @@ static const unsigned long maxRequestsPerMinute = 60; // 60 requests per minute
 static const unsigned long rateLimitWindowMs = 60000; // 1 minute rate limit window
 
 // Message validation limits
-static const int maxLineLength = 200;        // Max characters per line in messages
 static const int maxControlCharPercent = 10; // Max control characters as percentage of message length
 
 // JSON and payload limits

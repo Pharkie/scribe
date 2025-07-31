@@ -126,7 +126,7 @@ void setup()
   setupMQTT();
 
   // Setup web server routes
-  setupWebServerRoutes(maxMessageChars);
+  setupWebServerRoutes(maxCharacters);
 
   // Start the server
   server.begin();

@@ -35,7 +35,7 @@ Message currentMessage = {"", "", false};
 void setupWebServerRoutes(int maxChars)
 {
     // Store the maxChars value for validation
-    setMaxMessageChars(maxChars);
+    setMaxCharacters(maxChars);
 
     // Static file handlers
     server.on("/", HTTP_GET, handleRoot);

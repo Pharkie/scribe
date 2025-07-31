@@ -4,7 +4,7 @@
  */
 
 // Global variables - will be set by the server
-let MAX_CHARS = 200; // Default value, will be updated by config endpoint
+let MAX_CHARS = 1000; // Default value (should match server config), will be updated by config endpoint
 let PRINTERS = []; // Will store all available printers
 
 // Default prompts - keep in sync with C++ constants
@@ -19,9 +19,11 @@ async function loadConfig() {
     const config = await response.json();
     MAX_CHARS = config.maxMessageChars;
     
-    // Set the maxlength attribute on textarea
+    // Set the maxlength attribute on textarea (only if it exists)
     const textarea = document.getElementById('message-textarea');
-    textarea.setAttribute('maxlength', MAX_CHARS);
+    if (textarea) {
+      textarea.setAttribute('maxlength', MAX_CHARS);
+    }
     
     // Store printer data for later use
     PRINTERS = config.remotePrinters;
@@ -31,7 +33,7 @@ async function loadConfig() {
       initializeConfigDependentUI();
     }
     
-    // Update character counter
+    // Update character counter (only if elements exist)
     updateCharCounter();
   } catch (error) {
     console.error('Failed to load config:', error);
@@ -44,6 +46,10 @@ async function loadConfig() {
 function updateCharCounter() {
   const textarea = document.getElementById('message-textarea');
   const counter = document.getElementById('char-counter');
+  
+  // Only update if both elements exist
+  if (!textarea || !counter) return;
+  
   const current = textarea.value.length;
   const remaining = MAX_CHARS - current;
   counter.textContent = `${current}/${MAX_CHARS} characters`;

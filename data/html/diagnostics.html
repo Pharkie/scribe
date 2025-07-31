@@ -30,7 +30,7 @@
 <body
     class="flex flex-col min-h-screen justify-between py-8 px-4 font-sans bg-gray-50 dark:bg-gray-900 transition-colors duration-200">
     <!-- Header with title and navigation -->
-    <header class="w-full max-w-6xl mx-auto flex justify-between mb-8">
+    <header class="w-full max-w-6xl mx-auto flex items-center mb-8">
         <!-- Left section with back button -->
         <div class="flex-1">
             <button onclick="goBack()"
@@ -41,12 +41,14 @@
         </div>
 
         <!-- Centered title -->
-        <h1 class="text-3xl font-bold text-gray-800 dark:text-gray-100">📊 Diagnostics</h1>
+        <div class="flex-1 flex justify-center">
+            <h1 class="text-3xl font-bold text-gray-800 dark:text-gray-100">📊 Diagnostics</h1>
+        </div>
 
         <!-- Right section with theme selector -->
-        <div class="flex-1 flex items-center justify-end">
+        <div class="flex-1 flex items-center">
             <select id="theme-selector"
-                class="bg-gray-100 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-300 text-sm rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-600">
+                class="bg-gray-100 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-300 text-sm rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-600 w-auto flex-shrink-0 ml-auto">
                 <option value="system">🌐 System</option>
                 <option value="light">☀️ Light</option>
                 <option value="dark">🌙 Dark</option>
@@ -93,6 +95,16 @@
                             <span class="text-gray-600 dark:text-gray-400">mDNS Hostname:</span>
                             <span class="font-medium text-gray-900 dark:text-gray-100"
                                 data-field="mdns-hostname">-</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-600 dark:text-gray-400">Max Message Chars:</span>
+                            <span class="font-medium text-gray-900 dark:text-gray-100"
+                                data-field="max-message-chars">-</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-600 dark:text-gray-400">Max Line Length:</span>
+                            <span class="font-medium text-gray-900 dark:text-gray-100"
+                                data-field="max-line-length">-</span>
                         </div>
                     </div>
                 </div>
