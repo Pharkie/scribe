@@ -224,8 +224,8 @@ function triggerConfetti() {
     
     // Choose colors that work well in both light and dark modes
     const colors = isDarkMode 
-      ? ['#fbbf24', '#f59e0b', '#d97706', '#92400e', '#78350f'] // Warmer yellows/oranges for dark mode
-      : ['#3b82f6', '#1d4ed8', '#1e40af', '#1e3a8a', '#1e3a8a']; // Blues for light mode
+      ? ['#fbbf24', '#34d399', '#a78bfa', '#f472b6', '#fb7185'] // Bright yellows, greens, purples, pinks for dark mode
+      : ['#3b82f6', '#ef4444', '#10b981', '#f59e0b', '#8b5cf6']; // Blues, reds, greens, oranges, purples for light mode
     
     confetti({
       particleCount: 100,

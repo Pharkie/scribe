@@ -27,3 +27,8 @@ Thumbs.db
 # Add build artifacts to gitignore
 node_modules/
 package-lock.json
+
+# Python virtual environment
+.venv/
+__pycache__/
+*.pyc
