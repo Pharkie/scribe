@@ -217,7 +217,7 @@ function updateCharacterCount(textareaId, counterId, defaultMaxLength = 1000) {
     // Update styling based on character count
     if (length > maxLength) {
       counter.className = 'text-xs text-red-600 dark:text-red-400 text-right';
-    } else if (length >= maxLength * 0.9) {
+    } else if (length >= maxLength * 0.8) {
       counter.className = 'text-xs text-yellow-600 dark:text-yellow-400 text-right';
     } else {
       counter.className = 'text-xs text-gray-500 dark:text-gray-400 text-right';

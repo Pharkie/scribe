@@ -144,6 +144,7 @@ void handleStatus()
 
     // Add message configuration limits
     config["max_message_chars"] = maxCharacters;
+    config["max_prompt_chars"] = maxPromptCharacters;
 
     if (fileExists)
     {

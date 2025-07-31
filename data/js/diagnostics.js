@@ -143,6 +143,8 @@ function displayDiagnostics(data) {
       'frequency': unbiddenInkData.frequency_minutes ? 
         `${unbiddenInkData.frequency_minutes} minutes` : 'Not configured',
       'next-scheduled': formatTimestamp(unbiddenInkData.next_execution_time),
+      'ai-prompt-char-limit': configData.max_prompt_chars ? 
+        `${configData.max_prompt_chars} characters` : 'Unknown',
       'settings-file-size': configData.unbidden_ink_settings_file_size ? 
         `${configData.unbidden_ink_settings_file_size} bytes` : 'Unknown'
     });
@@ -235,13 +237,13 @@ function displayDiagnosticsError(message) {
  * Copy section content to clipboard
  */
 function copySection(sectionId, buttonElement) {
-  const content = document.getElementById(sectionId + '-content');
-  if (!content) return;
+  const section = document.getElementById(sectionId + '-section');
+  if (!section) return;
   
   // Create a plain text version for copying
   let textContent = '🪄 Unbidden Ink\n\n';
   
-  const items = content.querySelectorAll('.flex.justify-between');
+  const items = section.querySelectorAll('.flex.justify-between');
   items.forEach(item => {
     const label = item.querySelector('.text-gray-600');
     const value = item.querySelector('.font-medium');
@@ -251,8 +253,8 @@ function copySection(sectionId, buttonElement) {
   });
   
   // Add file contents if present
-  const fileContents = document.getElementById('file-contents');
-  if (fileContents) {
+  const fileContents = document.getElementById('unbidden-ink-file-contents');
+  if (fileContents && fileContents.textContent.trim()) {
     textContent += '\nSettings File Contents:\n';
     textContent += fileContents.textContent;
   }

@@ -174,9 +174,9 @@ const int watchdogTimeoutSeconds = 8; // Watchdog timeout in seconds
 // INPUT VALIDATION LIMITS
 // ========================================
 // Rate limiting configuration
-static const unsigned long minRequestInterval = 100;  // 100ms minimum between requests
-static const unsigned long maxRequestsPerMinute = 60; // 60 requests per minute
-static const unsigned long rateLimitWindowMs = 60000; // 1 minute rate limit window
+static const unsigned long minRequestInterval = 50;    // 50ms minimum between requests (was 100ms)
+static const unsigned long maxRequestsPerMinute = 100; // 100 requests per minute (was 60)
+static const unsigned long rateLimitWindowMs = 60000;  // 1 minute rate limit window
 
 // Message validation limits
 static const int maxControlCharPercent = 10; // Max control characters as percentage of message length
