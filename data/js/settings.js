@@ -7,11 +7,24 @@
  * Toggle settings panel visibility
  */
 function toggleSettings() {
+  const overlay = document.getElementById('settings-overlay');
   const panel = document.getElementById('settings-panel');
-  panel.classList.toggle('hidden');
   
-  if (!panel.classList.contains('hidden')) {
+  if (overlay.classList.contains('hidden')) {
+    // Show the overlay
+    overlay.classList.remove('hidden');
+    setTimeout(() => {
+      overlay.classList.remove('opacity-0');
+      panel.classList.remove('scale-95');
+    }, 10);
     loadSettings();
+  } else {
+    // Hide the overlay
+    overlay.classList.add('opacity-0');
+    panel.classList.add('scale-95');
+    setTimeout(() => {
+      overlay.classList.add('hidden');
+    }, 300);
   }
 }
 

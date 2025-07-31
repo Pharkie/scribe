@@ -72,13 +72,6 @@ void setupWebServerRoutes(int maxChars)
     server.on("/buttons", HTTP_GET, handleButtons);
     server.on("/mqtt-send", HTTP_POST, handleMQTTSend);
 
-    // General settings API
-    server.on("/api/settings", HTTP_GET, handleSettingsGet);
-    server.on("/api/settings", HTTP_POST, handleSettingsPost);
-    server.on("/api/settings/reset", HTTP_POST, handleSettingsReset);
-    server.on("/api/settings/export", HTTP_GET, handleSettingsExport);
-    server.on("/api/settings/import", HTTP_POST, handleSettingsImport);
-
     // Unbidden Ink settings endpoints
     server.on("/unbidden-ink/settings", HTTP_GET, handleUnbiddenInkSettingsGet);
     server.on("/unbidden-ink/settings", HTTP_POST, handleUnbiddenInkSettingsPost);

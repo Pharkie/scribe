@@ -25,6 +25,7 @@ async function loadDiagnosticsTemplates() {
       microcontroller: doc.getElementById('microcontroller-section-template').content.cloneNode(true),
       logging: doc.getElementById('logging-section-template').content.cloneNode(true),
       settingsFile: doc.getElementById('settings-file-section-template').content.cloneNode(true),
+      loading: doc.getElementById('loading-template').content.cloneNode(true),
       error: doc.getElementById('error-template').content.cloneNode(true)
     };
     
@@ -40,38 +41,48 @@ async function loadDiagnosticsTemplates() {
  */
 async function showSystemStatus() {
   const overlay = document.getElementById('diagnostics-overlay');
-  if (!overlay) return;
+  if (!overlay) {
+    console.error('Diagnostics overlay not found');
+    return;
+  }
   
   // Show the modal
   overlay.classList.remove('hidden');
-  overlay.classList.remove('opacity-0');
-  overlay.classList.add('opacity-100');
-  
-  const panel = overlay.querySelector('.bg-white');
-  if (panel) {
-    panel.classList.remove('scale-95');
-    panel.classList.add('scale-100');
-  }
-  
-  // Load templates if needed
-  await loadDiagnosticsTemplates();
-  
-  // Show loading state
-  const content = document.getElementById('diagnostics-content');
-  content.innerHTML = `
-    <div class="flex items-center justify-center py-8">
-      <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-      <span class="ml-3 text-gray-600">Loading diagnostics...</span>
-    </div>
-  `;
-  
-  // Fetch diagnostics data
+  setTimeout(() => {
+    overlay.classList.remove('opacity-0');
+    const panel = overlay.querySelector('.bg-white');
+    if (panel) {
+      panel.classList.remove('scale-95');
+    }
+  }, 10);
+
   try {
+    // Load templates if needed
+    console.log('Loading diagnostics templates...');
+    const templates = await loadDiagnosticsTemplates();
+    if (!templates) {
+      throw new Error('Failed to load diagnostics templates');
+    }
+    console.log('Templates loaded successfully');
+    
+    // Show loading state using template
+    const content = document.getElementById('diagnostics-content');
+    const loadingSection = diagnosticsTemplates.loading.cloneNode(true);
+    content.innerHTML = '';
+    content.appendChild(loadingSection);
+
+    // Fetch diagnostics data
+    console.log('Fetching diagnostics data...');
     const response = await fetch('/status');
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    }
     const data = await response.json();
+    console.log('Diagnostics data received:', data);
+    
     displayDiagnostics(data);
   } catch (error) {
-    console.error('Failed to fetch system status:', error);
+    console.error('Failed to load diagnostics:', error);
     displayDiagnosticsError(error.message);
   }
 }
@@ -81,23 +92,30 @@ async function showSystemStatus() {
  */
 function displayDiagnostics(data) {
   const content = document.getElementById('diagnostics-content');
-  if (!content || !diagnosticsTemplates) return;
+  if (!content) {
+    console.error('Diagnostics content container not found');
+    return;
+  }
+  
+  console.log('Displaying diagnostics with data:', data);
   
   // Clear content
   content.innerHTML = '';
   
-  // Calculate derived values
-  const uptimeSeconds = Math.floor(data.uptime / 1000);
-  const uptimeMinutes = Math.floor(uptimeSeconds / 60);
-  const uptimeHours = Math.floor(uptimeMinutes / 60);
-  
-  const memoryUsedPercent = Math.round(((data.total_heap - data.free_heap) / data.total_heap) * 100);
-  const flashUsedPercent = Math.round((data.flash_used / data.flash_total) * 100);
-  const flashFree = data.flash_total - data.flash_used;
-  const sketchUsedPercent = Math.round((data.sketch_size / (data.sketch_size + data.free_sketch_space)) * 100);
-  
-  // Create and populate network section
-  const networkSection = diagnosticsTemplates.network.cloneNode(true);
+  try {
+    // Calculate derived values
+    const uptimeSeconds = Math.floor(data.uptime / 1000);
+    const uptimeMinutes = Math.floor(uptimeSeconds / 60);
+    const uptimeHours = Math.floor(uptimeMinutes / 60);
+    
+    const memoryUsedPercent = Math.round(((data.total_heap - data.free_heap) / data.total_heap) * 100);
+    const flashUsedPercent = Math.round((data.flash_used / data.flash_total) * 100);
+    const flashFree = data.flash_total - data.flash_used;
+    const sketchUsedPercent = Math.round((data.sketch_size / (data.sketch_size + data.free_sketch_space)) * 100);
+    
+    // Create and populate network section
+    console.log('Creating network section...');
+    const networkSection = diagnosticsTemplates.network.cloneNode(true);
   populateDataFields(networkSection, {
     'wifi-status': data.wifi_connected ? 'Connected ✅' : 'Disconnected ❌',
     'wifi-ssid': data.wifi_ssid || 'Not connected',
@@ -167,15 +185,22 @@ function displayDiagnostics(data) {
     }
     content.appendChild(settingsSection);
   }
+  
+  console.log('Diagnostics display completed successfully');
+  } catch (error) {
+    console.error('Error displaying diagnostics:', error);
+    displayDiagnosticsError(`Display error: ${error.message}`);
+  }
 }
 
 /**
- * Display error message using template
+ * Display error message
  */
 function displayDiagnosticsError(message) {
   const content = document.getElementById('diagnostics-content');
-  if (!content || !diagnosticsTemplates) return;
+  if (!content) return;
   
+  // Use the error template from diagnostics-templates.html
   const errorSection = diagnosticsTemplates.error.cloneNode(true);
   const errorMessage = errorSection.querySelector('[data-field="error-message"]');
   if (errorMessage) {
@@ -206,12 +231,9 @@ function closeDiagnostics() {
   if (!overlay) return;
   
   overlay.classList.add('opacity-0');
-  overlay.classList.remove('opacity-100');
-  
   const panel = overlay.querySelector('.bg-white');
   if (panel) {
     panel.classList.add('scale-95');
-    panel.classList.remove('scale-100');
   }
   
   // Hide after transition
