@@ -116,6 +116,12 @@ towards the life you want to lead. It's about creating a physical artifact of
 your journey. It is highly hackable, adaptable and scalable to fit your needs
 and wants.
 
+## 📚 Documentation
+
+- **[Code Structure Guide](docs/code-structure.md)** - Documentation of the
+  modular codebase architecture, including directory structure, component
+  responsibilities, and development guidelines.
+
 ## Features of the "out-of-the-box" configuration (v1)
 
 - **Thermal Printing:** Clean, permanent-enough tactile records - no mess, no
