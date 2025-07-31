@@ -179,3 +179,43 @@ function showCopyFeedback(buttonElement) {
     buttonElement.disabled = false;
   }, 1500);
 }
+
+/**
+ * Generic character counter function
+ * @param {string} textareaId - ID of the textarea element
+ * @param {string} counterId - ID of the counter element  
+ * @param {number} defaultMaxLength - Default max length if not set on textarea
+ */
+function updateCharacterCount(textareaId, counterId, defaultMaxLength = 1000) {
+  const textarea = document.getElementById(textareaId);
+  const counter = document.getElementById(counterId);
+  
+  if (textarea && counter) {
+    const length = textarea.value.length;
+    const maxLength = textarea.maxLength || defaultMaxLength;
+    counter.textContent = `${length}/${maxLength} characters`;
+    
+    // Update styling based on character count
+    if (length > maxLength) {
+      counter.className = 'text-red-600 dark:text-red-400';
+    } else if (length >= maxLength * 0.9) {
+      counter.className = 'text-yellow-600 dark:text-yellow-400';
+    } else {
+      counter.className = 'text-gray-600 dark:text-gray-400';
+    }
+  }
+}
+
+/**
+ * Update character counter for main message textarea
+ */
+function updateCharCounter() {
+  updateCharacterCount('message-textarea', 'char-counter', 1000);
+}
+
+/**
+ * Update character counter for Unbidden Ink prompt textarea
+ */
+function updatePromptCharCount() {
+  updateCharacterCount('prompt-textarea', 'prompt-char-count', 500);
+}
