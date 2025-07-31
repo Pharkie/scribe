@@ -41,12 +41,14 @@ void setupWebServerRoutes(int maxChars)
     server.on("/", HTTP_GET, handleRoot);
     server.on("/diagnostics.html", HTTP_GET, handleDiagnosticsPage);
     server.on("/css/styles.css", HTTP_GET, handleCSS);
+    server.on("/css/tailwind.css", HTTP_GET, handleCSS);
     server.on("/js/config.js", HTTP_GET, handleJS);
     server.on("/js/messaging.js", HTTP_GET, handleJS);
     server.on("/js/diagnostics.js", HTTP_GET, handleJS);
     server.on("/js/utils.js", HTTP_GET, handleJS);
     server.on("/js/unbiddenink.js", HTTP_GET, handleJS);
     server.on("/js/main.js", HTTP_GET, handleJS);
+    server.on("/js/darkmode.js", HTTP_GET, handleJS);
     server.on("/html/index.html", HTTP_GET, handleHTMLTemplates);
     server.on("/html/404.html", HTTP_GET, handleHTMLTemplates);
     server.on("/html/diagnostics-templates.html", HTTP_GET, handleHTMLTemplates);
