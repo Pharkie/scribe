@@ -36,7 +36,7 @@ void handleDiagnosticsPage()
 
 void handleCSS()
 {
-    serveFileFromLittleFS("/css/styles.css", "text/css");
+    serveFileFromLittleFS("/css/tailwind.css", "text/css");
 }
 void handleJS()
 {

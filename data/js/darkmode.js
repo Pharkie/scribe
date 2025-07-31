@@ -33,19 +33,19 @@ function initializeDarkMode() {
  * Apply theme to the document
  */
 function applyTheme(theme) {
+  // For Tailwind v4 with media query-based dark mode,
+  // we need to override the system preference when user selects a specific theme
   const html = document.documentElement;
   
-  let shouldBeDark;
   if (theme === THEME.SYSTEM) {
-    shouldBeDark = getSystemPreference() === 'dark';
-  } else {
-    shouldBeDark = theme === THEME.DARK;
-  }
-  
-  if (shouldBeDark) {
-    html.classList.add('dark');
-  } else {
-    html.classList.remove('dark');
+    // Remove any forced color scheme, let system preference take over
+    html.style.removeProperty('color-scheme');
+  } else if (theme === THEME.LIGHT) {
+    // Force light mode
+    html.style.colorScheme = 'light';
+  } else if (theme === THEME.DARK) {
+    // Force dark mode
+    html.style.colorScheme = 'dark';
   }
 }
 
