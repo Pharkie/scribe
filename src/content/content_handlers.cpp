@@ -17,6 +17,7 @@
 #include <LittleFS.h>
 #include <ArduinoJson.h>
 #include <PubSubClient.h>
+#include <esp_task_wdt.h>
 
 // External declarations
 extern WebServer server;
@@ -434,17 +435,17 @@ bool processEndpoint(const char *endpoint, const char *destination)
     }
     else if (strcmp(endpoint, "/joke") == 0)
     {
-        content = generateJokeContent();
+        content = generateJokeContent(); // Uses default 5000ms timeout
         success = (content.length() > 0);
     }
     else if (strcmp(endpoint, "/quote") == 0)
     {
-        content = generateQuoteContent();
+        content = generateQuoteContent(); // Uses default 5000ms timeout
         success = (content.length() > 0);
     }
     else if (strcmp(endpoint, "/quiz") == 0)
     {
-        content = generateQuizContent();
+        content = generateQuizContent(); // Uses default 5000ms timeout
         success = (content.length() > 0);
     }
     else if (strcmp(endpoint, "/unbidden-ink") == 0)
@@ -489,6 +490,9 @@ bool processEndpoint(const char *endpoint, const char *destination)
         currentMessage.shouldPrintLocally = false;
         LOG_VERBOSE("WEB", "Content will be sent via MQTT to topic: %s", destination);
 
+        // Feed watchdog before potentially slow operations
+        esp_task_wdt_reset();
+
         // Create JSON payload for MQTT
         DynamicJsonDocument payloadDoc(jsonDocumentSize);
         payloadDoc["message"] = content;
@@ -500,8 +504,25 @@ bool processEndpoint(const char *endpoint, const char *destination)
 
         LOG_VERBOSE("WEB", "MQTT payload: %s", payload.c_str());
 
-        // Send via MQTT
-        if (mqttClient.publish(destination, payload.c_str()))
+        // Feed watchdog before MQTT publish
+        esp_task_wdt_reset();
+
+        // Check MQTT connection before publishing
+        if (!mqttClient.connected())
+        {
+            LOG_WARNING("WEB", "MQTT not connected, attempting to reconnect...");
+            // Don't block here - just fail gracefully
+            LOG_ERROR("WEB", "MQTT not available for publishing");
+            return false;
+        }
+
+        // Send via MQTT with timeout protection
+        bool publishSuccess = mqttClient.publish(destination, payload.c_str());
+
+        // Feed watchdog after MQTT operation
+        esp_task_wdt_reset();
+
+        if (publishSuccess)
         {
             LOG_VERBOSE("WEB", "Content successfully sent via MQTT");
         }

@@ -135,8 +135,10 @@ void handleStatus()
 
     // Configuration health
     JsonObject config = doc.createNestedObject("configuration");
-    config["settings_file_exists"] = LittleFS.exists("/unbidden_ink_settings.json");
-    if (LittleFS.exists("/unbidden_ink_settings.json"))
+    bool fileExists = LittleFS.exists("/unbidden_ink_settings.json");
+    config["settings_file_exists"] = fileExists;
+
+    if (fileExists)
     {
         File file = LittleFS.open("/unbidden_ink_settings.json", "r");
         if (file)
@@ -148,6 +150,11 @@ void handleStatus()
             config["settings_file_contents"] = fileContents;
 
             file.close();
+        }
+        else
+        {
+            // File exists but can't be opened - indicate error
+            config["settings_file_error"] = "File exists but cannot be opened";
         }
     }
 

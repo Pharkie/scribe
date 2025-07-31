@@ -12,6 +12,7 @@
 #include "../core/config.h"
 #include "../core/config_utils.h"
 #include "../core/logging.h"
+#include "../utils/api_client.h"
 #include <WebServer.h>
 #include <LittleFS.h>
 #include <ArduinoJson.h>
@@ -185,17 +186,4 @@ bool serveFileFromLittleFS(const String &path, const String &contentType)
 
     server.send(200, contentType, content);
     return true;
-}
-
-String replaceTemplate(const String &templateStr, const String &placeholder, const String &value)
-{
-    String result = templateStr;
-    String placeholderPattern = "{" + placeholder + "}";
-    int index = result.indexOf(placeholderPattern);
-    while (index >= 0)
-    {
-        result = result.substring(0, index) + value + result.substring(index + placeholderPattern.length());
-        index = result.indexOf(placeholderPattern, index + value.length());
-    }
-    return result;
 }

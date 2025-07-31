@@ -166,8 +166,8 @@ static const unsigned long memCheckInterval = 60000; // 60 seconds (memory check
 // Web server configuration
 static const int webServerPort = 80; // HTTP port for web server
 
-// Watchdog timer configuration
-static const int watchdogTimeoutSeconds = 8; // Watchdog timeout in seconds
+// Watchdog configuration
+const int watchdogTimeoutSeconds = 8; // Watchdog timeout in seconds
 
 // ========================================
 // INPUT VALIDATION LIMITS

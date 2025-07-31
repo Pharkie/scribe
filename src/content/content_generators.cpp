@@ -92,10 +92,10 @@ String generateRiddleContent()
     return fullContent;
 }
 
-String generateJokeContent()
+String generateJokeContent(int timeoutMs)
 {
     // Try to fetch from API
-    String response = fetchFromAPI(jokeAPI, apiUserAgent);
+    String response = fetchFromAPI(jokeAPI, apiUserAgent, timeoutMs);
 
     if (response.length() > 0)
     {
@@ -114,14 +114,14 @@ String generateJokeContent()
         }
     }
 
-    LOG_ERROR("JOKE", "Failed to fetch joke from API");
+    LOG_ERROR("JOKE", "Failed to fetch joke from API (timeout: %dms)", timeoutMs);
     return ""; // Return empty string to indicate failure
 }
 
-String generateQuoteContent()
+String generateQuoteContent(int timeoutMs)
 {
     // Try to fetch from API
-    String response = fetchFromAPI(quoteAPI, apiUserAgent);
+    String response = fetchFromAPI(quoteAPI, apiUserAgent, timeoutMs);
 
     if (response.length() > 0)
     {
@@ -150,14 +150,14 @@ String generateQuoteContent()
         }
     }
 
-    LOG_ERROR("QUOTE", "Failed to fetch quote from API");
+    LOG_ERROR("QUOTE", "Failed to fetch quote from API (timeout: %dms)", timeoutMs);
     return ""; // Return empty string to indicate failure
 }
 
-String generateQuizContent()
+String generateQuizContent(int timeoutMs)
 {
     // Try to fetch from API
-    String response = fetchFromAPI(triviaAPI, apiUserAgent);
+    String response = fetchFromAPI(triviaAPI, apiUserAgent, timeoutMs);
 
     if (response.length() > 0)
     {
@@ -212,7 +212,7 @@ String generateQuizContent()
         }
     }
 
-    LOG_ERROR("QUIZ", "Failed to fetch quiz from API");
+    LOG_ERROR("QUIZ", "Failed to fetch quiz from API (timeout: %dms)", timeoutMs);
     return ""; // Return empty string to indicate failure
 }
 

@@ -39,21 +39,24 @@ String generateRiddleContent();
 
 /**
  * @brief Generate joke content from external API with fallback
+ * @param timeoutMs Custom timeout in milliseconds (default: 5000)
  * @return String containing formatted joke
  */
-String generateJokeContent();
+String generateJokeContent(int timeoutMs = 5000);
 
 /**
  * @brief Generate quote content from external API with fallback
+ * @param timeoutMs Custom timeout in milliseconds (default: 5000)
  * @return String containing formatted quote with attribution
  */
-String generateQuoteContent();
+String generateQuoteContent(int timeoutMs = 5000);
 
 /**
  * @brief Generate quiz content from external API with fallback
+ * @param timeoutMs Custom timeout in milliseconds (default: 5000)
  * @return String containing formatted multiple choice question with answer
  */
-String generateQuizContent();
+String generateQuizContent(int timeoutMs = 5000);
 
 /**
  * @brief Generate AI content from Unbidden Ink API

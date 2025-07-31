@@ -68,13 +68,4 @@ void handleNotFound();
  */
 bool serveFileFromLittleFS(const String &path, const String &contentType);
 
-/**
- * @brief Replace template placeholder with value
- * @param templateStr Template string containing placeholders
- * @param placeholder Placeholder name (without brackets)
- * @param value Replacement value
- * @return String with placeholder replaced
- */
-String replaceTemplate(const String &templateStr, const String &placeholder, const String &value);
-
 #endif // WEB_HANDLERS_H
