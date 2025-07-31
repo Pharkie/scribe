@@ -68,9 +68,9 @@ static const int logLevel = LOG_LEVEL_NOTICE;
 // Log destinations (enable/disable as needed)
 static const bool enableSerialLogging = true; // Serial console
 // Note: initial boot messages are always sent to Serial before fancy logging is initialized
-static const bool enableFileLogging = false;       // LittleFS file (untested)
-static const bool enableMQTTLogging = false;       // MQTT topic
-static const bool enableBetterStackLogging = true; // BetterStack (slow but useful for debugging)
+static const bool enableFileLogging = false;        // LittleFS file (untested)
+static const bool enableMQTTLogging = false;        // MQTT topic
+static const bool enableBetterStackLogging = false; // BetterStack (slow but useful for debugging)
 // Using BetterStack with LOG_LEVEL_VERBOSE really slows down the system, due to repeated HTTP calls
 
 // Log configuration details

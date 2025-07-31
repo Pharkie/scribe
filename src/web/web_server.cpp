@@ -39,6 +39,7 @@ void setupWebServerRoutes(int maxChars)
 
     // Static file handlers
     server.on("/", HTTP_GET, handleRoot);
+    server.on("/diagnostics.html", HTTP_GET, handleDiagnosticsPage);
     server.on("/css/styles.css", HTTP_GET, handleCSS);
     server.on("/js/config.js", HTTP_GET, handleJS);
     server.on("/js/messaging.js", HTTP_GET, handleJS);

@@ -50,11 +50,26 @@ void handleRiddle()
     // Use unified endpoint processing
     if (processEndpoint("/riddle", source.c_str()))
     {
-        server.send(200, "text/plain", currentMessage.message);
+        // Return consistent JSON response
+        DynamicJsonDocument responseDoc(1024);
+        responseDoc["success"] = true;
+        responseDoc["message"] = currentMessage.message;
+        responseDoc["timestamp"] = currentMessage.timestamp;
+
+        String response;
+        serializeJson(responseDoc, response);
+        server.send(200, "application/json", response);
     }
     else
     {
-        server.send(500, "text/plain", "Failed to generate riddle content");
+        // Return consistent JSON error response
+        DynamicJsonDocument errorDoc(512);
+        errorDoc["success"] = false;
+        errorDoc["error"] = "Failed to generate riddle content";
+
+        String errorResponse;
+        serializeJson(errorDoc, errorResponse);
+        server.send(500, "application/json", errorResponse);
     }
 }
 
@@ -79,11 +94,26 @@ void handleJoke()
     // Use unified endpoint processing
     if (processEndpoint("/joke", source.c_str()))
     {
-        server.send(200, "text/plain", currentMessage.message);
+        // Return consistent JSON response
+        DynamicJsonDocument responseDoc(1024);
+        responseDoc["success"] = true;
+        responseDoc["message"] = currentMessage.message;
+        responseDoc["timestamp"] = currentMessage.timestamp;
+
+        String response;
+        serializeJson(responseDoc, response);
+        server.send(200, "application/json", response);
     }
     else
     {
-        server.send(500, "text/plain", "Failed to generate joke content");
+        // Return consistent JSON error response
+        DynamicJsonDocument errorDoc(512);
+        errorDoc["success"] = false;
+        errorDoc["error"] = "Failed to generate joke content";
+
+        String errorResponse;
+        serializeJson(errorDoc, errorResponse);
+        server.send(500, "application/json", errorResponse);
     }
 }
 
@@ -108,11 +138,26 @@ void handleQuote()
     // Use unified endpoint processing
     if (processEndpoint("/quote", source.c_str()))
     {
-        server.send(200, "text/plain", currentMessage.message);
+        // Return consistent JSON response
+        DynamicJsonDocument responseDoc(1024);
+        responseDoc["success"] = true;
+        responseDoc["message"] = currentMessage.message;
+        responseDoc["timestamp"] = currentMessage.timestamp;
+
+        String response;
+        serializeJson(responseDoc, response);
+        server.send(200, "application/json", response);
     }
     else
     {
-        server.send(500, "text/plain", "Failed to generate quote content");
+        // Return consistent JSON error response
+        DynamicJsonDocument errorDoc(512);
+        errorDoc["success"] = false;
+        errorDoc["error"] = "Failed to generate quote content";
+
+        String errorResponse;
+        serializeJson(errorDoc, errorResponse);
+        server.send(500, "application/json", errorResponse);
     }
 }
 
@@ -137,11 +182,26 @@ void handleQuiz()
     // Use unified endpoint processing
     if (processEndpoint("/quiz", source.c_str()))
     {
-        server.send(200, "text/plain", currentMessage.message);
+        // Return consistent JSON response
+        DynamicJsonDocument responseDoc(1024);
+        responseDoc["success"] = true;
+        responseDoc["message"] = currentMessage.message;
+        responseDoc["timestamp"] = currentMessage.timestamp;
+
+        String response;
+        serializeJson(responseDoc, response);
+        server.send(200, "application/json", response);
     }
     else
     {
-        server.send(500, "text/plain", "Failed to generate quiz content");
+        // Return consistent JSON error response
+        DynamicJsonDocument errorDoc(512);
+        errorDoc["success"] = false;
+        errorDoc["error"] = "Failed to generate quiz content";
+
+        String errorResponse;
+        serializeJson(errorDoc, errorResponse);
+        server.send(500, "application/json", errorResponse);
     }
 }
 
@@ -149,28 +209,32 @@ void handleUnbiddenInk()
 {
     LOG_VERBOSE("WEB", "handleUnbiddenInk() called");
 
-    // Get and parse JSON body
-    String body = server.arg("plain");
-    String source = "local-direct"; // Default value
-
-    if (body.length() > 0)
-    {
-        DynamicJsonDocument doc(1024);
-        DeserializationError error = deserializeJson(doc, body);
-        if (!error && doc.containsKey("printer"))
-        {
-            source = doc["printer"].as<String>();
-        }
-    }
+    // Unbidden Ink is always local-direct (called by internal scheduling system)
+    String source = "local-direct";
 
     // Use unified endpoint processing
     if (processEndpoint("/unbidden-ink", source.c_str()))
     {
-        server.send(200, "text/plain", currentMessage.message);
+        // Return consistent JSON response
+        DynamicJsonDocument responseDoc(1024);
+        responseDoc["success"] = true;
+        responseDoc["message"] = currentMessage.message;
+        responseDoc["timestamp"] = currentMessage.timestamp;
+
+        String response;
+        serializeJson(responseDoc, response);
+        server.send(200, "application/json", response);
     }
     else
     {
-        server.send(500, "text/plain", "Failed to generate Unbidden Ink content");
+        // Return consistent JSON error response
+        DynamicJsonDocument errorDoc(512);
+        errorDoc["success"] = false;
+        errorDoc["error"] = "Failed to generate Unbidden Ink content";
+
+        String errorResponse;
+        serializeJson(errorDoc, errorResponse);
+        server.send(500, "application/json", errorResponse);
     }
 }
 
@@ -195,11 +259,26 @@ void handlePrintTest()
     // Use unified endpoint processing
     if (processEndpoint("/print-test", source.c_str()))
     {
-        server.send(200, "text/plain", currentMessage.message);
+        // Return consistent JSON response
+        DynamicJsonDocument responseDoc(1024);
+        responseDoc["success"] = true;
+        responseDoc["message"] = currentMessage.message;
+        responseDoc["timestamp"] = currentMessage.timestamp;
+
+        String response;
+        serializeJson(responseDoc, response);
+        server.send(200, "application/json", response);
     }
     else
     {
-        server.send(500, "text/plain", "Failed to generate print test content");
+        // Return consistent JSON error response
+        DynamicJsonDocument errorDoc(512);
+        errorDoc["success"] = false;
+        errorDoc["error"] = "Failed to generate print test content";
+
+        String errorResponse;
+        serializeJson(errorDoc, errorResponse);
+        server.send(500, "application/json", errorResponse);
     }
 }
 
@@ -391,6 +470,8 @@ bool processEndpoint(const char *endpoint, const char *destination)
         return false;
     }
 
+    LOG_VERBOSE("WEB", "Generated content for %s: length=%d, preview='%.50s'", endpoint, content.length(), content.c_str());
+
     // Set up message data
     currentMessage.message = content;
     currentMessage.timestamp = getFormattedDateTime();
@@ -416,6 +497,8 @@ bool processEndpoint(const char *endpoint, const char *destination)
 
         String payload;
         serializeJson(payloadDoc, payload);
+
+        LOG_VERBOSE("WEB", "MQTT payload: %s", payload.c_str());
 
         // Send via MQTT
         if (mqttClient.publish(destination, payload.c_str()))

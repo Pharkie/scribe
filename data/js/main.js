@@ -54,12 +54,9 @@ function initializeUnbiddenInkSettings() {
     });
   }
   
-  // Initialize character count display
+  // Initialize character count display  
   updatePromptCharCount();
   updateFrequencyDisplay();
-  
-  // Load current settings from server on page load
-  loadSettings();
 }
 
 /**
@@ -183,4 +180,103 @@ function showSuccessMessage(message) {
       successDiv.parentNode.removeChild(successDiv);
     }
   }, 3000);
+}
+
+/**
+ * Toggle Unbidden Ink section expand/collapse
+ */
+function toggleUnbiddenInkSection() {
+  const content = document.getElementById('unbidden-ink-content');
+  const arrow = document.getElementById('unbidden-ink-arrow');
+  
+  if (content && arrow) {
+    if (content.classList.contains('hidden')) {
+      content.classList.remove('hidden');
+      arrow.style.transform = 'rotate(180deg)';
+      // Load settings when opening the section
+      if (typeof loadSettings === 'function') {
+        loadSettings();
+      }
+    } else {
+      content.classList.add('hidden');
+      arrow.style.transform = 'rotate(0deg)';
+    }
+  }
+}
+
+/**
+ * Initialize printer selection UI with icons
+ */
+function initializePrinterSelection() {
+  const container = document.getElementById('printer-selection');
+  if (!container) return;
+  
+  // Clear existing content
+  container.innerHTML = '';
+  
+  // Add local-direct printer option
+  const localOption = createPrinterOption('local-direct', '🖨️', 'Local (direct)', true);
+  container.appendChild(localOption);
+  
+  // Add other printers from PRINTERS config
+  if (typeof PRINTERS !== 'undefined') {
+    PRINTERS.forEach(printer => {
+      const option = createPrinterOption(printer.topic, '📡', printer.name, false);
+      container.appendChild(option);
+    });
+  }
+}
+
+/**
+ * Create a printer option element
+ */
+function createPrinterOption(value, icon, name, isSelected = false) {
+  const option = document.createElement('div');
+  option.className = `printer-option cursor-pointer p-4 rounded-xl border-2 transition-all duration-200 hover:scale-105 hover:shadow-md ${
+    isSelected ? 'border-orange-400 bg-orange-50 text-orange-700' : 'border-gray-200 bg-gray-50 text-gray-700 hover:border-gray-300'
+  }`;
+  option.setAttribute('data-value', value);
+  
+  option.innerHTML = `
+    <div class="flex items-center space-x-3">
+      <span class="text-2xl">${icon}</span>
+      <div>
+        <div class="font-medium text-sm">${name}</div>
+        ${value === 'local-direct' ? '<div class="text-xs text-gray-500">Direct connection</div>' : '<div class="text-xs text-gray-500">MQTT connection</div>'}
+      </div>
+    </div>
+  `;
+  
+  option.addEventListener('click', () => selectPrinter(value, option));
+  
+  return option;
+}
+
+/**
+ * Handle printer selection
+ */
+function selectPrinter(value, element) {
+  // Remove selection from all options
+  document.querySelectorAll('.printer-option').forEach(option => {
+    option.className = option.className.replace(/border-orange-400|bg-orange-50|text-orange-700/g, '')
+                                   .replace(/border-gray-200|bg-gray-50|text-gray-700/g, '')
+                        + ' border-gray-200 bg-gray-50 text-gray-700 hover:border-gray-300';
+  });
+  
+  // Add selection to clicked option
+  element.className = element.className.replace(/border-gray-200|bg-gray-50|text-gray-700|hover:border-gray-300/g, '')
+                    + ' border-orange-400 bg-orange-50 text-orange-700';
+  
+  // Update hidden input
+  const hiddenInput = document.getElementById('printer-target');
+  if (hiddenInput) {
+    hiddenInput.value = value;
+  }
+}
+
+/**
+ * Initialize UI components that depend on config being loaded
+ */
+function initializeConfigDependentUI() {
+  initializePrinterSelection();
 }

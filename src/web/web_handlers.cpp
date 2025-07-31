@@ -28,6 +28,11 @@ void handleRoot()
     serveFileFromLittleFS("/html/index.html", "text/html");
 }
 
+void handleDiagnosticsPage()
+{
+    serveFileFromLittleFS("/html/diagnostics.html", "text/html");
+}
+
 void handleCSS()
 {
     serveFileFromLittleFS("/css/styles.css", "text/css");

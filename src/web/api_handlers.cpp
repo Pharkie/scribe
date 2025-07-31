@@ -390,9 +390,9 @@ void handleUnbiddenInkSettingsPost()
         return;
     }
 
-    if (frequency < 5 || frequency > 240)
+    if (frequency < 15 || frequency > 480)
     {
-        sendValidationError(ValidationResult(false, "Frequency must be between 5 and 240 minutes"));
+        sendValidationError(ValidationResult(false, "Frequency must be between 15 minutes and 8 hours"));
         return;
     }
 

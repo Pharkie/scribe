@@ -22,6 +22,11 @@
 void handleRoot();
 
 /**
+ * @brief Handle diagnostics page request
+ */
+void handleDiagnosticsPage();
+
+/**
  * @brief Handle CSS file request
  */
 void handleCSS();

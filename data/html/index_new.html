@@ -88,119 +88,95 @@
 
         <!-- Unbidden Ink Section (Collapsible) -->
         <div class="bg-white shadow-xl rounded-3xl border border-gray-100 overflow-hidden">
-            <!-- Header with Enable Toggle -->
-            <div class="p-6 flex items-center justify-between">
+            <button onclick="toggleUnbiddenInkSection()"
+                class="w-full p-6 flex items-center justify-between text-left hover:bg-gray-50 transition-colors duration-200">
                 <div class="flex items-center space-x-3">
                     <span class="text-2xl">🪄</span>
-                    <div class="flex items-center space-x-4">
+                    <div>
                         <h3 class="text-lg font-semibold text-gray-800">Unbidden Ink</h3>
-                        <div class="flex items-center space-x-2">
-                            <label class="text-sm font-medium text-gray-700">Enable</label>
+                        <p class="text-sm text-gray-600">AI-powered automated printing</p>
+                    </div>
+                </div>
+                <svg id="unbidden-ink-arrow" class="w-5 h-5 text-gray-400 transform transition-transform duration-200"
+                    fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                </svg>
+            </button>
+
+            <div id="unbidden-ink-content" class="hidden px-6 pb-6 border-t border-gray-100">
+                <form id="unbiddeninksettings-form" class="space-y-6 mt-6">
+                    <!-- Enable/Disable Unbidden Ink -->
+                    <div class="space-y-3">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <label class="text-sm font-medium text-gray-700">Enable Unbidden Ink</label>
+                                <p class="text-xs text-gray-500">Automatically generate and print AI content</p>
+                            </div>
                             <label class="relative inline-flex items-center cursor-pointer">
-                                <input type="checkbox" id="unbidden-ink-enabled" name="enabled" class="sr-only peer"
-                                    onchange="toggleUnbiddenInkSettings()">
+                                <input type="checkbox" id="unbidden-ink-enabled" name="enabled" class="sr-only peer">
                                 <div
                                     class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-purple-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600">
                                 </div>
                             </label>
                         </div>
                     </div>
-                </div>
-                <!-- Settings Collapsible Button -->
-                <button onclick="toggleUnbiddenInkSection()"
-                    class="flex items-center space-x-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors duration-200">
-                    <span class="text-sm font-medium text-gray-700">Settings</span>
-                    <svg id="unbidden-ink-arrow"
-                        class="w-4 h-4 text-gray-400 transform transition-transform duration-200" fill="none"
-                        stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-                    </svg>
-                </button>
-            </div>
 
-            <div id="unbidden-ink-content" class="hidden px-6 pb-6 border-t border-gray-100">
-                <form id="unbiddeninksettings-form" class="space-y-6 mt-6">
-                    <!-- Settings Details (hidden when disabled) -->
-                    <div id="unbidden-ink-details" class="space-y-6">
-                        <!-- Frequency Slider -->
-                        <div class="space-y-3">
-                            <label for="frequency" class="block text-sm font-medium text-gray-700">
-                                Frequency: <span id="frequency-display" class="text-purple-600 font-semibold">Every 60
-                                    minutes</span>
-                            </label>
-                            <input type="range" id="frequency" name="frequency" min="15" max="480" value="60" step="15"
-                                class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider"
-                                oninput="updateFrequencyDisplay()">
-                            <div class="flex justify-between text-xs text-gray-500">
-                                <span>15 min</span>
-                                <span>8 hours</span>
-                            </div>
+                    <!-- Frequency Slider -->
+                    <div class="space-y-3">
+                        <label for="frequency" class="block text-sm font-medium text-gray-700">
+                            Frequency: <span id="frequency-display" class="text-purple-600 font-semibold">Every 2
+                                hours</span>
+                        </label>
+                        <input type="range" id="frequency" name="frequency" min="1" max="24" value="2" step="1"
+                            class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider">
+                        <div class="flex justify-between text-xs text-gray-500">
+                            <span>1 hour</span>
+                            <span>24 hours</span>
                         </div>
+                    </div>
 
-                        <!-- Active Hours -->
-                        <div class="grid grid-cols-2 gap-4">
-                            <div class="space-y-2">
-                                <label for="start-hour" class="block text-sm font-medium text-gray-700">Start
-                                    time</label>
-                                <select id="start-hour" name="start-hour"
-                                    class="w-full p-3 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent text-gray-800">
-                                    <!-- Options will be populated by JavaScript -->
-                                </select>
-                            </div>
-                            <div class="space-y-2">
-                                <label for="end-hour" class="block text-sm font-medium text-gray-700">End time</label>
-                                <select id="end-hour" name="end-hour"
-                                    class="w-full p-3 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent text-gray-800">
-                                    <!-- Options will be populated by JavaScript -->
-                                </select>
-                            </div>
-                        </div>
-
-                        <!-- Custom Prompt -->
+                    <!-- Active Hours -->
+                    <div class="grid grid-cols-2 gap-4">
                         <div class="space-y-2">
-                            <label for="custom-prompt" class="block text-sm font-medium text-gray-700">Custom prompt
-                                (optional)</label>
-
-                            <!-- Preset Buttons -->
-                            <div class="grid grid-cols-2 gap-2 mb-3">
-                                <button type="button" onclick="loadPromptPreset('motivation')"
-                                    class="px-3 py-2 bg-blue-100 hover:bg-blue-200 text-blue-700 text-xs rounded-lg font-medium transition-all duration-200 hover:scale-105">
-                                    ✨ Motivation
-                                </button>
-                                <button type="button" onclick="loadPromptPreset('doctorwho')"
-                                    class="px-3 py-2 bg-green-100 hover:bg-green-200 text-green-700 text-xs rounded-lg font-medium transition-all duration-200 hover:scale-105">
-                                    🎭 Doctor Who
-                                </button>
-                                <button type="button" onclick="loadPromptPreset('wonderful')"
-                                    class="px-3 py-2 bg-yellow-100 hover:bg-yellow-200 text-yellow-700 text-xs rounded-lg font-medium transition-all duration-200 hover:scale-105">
-                                    🌟 Wonderful
-                                </button>
-                                <button type="button" onclick="loadPromptPreset('creative')"
-                                    class="px-3 py-2 bg-pink-100 hover:bg-pink-200 text-pink-700 text-xs rounded-lg font-medium transition-all duration-200 hover:scale-105">
-                                    🎨 Creative
-                                </button>
-                            </div>
-
-                            <textarea id="custom-prompt" name="custom-prompt"
-                                placeholder="Override the default AI prompt with your own creative instructions..."
-                                class="w-full p-3 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent resize-none text-gray-800 placeholder-gray-400"
-                                rows="3" oninput="updatePromptCharCount()"></textarea>
-                            <div class="text-xs text-gray-500 text-right">
-                                <span id="prompt-char-count">500 characters remaining</span>
-                            </div>
+                            <label for="start-hour" class="block text-sm font-medium text-gray-700">Start time</label>
+                            <select id="start-hour" name="start-hour"
+                                class="w-full p-3 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent text-gray-800">
+                                <!-- Options will be populated by JavaScript -->
+                            </select>
                         </div>
-
-                        <!-- Action Buttons -->
-                        <div class="flex space-x-3 pt-4">
-                            <button type="button" onclick="saveUnbiddenInkSettings()"
-                                class="flex-1 bg-purple-600 hover:bg-purple-700 text-white py-3 rounded-lg font-medium transition-all duration-200 hover:scale-[1.02] hover:shadow-lg">
-                                💾 Save Settings
-                            </button>
-                            <button type="button" onclick="testUnbiddenInk()"
-                                class="px-6 py-3 bg-purple-100 hover:bg-purple-200 text-purple-700 border border-purple-200 rounded-lg font-medium transition-all duration-200 hover:scale-105 hover:shadow-md">
-                                🖨️ Print Sample
-                            </button>
+                        <div class="space-y-2">
+                            <label for="end-hour" class="block text-sm font-medium text-gray-700">End time</label>
+                            <select id="end-hour" name="end-hour"
+                                class="w-full p-3 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent text-gray-800">
+                                <!-- Options will be populated by JavaScript -->
+                            </select>
                         </div>
+                    </div>
+
+                    <!-- Custom Prompt -->
+                    <div class="space-y-2">
+                        <label for="custom-prompt" class="block text-sm font-medium text-gray-700">Custom prompt
+                            (optional)</label>
+                        <textarea id="custom-prompt" name="custom-prompt"
+                            placeholder="Override the default AI prompt with your own creative instructions..."
+                            class="w-full p-3 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent resize-none text-gray-800 placeholder-gray-400"
+                            rows="3"></textarea>
+                        <div class="flex justify-between text-xs text-gray-500">
+                            <span id="prompt-char-count">0 characters</span>
+                            <span>500 character limit</span>
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="flex space-x-3 pt-4">
+                        <button type="button" onclick="saveUnbiddenInkSettings()"
+                            class="flex-1 bg-purple-600 hover:bg-purple-700 text-white py-3 rounded-lg font-medium transition-all duration-200 hover:scale-[1.02] hover:shadow-lg">
+                            💾 Save Settings
+                        </button>
+                        <button type="button" onclick="sendQuickAction('unbidden-ink')"
+                            class="px-6 py-3 bg-purple-100 hover:bg-purple-200 text-purple-700 border border-purple-200 rounded-lg font-medium transition-all duration-200 hover:scale-105 hover:shadow-md">
+                            🖨️ Print Sample
+                        </button>
                     </div>
                 </form>
             </div>

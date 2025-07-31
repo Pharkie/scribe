@@ -23,29 +23,13 @@ async function loadConfig() {
     const textarea = document.getElementById('message-textarea');
     textarea.setAttribute('maxlength', MAX_CHARS);
     
-    // Populate printer dropdown
-    const printerSelect = document.getElementById('printer-target');
-    printerSelect.innerHTML = ''; // Clear existing options
-    
     // Store printer data for later use
     PRINTERS = config.remotePrinters;
     
-    // Add local direct option (using first printer's name)
-    const localDirectOption = document.createElement('option');
-    localDirectOption.value = 'local-direct';
-    localDirectOption.textContent = `${config.remotePrinters[0].name} (local, direct)`;
-    printerSelect.appendChild(localDirectOption);
-    
-    // Add local via MQTT and other printers
-    config.remotePrinters.forEach((printer, index) => {
-      const option = document.createElement('option');
-      option.value = printer.topic;
-      // First printer is local via MQTT, others are remote
-      option.textContent = index === 0 
-        ? `${printer.name} (local, via MQTT)` 
-        : `📡 ${printer.name} (remote via MQTT)`;
-      printerSelect.appendChild(option);
-    });
+    // Initialize printer selection UI (if function exists)
+    if (typeof initializeConfigDependentUI === 'function') {
+      initializeConfigDependentUI();
+    }
     
     // Update character counter
     updateCharCounter();

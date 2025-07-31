@@ -45,8 +45,6 @@ function getActionConfig(action) {
       return { colors: ['#6b7280', '#4b5563', '#9ca3af'], name: 'Print Test' }; // Gray
     case 'scribe-message':
       return { colors: ['#8b5cf6', '#7c3aed', '#a78bfa'], name: 'Message' }; // Purple
-    case 'unbidden-ink':
-      return { colors: ['#8b5cf6', '#7c3aed', '#a78bfa'], name: 'Unbidden Ink' }; // Purple
     default:
       return { colors: ['#6b7280', '#4b5563', '#9ca3af'], name: 'Unknown' }; // Gray
   }
@@ -164,13 +162,17 @@ function sendQuickAction(action) {
   })
   .then(response => {
     if (response.ok) {
-      return response.text(); // These endpoints return plain text, not JSON
+      return response.json(); // These endpoints now return JSON, not plain text
     }
     throw new Error(`HTTP ${response.status}: ${response.statusText}`);
   })
   .then(result => {
-    // Show success message in a toast/notification instead of full screen
-    showSuccessToast(`${config.name} scribed`);
+    if (result.success) {
+      // Show success message in a toast/notification instead of full screen
+      showSuccessToast(`${config.name} scribed`);
+    } else {
+      throw new Error(result.error || 'Unknown error occurred');
+    }
   })
   .catch(error => {
     console.error(`Failed to send ${config.name.toLowerCase()}:`, error);

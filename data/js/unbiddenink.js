@@ -4,40 +4,20 @@
  */
 
 /**
- * Toggle settings panel visibility
- */
-function toggleSettings() {
-  const overlay = document.getElementById('settings-overlay');
-  const panel = document.getElementById('settings-panel');
-  
-  if (overlay.classList.contains('hidden')) {
-    // Show the overlay
-    overlay.classList.remove('hidden');
-    setTimeout(() => {
-      overlay.classList.remove('opacity-0');
-      panel.classList.remove('scale-95');
-    }, 10);
-    // Don't automatically load settings - let the user manually refresh if needed
-  } else {
-    // Hide the overlay
-    overlay.classList.add('opacity-0');
-    panel.classList.add('scale-95');
-    setTimeout(() => {
-      overlay.classList.add('hidden');
-    }, 300);
-  }
-}
-
-/**
  * Load current Unbidden Ink settings from the server
  */
 async function loadSettings() {
   try {
     const response = await fetch('/unbiddenink-settings');
+    
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    }
+    
     const data = await response.json();
     
     // The API returns the settings directly as JSON
-    document.getElementById('enable-unbidden-ink').checked = data.enabled || false;
+    document.getElementById('unbidden-ink-enabled').checked = data.enabled || false;
     document.getElementById('custom-prompt').value = data.prompt || '';
     document.getElementById('start-hour').value = data.startHour || 9;
     document.getElementById('end-hour').value = data.endHour || 17;
@@ -46,11 +26,16 @@ async function loadSettings() {
     // Update frequency display
     updateFrequencyDisplay();
     
+    // Update character count
+    updatePromptCharCount();
+    
     // Update settings visibility based on enabled state
     toggleUnbiddenInkSettings();
+    
+    console.log('Unbidden Ink settings loaded successfully:', data);
   } catch (error) {
     console.error('Error loading Unbidden Ink settings:', error);
-    showErrorMessage('Failed to load Unbidden Ink settings');
+    showErrorMessage('Failed to load Unbidden Ink settings: ' + error.message);
   }
 }
 
@@ -63,7 +48,7 @@ async function saveSettings(event) {
   }
   
   // Collect settings from form elements directly
-  const enabled = document.getElementById('enable-unbidden-ink').checked;
+  const enabled = document.getElementById('unbidden-ink-enabled').checked;
   const settings = {
     enabled: enabled,
     prompt: document.getElementById('custom-prompt').value || (enabled ? 'Write a short, interesting message.' : ''),
@@ -113,13 +98,17 @@ async function saveSettings(event) {
  * Toggle visibility of Unbidden Ink settings based on enabled state
  */
 function toggleUnbiddenInkSettings() {
-  const settingsContainer = document.getElementById('unbidden-ink-settings');
-  const enableCheckbox = document.getElementById('enable-unbidden-ink');
+  const enableCheckbox = document.getElementById('unbidden-ink-enabled');
+  const settingsContainer = document.getElementById('unbidden-ink-details');
   
-  if (enableCheckbox.checked) {
-    settingsContainer.classList.remove('opacity-50', 'pointer-events-none');
-  } else {
-    settingsContainer.classList.add('opacity-50', 'pointer-events-none');
+  if (enableCheckbox && settingsContainer) {
+    if (enableCheckbox.checked) {
+      settingsContainer.classList.remove('hidden');
+    } else {
+      settingsContainer.classList.add('hidden');
+      // Auto-save when disabled
+      saveSettings();
+    }
   }
 }
 
@@ -128,9 +117,19 @@ function toggleUnbiddenInkSettings() {
  */
 function updateFrequencyDisplay() {
   const frequency = document.getElementById('frequency').value;
-  const display = document.getElementById('frequency-value');
+  const display = document.getElementById('frequency-display');
   if (display) {
-    display.textContent = frequency + ' min';
+    if (frequency >= 60) {
+      const hours = Math.floor(frequency / 60);
+      const minutes = frequency % 60;
+      if (minutes === 0) {
+        display.textContent = `Every ${hours} hour${hours > 1 ? 's' : ''}`;
+      } else {
+        display.textContent = `Every ${hours}h ${minutes}m`;
+      }
+    } else {
+      display.textContent = `Every ${frequency} minutes`;
+    }
   }
 }
 
@@ -159,8 +158,9 @@ function updatePromptCharCount() {
   const prompt = document.getElementById('custom-prompt').value;
   const counter = document.getElementById('prompt-char-count');
   if (counter) {
-    counter.textContent = prompt.length + '/500';
-    if (prompt.length > 450) {
+    const remaining = 500 - prompt.length;
+    counter.textContent = `${remaining} characters remaining`;
+    if (remaining < 50) {
       counter.classList.add('text-red-500');
     } else {
       counter.classList.remove('text-red-500');
@@ -186,4 +186,11 @@ async function testUnbiddenInk() {
     console.error('Error testing Unbidden Ink:', error);
     showErrorMessage('Failed to send test message');
   }
+}
+
+/**
+ * Alias for saveSettings to match button onclick
+ */
+function saveUnbiddenInkSettings() {
+  saveSettings();
 }
