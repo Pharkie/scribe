@@ -121,9 +121,6 @@ function toggleUnbiddenInkSettings() {
   } else {
     settingsContainer.classList.add('opacity-50', 'pointer-events-none');
   }
-  
-  // Auto-save when the enable/disable state changes
-  saveSettings();
 }
 
 /**

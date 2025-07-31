@@ -56,12 +56,24 @@ function getActionConfig(action) {
  * Send message using unified endpoint
  */
 function sendMessage(printerTarget, message, action = null) {
-  // Determine the appropriate endpoint and payload
-  let endpoint = '/scribe-message';
-  let payload = {
-    printer: printerTarget,
-    message: message
-  };
+  // Determine the appropriate endpoint and payload based on printer target
+  let endpoint, payload;
+  
+  if (printerTarget === 'local-direct') {
+    // Local direct printing - use scribe-message endpoint
+    endpoint = '/scribe-message';
+    payload = {
+      printer: printerTarget,
+      message: message
+    };
+  } else {
+    // MQTT printing (local via MQTT or remote) - use mqtt-send endpoint
+    endpoint = '/mqtt-send';
+    payload = {
+      topic: printerTarget,
+      message: message
+    };
+  }
 
   // If action is specified, include it
   if (action) {

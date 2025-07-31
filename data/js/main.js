@@ -14,13 +14,13 @@ document.addEventListener('DOMContentLoaded', function() {
   document.addEventListener('keydown', handleKeyPress);
   
   // Add form event listeners
-  const messageForm = document.querySelector('form');
+  const messageForm = document.getElementById('printer-form');
   if (messageForm) {
     messageForm.addEventListener('submit', function(event) {
       event.preventDefault();
       
-      const messageInput = document.getElementById('message');
-      const printerSelect = document.getElementById('printer');
+      const messageInput = document.getElementById('message-textarea');
+      const printerSelect = document.getElementById('printer-target');
       
       if (messageInput && printerSelect) {
         sendMessage(messageInput.value, printerSelect.value);
@@ -29,7 +29,7 @@ document.addEventListener('DOMContentLoaded', function() {
   }
   
   // Update character counter on input
-  const messageInput = document.getElementById('message');
+  const messageInput = document.getElementById('message-textarea');
   if (messageInput) {
     messageInput.addEventListener('input', updateCharCounter);
   }
@@ -57,6 +57,16 @@ function initializeUnbiddenInkSettings() {
   const frequencySlider = document.getElementById('frequency');
   if (frequencySlider) {
     frequencySlider.addEventListener('input', updateFrequencyDisplay);
+  }
+  
+  // Prevent any form submission on the settings form
+  const settingsForm = document.getElementById('unbiddeninksettings-form');
+  if (settingsForm) {
+    settingsForm.addEventListener('submit', function(event) {
+      console.log('Settings form submission prevented');
+      event.preventDefault();
+      return false;
+    });
   }
   
   // Initialize character count display
