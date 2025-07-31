@@ -154,16 +154,6 @@ function checkStartupMessages() {
 }
 
 /**
- * Close diagnostics modal
- */
-function closeDiagnostics() {
-  const modal = document.getElementById('diagnostics-modal');
-  if (modal) {
-    modal.classList.add('hidden');
-  }
-}
-
-/**
  * Show error message to user
  */
 function showErrorMessage(message) {

@@ -35,16 +35,16 @@ function getActionConfig(action) {
   switch (action) {
     case 'riddle':
       return { colors: ['#f59e0b', '#d97706', '#fbbf24'], name: 'Riddle' }; // Amber
-    case 'dad-joke':
-      return { colors: ['#10b981', '#059669', '#34d399'], name: 'Dad Joke' }; // Emerald
-    case 'character-test':
-      return { colors: ['#6366f1', '#4f46e5', '#818cf8'], name: 'Character Test' }; // Indigo
-    case 'motivation':
-      return { colors: ['#ef4444', '#dc2626', '#f87171'], name: 'Motivation' }; // Red
+    case 'joke':
+      return { colors: ['#10b981', '#059669', '#34d399'], name: 'Joke' }; // Emerald
+    case 'quote':
+      return { colors: ['#8b5cf6', '#7c3aed', '#a78bfa'], name: 'Quote' }; // Purple
+    case 'quiz':
+      return { colors: ['#f59e0b', '#d97706', '#fbbf24'], name: 'Quiz' }; // Amber
+    case 'print-test':
+      return { colors: ['#6b7280', '#4b5563', '#9ca3af'], name: 'Print Test' }; // Gray
     case 'custom':
       return { colors: ['#8b5cf6', '#7c3aed', '#a78bfa'], name: 'Custom Message' }; // Purple
-    case 'print-test':
-      return { colors: ['#06b6d4', '#0891b2', '#67e8f9'], name: 'Print Test' }; // Cyan
     case 'unbidden-ink':
       return { colors: ['#8b5cf6', '#7c3aed', '#a78bfa'], name: 'Unbidden Ink' }; // Purple
     default:
@@ -57,7 +57,7 @@ function getActionConfig(action) {
  */
 function sendMessage(printerTarget, message, action = null) {
   // Determine the appropriate endpoint and payload
-  let endpoint = '/send';
+  let endpoint = '/scribe-message';
   let payload = {
     printer: printerTarget,
     message: message
@@ -68,13 +68,11 @@ function sendMessage(printerTarget, message, action = null) {
     payload.action = action;
   }
 
-  // Show loading state with action-specific styling
+  // Get action config for display
   const config = getActionConfig(action || 'custom');
-  const overlay = showSuccessMessage(`Sending ${config.name}...`);
   
-  // Apply action-specific gradient
-  const gradient = `linear-gradient(135deg, ${config.colors[0]} 0%, ${config.colors[1]} 50%, ${config.colors[2]} 100%)`;
-  overlay.style.background = gradient;
+  // Show confetti immediately
+  triggerConfetti();
 
   fetch(endpoint, {
     method: 'POST',
@@ -88,8 +86,8 @@ function sendMessage(printerTarget, message, action = null) {
     throw new Error(`HTTP ${response.status}: ${response.statusText}`);
   })
   .then(result => {
-    const printerName = getPrinterName(printerTarget);
-    overlay.querySelector('.font-bold').textContent = `${config.name} sent successfully to ${printerName}!`;
+    // Show success message in a toast instead of full screen
+    showSuccessToast(`${config.name} sent successfully!`);
     
     // Clear the message input for non-action messages
     if (!action) {
@@ -112,28 +110,28 @@ function getPrinterName(topic) {
 }
 
 /**
- * Handle quick actions (riddle, dad joke, character test)
+ * Handle quick actions (riddle, joke, quote, quiz, test print, etc.)
  */
 function sendQuickAction(action) {
   const printerTarget = document.getElementById('printer-target').value;
   
-  // Map action to endpoint - fail explicitly for unknown actions
+  // Map action to endpoint
   let endpoint;
   switch (action) {
     case 'riddle':
       endpoint = '/riddle';
       break;
-    case 'dad-joke':
-      endpoint = '/dad-joke';
+    case 'joke':
+      endpoint = '/joke';
       break;
-    case 'character-test':
-      endpoint = '/character-test';
+    case 'quote':
+      endpoint = '/quote';
+      break;
+    case 'quiz':
+      endpoint = '/quiz';
       break;
     case 'print-test':
       endpoint = '/print-test';
-      break;
-    case 'motivation':
-      endpoint = '/motivation';
       break;
     default:
       console.error('Unknown action:', action);
@@ -141,13 +139,11 @@ function sendQuickAction(action) {
       return;
   }
 
-  // Show loading state with action-specific styling
+  // Get action config for display
   const config = getActionConfig(action);
-  const overlay = showSuccessMessage(`Sending ${config.name}...`);
   
-  // Apply action-specific gradient
-  const gradient = `linear-gradient(135deg, ${config.colors[0]} 0%, ${config.colors[1]} 50%, ${config.colors[2]} 100%)`;
-  overlay.style.background = gradient;
+  // Show confetti immediately
+  triggerConfetti();
 
   fetch(endpoint, {
     method: 'POST',
@@ -156,54 +152,56 @@ function sendQuickAction(action) {
   })
   .then(response => {
     if (response.ok) {
-      return response.json();
+      return response.text(); // These endpoints return plain text, not JSON
     }
     throw new Error(`HTTP ${response.status}: ${response.statusText}`);
   })
   .then(result => {
-    const printerName = getPrinterName(printerTarget);
-    overlay.querySelector('.font-bold').textContent = `${config.name} sent successfully to ${printerName}!`;
+    // Show success message in a toast/notification instead of full screen
+    showSuccessToast(`${config.name} sent successfully!`);
   })
   .catch(error => {
     console.error(`Failed to send ${config.name.toLowerCase()}:`, error);
-    
-    // Hide the overlay and show error
-    overlay.remove();
     alert(`Failed to send ${config.name.toLowerCase()}. Please try again.\n\nError: ${error.message}`);
   });
 }
 
 /**
- * Show success message with animated overlay
+ * Trigger confetti animation
  */
-function showSuccessMessage(message) {
-  // Create overlay
-  const overlay = document.createElement('div');
-  overlay.className = 'fixed inset-0 bg-green-500 flex items-center justify-center z-50 transition-opacity duration-300';
-  overlay.style.background = 'linear-gradient(135deg, #10b981 0%, #059669 50%, #34d399 100%)';
+function triggerConfetti() {
+  if (typeof confetti !== 'undefined') {
+    confetti({
+      particleCount: 100,
+      spread: 70,
+      origin: { y: 0.6 }
+    });
+  }
+}
+
+/**
+ * Show a success toast notification
+ */
+function showSuccessToast(message) {
+  // Create toast element
+  const toast = document.createElement('div');
+  toast.className = 'fixed top-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50 transform translate-x-full transition-transform duration-300';
+  toast.textContent = message;
   
-  // Create message container
-  const messageContainer = document.createElement('div');
-  messageContainer.className = 'text-white text-center px-8 py-6 rounded-lg shadow-2xl transform transition-transform duration-300 scale-95';
-  messageContainer.innerHTML = `
-    <div class="text-2xl font-bold mb-2">${message}</div>
-    <div class="text-lg opacity-90">Check your printer!</div>
-  `;
-  
-  overlay.appendChild(messageContainer);
-  document.body.appendChild(overlay);
+  document.body.appendChild(toast);
   
   // Animate in
   setTimeout(() => {
-    overlay.style.opacity = '1';
-    messageContainer.style.transform = 'scale(1)';
+    toast.classList.remove('translate-x-full');
   }, 10);
   
-  // Auto-hide after 3 seconds
+  // Auto remove after 3 seconds
   setTimeout(() => {
-    overlay.style.opacity = '0';
-    setTimeout(() => overlay.remove(), 300);
+    toast.classList.add('translate-x-full');
+    setTimeout(() => {
+      if (toast.parentNode) {
+        toast.parentNode.removeChild(toast);
+      }
+    }, 300);
   }, 3000);
-  
-  return overlay;
 }

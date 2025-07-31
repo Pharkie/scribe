@@ -44,7 +44,7 @@ void setupWebServerRoutes(int maxChars)
     server.on("/js/messaging.js", HTTP_GET, handleJS);
     server.on("/js/diagnostics.js", HTTP_GET, handleJS);
     server.on("/js/utils.js", HTTP_GET, handleJS);
-    server.on("/js/settings.js", HTTP_GET, handleJS);
+    server.on("/js/unbiddenink.js", HTTP_GET, handleJS);
     server.on("/js/main.js", HTTP_GET, handleJS);
     server.on("/html/index.html", HTTP_GET, handleHTMLTemplates);
     server.on("/html/404.html", HTTP_GET, handleHTMLTemplates);
@@ -57,7 +57,7 @@ void setupWebServerRoutes(int maxChars)
     // Form submission handlers
     server.on("/print-local", HTTP_POST, handleSubmit);
     server.on("/print-local", HTTP_GET, handleSubmit);
-    server.on("/message", HTTP_POST, handleMessage);
+    server.on("/scribe-message", HTTP_POST, handleMessage);
 
     // Content generation endpoints
     server.on("/test-print", HTTP_POST, handlePrintTest);
@@ -71,10 +71,8 @@ void setupWebServerRoutes(int maxChars)
     server.on("/status", HTTP_GET, handleStatus);
     server.on("/buttons", HTTP_GET, handleButtons);
     server.on("/mqtt-send", HTTP_POST, handleMQTTSend);
-
-    // Unbidden Ink settings endpoints
-    server.on("/unbidden-ink/settings", HTTP_GET, handleUnbiddenInkSettingsGet);
-    server.on("/unbidden-ink/settings", HTTP_POST, handleUnbiddenInkSettingsPost);
+    server.on("/unbiddenink-settings", HTTP_GET, handleUnbiddenInkSettingsGet);
+    server.on("/unbiddenink-settings", HTTP_POST, handleUnbiddenInkSettingsPost);
 
     // Handle 404
     server.onNotFound(handleNotFound);

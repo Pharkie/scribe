@@ -27,6 +27,21 @@ function handleKeyPress(event) {
 }
 
 /**
+ * Handle textarea keydown events for Enter/Shift+Enter behavior
+ */
+function handleTextareaKeydown(event) {
+  // Enter to submit form (unless Shift is held)
+  if (event.key === 'Enter' && !event.shiftKey) {
+    event.preventDefault();
+    const form = document.getElementById('printer-form');
+    if (form) {
+      form.dispatchEvent(new Event('submit'));
+    }
+  }
+  // Shift+Enter allows normal line break (default behavior)
+}
+
+/**
  * Copy section content to clipboard
  */
 function copySection(sectionId, buttonElement) {

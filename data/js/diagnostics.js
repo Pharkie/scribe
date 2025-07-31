@@ -113,14 +113,14 @@ function displayDiagnostics(data) {
     const flashFree = data.flash_total - data.flash_used;
     const sketchUsedPercent = Math.round((data.sketch_size / (data.sketch_size + data.free_sketch_space)) * 100);
     
-    // Create and populate network section
-    console.log('Creating network section...');
-    const networkSection = diagnosticsTemplates.network.cloneNode(true);
+  // Create and populate network section
+  console.log('Creating network section...');
+  const networkSection = diagnosticsTemplates.network.cloneNode(true);
   populateDataFields(networkSection, {
     'wifi-status': data.wifi_connected ? 'Connected ✅' : 'Disconnected ❌',
     'wifi-ssid': data.wifi_ssid || 'Not connected',
     'ip-address': data.ip_address || 'Not assigned',
-    'signal-strength': data.wifi_connected ? `${data.rssi} dBm` : 'N/A',
+    'signal-strength': data.rssi ? `${data.rssi} dBm` : 'Unknown',
     'mac-address': data.mac_address || 'Unknown'
   });
   content.appendChild(networkSection);
@@ -128,26 +128,21 @@ function displayDiagnostics(data) {
   // Create and populate MQTT section
   const mqttSection = diagnosticsTemplates.mqtt.cloneNode(true);
   populateDataFields(mqttSection, {
-    'mqtt-status': data.mqtt_connected ? 'Connected ✅' : (data.mqtt_enabled ? 'Disconnected ❌' : 'Disabled'),
+    'mqtt-status': data.mqtt_connected ? 'Connected ✅' : 'Disconnected ❌',
     'mqtt-server': data.mqtt_server || 'Not configured',
     'mqtt-port': data.mqtt_port || 'Not configured',
-    'mqtt-topic': data.mqtt_topic || 'Not configured'
+    'mqtt-client-id': data.mqtt_client_id || 'Not configured',
+    'mqtt-topic': data.local_topic || 'Not configured',
+    'mqtt-error': data.mqtt_error || 'None'
   });
-  content.appendChild(mqttSection);
-  
-  // Create and populate Unbidden Ink section
+  content.appendChild(mqttSection);  // Create and populate Unbidden Ink section
   const unbiddenSection = diagnosticsTemplates.unbiddenInk.cloneNode(true);
   
-  // Determine runtime status (prioritize runtime over file)
-  let runtimeStatus = 'Unknown';
-  if (data.unbidden_ink_runtime_enabled !== undefined) {
-    runtimeStatus = data.unbidden_ink_runtime_enabled ? 'Enabled ✅' : 'Disabled ❌';
-  } else if (data.unbidden_ink_enabled !== undefined) {
-    runtimeStatus = data.unbidden_ink_enabled ? 'Enabled ✅' : 'Disabled ❌';
-  }
+  // Use the correct field from the JSON response
+  const unbiddenInkEnabled = data.unbidden_ink && data.unbidden_ink.enabled;
   
   populateDataFields(unbiddenSection, {
-    'unbidden-enabled': runtimeStatus,
+    'unbidden-enabled': unbiddenInkEnabled ? 'Enabled ✅' : 'Disabled ❌',
     'api-key-status': data.api_key_configured ? 'Configured ✅' : 'Not configured ❌',
     'last-check': data.last_unbidden_check || 'Never',
     'total-messages': data.unbidden_message_count || '0'
@@ -159,29 +154,28 @@ function displayDiagnostics(data) {
   populateDataFields(microSection, {
     'chip-model': data.chip_model || 'Unknown',
     'cpu-frequency': data.cpu_freq ? `${data.cpu_freq} MHz` : 'Unknown',
-    'free-ram': data.free_heap ? `${(data.free_heap / 1024).toFixed(1)} KB` : 'Unknown',
-    'used-ram': data.total_heap ? `${((data.total_heap - data.free_heap) / 1024).toFixed(1)} KB (${memoryUsedPercent}%)` : 'Unknown',
-    'free-flash': flashFree ? `${(flashFree / 1024).toFixed(1)} KB` : 'Unknown',
-    'used-flash': data.flash_used ? `${(data.flash_used / 1024).toFixed(1)} KB (${flashUsedPercent}%)` : 'Unknown',
-    'sketch-size': data.sketch_size ? `${(data.sketch_size / 1024).toFixed(1)} KB (${sketchUsedPercent}%)` : 'Unknown',
-    'uptime': `${uptimeHours}h ${uptimeMinutes % 60}m ${uptimeSeconds % 60}s`
+    'flash-size': data.flash_total ? `${(data.flash_total / 1024).toFixed(1)} KB` : 'Unknown',
+    'free-heap': data.free_heap ? `${(data.free_heap / 1024).toFixed(1)} KB` : 'Unknown',
+    'uptime': `${uptimeHours}h ${uptimeMinutes % 60}m ${uptimeSeconds % 60}s`,
+    'reset-reason': data.reset_reason || 'Unknown',
+    'temperature': data.temperature_celsius ? `${data.temperature_celsius.toFixed(1)}°C` : 'Not available'
   });
   content.appendChild(microSection);
   
   // Create and populate logging section
   const loggingSection = diagnosticsTemplates.logging.cloneNode(true);
   populateDataFields(loggingSection, {
-    'log-level': data.log_level || 'Unknown',
-    'serial-logging': data.log_to_serial ? 'Enabled ✅' : 'Disabled ❌'
+    'log-level': data.logging ? data.logging.level_name || 'Unknown' : 'Unknown',
+    'serial-logging': data.logging ? (data.logging.serial_enabled ? 'Enabled ✅' : 'Disabled ❌') : 'Unknown'
   });
   content.appendChild(loggingSection);
   
   // Create and populate settings file section if config data exists
-  if (data.config_file_contents) {
+  if (data.configuration && data.configuration.settings_file_contents) {
     const settingsSection = diagnosticsTemplates.settingsFile.cloneNode(true);
     const fileContents = settingsSection.querySelector('#file-contents');
     if (fileContents) {
-      fileContents.textContent = data.config_file_contents;
+      fileContents.textContent = data.configuration.settings_file_contents;
     }
     content.appendChild(settingsSection);
   }

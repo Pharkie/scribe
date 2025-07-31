@@ -1,5 +1,5 @@
 /**
- * @file settings.js
+ * @file unbiddenink.js
  * @brief Unbidden Ink settings panel functionality
  */
 
@@ -33,7 +33,7 @@ function toggleSettings() {
  */
 async function loadSettings() {
   try {
-    const response = await fetch('/unbidden-ink/settings');
+    const response = await fetch('/unbiddenink-settings');
     const data = await response.json();
     
     // The API returns the settings directly as JSON
@@ -72,7 +72,7 @@ async function saveSettings(event) {
   };
   
   try {
-    const response = await fetch('/unbidden-ink/settings', {
+    const response = await fetch('/unbiddenink-settings', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
