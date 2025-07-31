@@ -52,36 +52,11 @@ void handleUnbiddenInk();
 void handlePrintTest();
 
 /**
- * @brief Handle form submission for custom messages
- */
-void handleSubmit();
-
-/**
- * @brief Handle unified message endpoint
+ * @brief Handle unified message endpoint (supports both local printing and MQTT routing)
  */
 void handleMessage();
 
 // ========================================
-// UNIFIED PROCESSING FUNCTIONS
-// ========================================
-
-/**
- * @brief Process endpoint with unified source handling
- * @param endpoint The endpoint to process (e.g., "/riddle", "/joke")
- * @param destination The destination: "local-direct" for local printing, or MQTT topic for remote
- * @return True if content was generated and handled successfully
- */
-bool processEndpoint(const char *endpoint, const char *destination);
-
-/**
- * @brief Process custom message with unified routing
- * @param message The message content
- * @param timestamp The timestamp
- * @param destination The destination: "local-direct" for local printing, or MQTT topic for remote
- * @return True if message was processed successfully
- */
-bool processCustomMessage(const String &message, const String &timestamp, const char *destination);
-
 // ========================================
 // UTILITY FUNCTIONS
 // ========================================

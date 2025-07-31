@@ -35,7 +35,16 @@ function handleTextareaKeydown(event) {
     event.preventDefault();
     const form = document.getElementById('printer-form');
     if (form) {
-      form.dispatchEvent(new Event('submit'));
+      // Create a proper submit event that won't cause double submission
+      const submitEvent = new Event('submit', { 
+        bubbles: false,  // Don't bubble to prevent duplicate handlers
+        cancelable: true 
+      });
+      Object.defineProperty(submitEvent, 'target', {
+        value: form,
+        enumerable: true
+      });
+      handleSubmit(submitEvent);
     }
   }
   // Shift+Enter allows normal line break (default behavior)

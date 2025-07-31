@@ -192,12 +192,47 @@ void handleButtonLongPress(int buttonIndex)
 
 void triggerEndpointFromButton(const char *endpoint)
 {
-    // Use the shared endpoint processing function with local-direct destination
+    // Map endpoint strings to handler functions
     LOG_VERBOSE("BUTTONS", "Hardware button triggered: %s", endpoint);
 
-    if (!processEndpoint(endpoint, "local-direct"))
+    if (strcmp(endpoint, "/riddle") == 0)
     {
-        LOG_ERROR("BUTTONS", "Failed to process endpoint: %s", endpoint);
+        handleRiddle();
+    }
+    else if (strcmp(endpoint, "/joke") == 0)
+    {
+        handleJoke();
+    }
+    else if (strcmp(endpoint, "/quote") == 0)
+    {
+        handleQuote();
+    }
+    else if (strcmp(endpoint, "/quiz") == 0)
+    {
+        handleQuiz();
+    }
+    else if (strcmp(endpoint, "/print-test") == 0)
+    {
+        handlePrintTest();
+    }
+    else if (strcmp(endpoint, "/unbidden-ink") == 0)
+    {
+        handleUnbiddenInk();
+    }
+    else if (strcmp(endpoint, "/keep-going") == 0)
+    {
+        // Keep-going endpoint - generate random content
+        // For now, let's default to joke
+        handleJoke();
+    }
+    else if (strlen(endpoint) == 0)
+    {
+        // Empty endpoint - do nothing
+        LOG_VERBOSE("BUTTONS", "Empty endpoint - no action");
+    }
+    else
+    {
+        LOG_ERROR("BUTTONS", "Unknown endpoint: %s", endpoint);
     }
 }
 

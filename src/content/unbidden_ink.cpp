@@ -140,15 +140,9 @@ void checkUnbiddenInk()
         // Feed watchdog before potentially long API call
         esp_task_wdt_reset();
 
-        // Use the unified endpoint processing to generate and print Unbidden Ink content
-        if (processEndpoint("/unbidden-ink", "local-direct"))
-        {
-            LOG_NOTICE("UNBIDDENINK", "Unbidden Ink message queued for printing");
-        }
-        else
-        {
-            LOG_ERROR("UNBIDDENINK", "Failed to generate Unbidden Ink content");
-        }
+        // Call handleUnbiddenInk directly to generate and print content
+        handleUnbiddenInk();
+        LOG_NOTICE("UNBIDDENINK", "Unbidden Ink content requested");
 
         // Feed watchdog after API call
         esp_task_wdt_reset();

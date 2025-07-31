@@ -97,8 +97,7 @@ function displayDiagnostics(data) {
       'device-owner': data.device_owner || 'Unknown',
       'timezone': data.timezone || 'Not configured',
       'mdns-hostname': data.mdns_hostname || 'Unknown',
-      'max-message-chars': configData.max_message_chars || 'Unknown',
-      'max-line-length': configData.max_line_length || 'Unknown'
+      'max-message-chars': configData.max_message_chars || 'Unknown'
     });
     deviceConfigSection.classList.remove('hidden');
   }

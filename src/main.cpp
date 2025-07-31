@@ -17,6 +17,11 @@
  * For commercial licensing inquiries, please contact Adam Knowles.
  *
  * Based on the original Project Scribe by UrbanCircles.
+ *
+ *  TODO:
+ * - Unbidden Ink
+ * - FastLED support for LED strip
+ * - Hardware button testing
  */
 
 #include <WiFi.h>

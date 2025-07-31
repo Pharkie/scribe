@@ -56,8 +56,8 @@ void setupWebServerRoutes(int maxChars)
     server.on("/config", HTTP_GET, handleConfig);
 
     // Form submission handlers
-    server.on("/print-local", HTTP_POST, handleSubmit);
-    server.on("/print-local", HTTP_GET, handleSubmit);
+    server.on("/print-local", HTTP_POST, handleMessage);
+    server.on("/print-local", HTTP_GET, handleMessage);
     server.on("/scribe-message", HTTP_POST, handleMessage);
 
     // Content generation endpoints

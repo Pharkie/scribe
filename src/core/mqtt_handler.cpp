@@ -117,9 +117,42 @@ void handleMQTTMessage(String message)
         String endpoint = doc["endpoint"].as<String>();
         LOG_VERBOSE("MQTT", "Processing endpoint action: %s", endpoint.c_str());
 
-        // Use the unified endpoint processing function
-        // This handles watchdog feeding, content generation, and routing properly
-        bool success = processEndpoint(endpoint.c_str(), "local-direct");
+        // Map endpoint strings to handler functions
+        bool success = false;
+        if (endpoint == "/riddle")
+        {
+            handleRiddle();
+            success = true;
+        }
+        else if (endpoint == "/joke")
+        {
+            handleJoke();
+            success = true;
+        }
+        else if (endpoint == "/quote")
+        {
+            handleQuote();
+            success = true;
+        }
+        else if (endpoint == "/quiz")
+        {
+            handleQuiz();
+            success = true;
+        }
+        else if (endpoint == "/print-test")
+        {
+            handlePrintTest();
+            success = true;
+        }
+        else if (endpoint == "/unbidden-ink")
+        {
+            handleUnbiddenInk();
+            success = true;
+        }
+        else
+        {
+            LOG_ERROR("MQTT", "Unknown endpoint: %s", endpoint.c_str());
+        }
 
         if (success)
         {

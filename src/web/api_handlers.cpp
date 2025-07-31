@@ -221,7 +221,13 @@ void handleButtons()
     // Check rate limiting
     if (isRateLimited())
     {
-        server.send(429, "text/plain", "Too many requests. Please slow down.");
+        DynamicJsonDocument errorResponse(256);
+        errorResponse["success"] = false;
+        errorResponse["error"] = "Too many requests. Please slow down.";
+
+        String errorString;
+        serializeJson(errorResponse, errorString);
+        server.send(429, "application/json", errorString);
         return;
     }
 
@@ -237,13 +243,25 @@ void handleMQTTSend()
     // Check rate limiting first
     if (isRateLimited())
     {
-        server.send(429, "text/plain", "Rate limit exceeded. Please wait before sending another request.");
+        DynamicJsonDocument errorResponse(256);
+        errorResponse["success"] = false;
+        errorResponse["error"] = "Rate limit exceeded. Please wait before sending another request.";
+
+        String errorString;
+        serializeJson(errorResponse, errorString);
+        server.send(429, "application/json", errorString);
         return;
     }
 
     if (!mqttClient.connected())
     {
-        server.send(503, "text/plain", "MQTT client not connected");
+        DynamicJsonDocument errorResponse(256);
+        errorResponse["success"] = false;
+        errorResponse["error"] = "MQTT client not connected";
+
+        String errorString;
+        serializeJson(errorResponse, errorString);
+        server.send(503, "application/json", errorString);
         return;
     }
 
@@ -312,7 +330,13 @@ void handleUnbiddenInkSettingsGet()
     // Check rate limiting
     if (isRateLimited())
     {
-        server.send(429, "text/plain", "Rate limit exceeded. Please wait before making another request.");
+        DynamicJsonDocument errorResponse(256);
+        errorResponse["success"] = false;
+        errorResponse["error"] = "Rate limit exceeded. Please wait before making another request.";
+
+        String errorString;
+        serializeJson(errorResponse, errorString);
+        server.send(429, "application/json", errorString);
         return;
     }
 
@@ -352,7 +376,13 @@ void handleUnbiddenInkSettingsPost()
     // Check rate limiting
     if (isRateLimited())
     {
-        server.send(429, "text/plain", "Rate limit exceeded. Please wait before making another request.");
+        DynamicJsonDocument errorResponse(256);
+        errorResponse["success"] = false;
+        errorResponse["error"] = "Rate limit exceeded. Please wait before making another request.";
+
+        String errorString;
+        serializeJson(errorResponse, errorString);
+        server.send(429, "application/json", errorString);
         return;
     }
 
@@ -439,7 +469,15 @@ void handleUnbiddenInkSettingsPost()
     if (!settingsFile)
     {
         LOG_ERROR("WEB", "Failed to open Unbidden Ink settings file for writing");
-        server.send(500, "text/plain", "Failed to save settings");
+
+        // Return JSON error response
+        DynamicJsonDocument errorResponse(256);
+        errorResponse["success"] = false;
+        errorResponse["error"] = "Failed to save settings";
+
+        String errorString;
+        serializeJson(errorResponse, errorString);
+        server.send(500, "application/json", errorString);
         return;
     }
 
@@ -447,5 +485,13 @@ void handleUnbiddenInkSettingsPost()
     settingsFile.close();
 
     LOG_VERBOSE("WEB", "Unbidden Ink settings saved successfully");
-    server.send(200, "text/plain", "Settings saved successfully");
+
+    // Return JSON response
+    DynamicJsonDocument response(256);
+    response["success"] = true;
+    response["message"] = "Settings saved successfully";
+
+    String responseString;
+    serializeJson(response, responseString);
+    server.send(200, "application/json", responseString);
 }
