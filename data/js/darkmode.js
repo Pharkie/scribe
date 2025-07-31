@@ -21,31 +21,33 @@ function getSystemPreference() {
  * Initialize dark mode based on saved setting or system preference
  */
 function initializeDarkMode() {
-  // Check for saved theme preference
+  // Check for saved theme preference, default to SYSTEM if none
   const savedTheme = localStorage.getItem('theme') || THEME.SYSTEM;
   
   // Apply the theme
   applyTheme(savedTheme);
   updateThemeUI(savedTheme);
+
 }
 
 /**
  * Apply theme to the document
  */
 function applyTheme(theme) {
-  // For Tailwind v4 with media query-based dark mode,
-  // we need to override the system preference when user selects a specific theme
   const html = document.documentElement;
   
+  // Remove any existing theme classes
+  html.classList.remove('dark', 'light');
+  
   if (theme === THEME.SYSTEM) {
-    // Remove any forced color scheme, let system preference take over
-    html.style.removeProperty('color-scheme');
+    // Let system preference (media queries) take control
+    // No additional classes needed
   } else if (theme === THEME.LIGHT) {
     // Force light mode
-    html.style.colorScheme = 'light';
+    html.classList.add('light');
   } else if (theme === THEME.DARK) {
     // Force dark mode
-    html.style.colorScheme = 'dark';
+    html.classList.add('dark');
   }
 }
 

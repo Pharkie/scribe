@@ -11,13 +11,13 @@
 
     <!-- Device Configuration Section Template -->
     <template id="device-config-section-template">
-        <div class="bg-purple-50 border border-purple-200 rounded-lg p-4">
+        <div class="bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-700 rounded-lg p-4">
             <div class="flex items-center justify-between mb-3">
-                <h4 class="text-lg font-semibold text-purple-800 flex items-center">
+                <h4 class="text-lg font-semibold text-purple-800 dark:text-purple-300 flex items-center">
                     <span class="mr-2">⚙️</span>Device Configuration
                 </h4>
                 <button onclick="copyGenericSection('Device Configuration', this)"
-                    class="px-2 py-1 text-xs bg-purple-100 hover:bg-purple-200 text-purple-700 rounded transition-colors">
+                    class="px-2 py-1 text-xs bg-purple-100 dark:bg-purple-900/30 hover:bg-purple-200 dark:hover:bg-purple-900/40 text-purple-700 dark:text-purple-300 rounded transition-colors">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
                         <path
                             d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z" />
@@ -26,16 +26,16 @@
             </div>
             <div class="space-y-2">
                 <div class="flex justify-between">
-                    <span class="text-gray-600">Device Owner:</span>
-                    <span class="font-medium" data-field="device-owner">-</span>
+                    <span class="text-gray-600 dark:text-gray-400">Device Owner:</span>
+                    <span class="font-medium text-gray-900 dark:text-gray-100" data-field="device-owner">-</span>
                 </div>
                 <div class="flex justify-between">
-                    <span class="text-gray-600">Timezone:</span>
-                    <span class="font-medium" data-field="timezone">-</span>
+                    <span class="text-gray-600 dark:text-gray-400">Timezone:</span>
+                    <span class="font-medium text-gray-900 dark:text-gray-100" data-field="timezone">-</span>
                 </div>
                 <div class="flex justify-between">
-                    <span class="text-gray-600">mDNS Hostname:</span>
-                    <span class="font-medium" data-field="mdns-hostname">-</span>
+                    <span class="text-gray-600 dark:text-gray-400">mDNS Hostname:</span>
+                    <span class="font-medium text-gray-900 dark:text-gray-100" data-field="mdns-hostname">-</span>
                 </div>
             </div>
         </div>
@@ -43,13 +43,13 @@
 
     <!-- Network Section Template -->
     <template id="network-section-template">
-        <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+        <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 rounded-lg p-4">
             <div class="flex items-center justify-between mb-3">
-                <h4 class="text-lg font-semibold text-blue-800 flex items-center">
+                <h4 class="text-lg font-semibold text-blue-800 dark:text-blue-300 flex items-center">
                     <span class="mr-2">🌐</span>Network
                 </h4>
                 <button onclick="copyGenericSection('Network', this)"
-                    class="px-2 py-1 text-xs bg-blue-100 hover:bg-blue-200 text-blue-700 rounded transition-colors">
+                    class="px-2 py-1 text-xs bg-blue-100 dark:bg-blue-900/30 hover:bg-blue-200 dark:hover:bg-blue-900/40 text-blue-700 dark:text-blue-300 rounded transition-colors">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
                         <path
                             d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z" />
@@ -58,32 +58,32 @@
             </div>
             <div class="space-y-2">
                 <div class="flex justify-between">
-                    <span class="text-gray-600">WiFi Status:</span>
-                    <span class="font-medium" data-field="wifi-status">-</span>
+                    <span class="text-gray-600 dark:text-gray-400">WiFi Status:</span>
+                    <span class="font-medium text-gray-900 dark:text-gray-100" data-field="wifi-status">-</span>
                 </div>
                 <div class="flex justify-between">
-                    <span class="text-gray-600">SSID:</span>
-                    <span class="font-medium" data-field="wifi-ssid">-</span>
+                    <span class="text-gray-600 dark:text-gray-400">SSID:</span>
+                    <span class="font-medium text-gray-900 dark:text-gray-100" data-field="wifi-ssid">-</span>
                 </div>
                 <div class="flex justify-between">
-                    <span class="text-gray-600">Signal Strength:</span>
-                    <span class="font-medium" data-field="signal-strength">-</span>
+                    <span class="text-gray-600 dark:text-gray-400">Signal Strength:</span>
+                    <span class="font-medium text-gray-900 dark:text-gray-100" data-field="signal-strength">-</span>
                 </div>
                 <div class="flex justify-between">
-                    <span class="text-gray-600">IP Address:</span>
-                    <span class="font-medium" data-field="ip-address">-</span>
+                    <span class="text-gray-600 dark:text-gray-400">IP Address:</span>
+                    <span class="font-medium text-gray-900 dark:text-gray-100" data-field="ip-address">-</span>
                 </div>
                 <div class="flex justify-between">
-                    <span class="text-gray-600">MAC Address:</span>
-                    <span class="font-medium" data-field="mac-address">-</span>
+                    <span class="text-gray-600 dark:text-gray-400">MAC Address:</span>
+                    <span class="font-medium text-gray-900 dark:text-gray-100" data-field="mac-address">-</span>
                 </div>
                 <div class="flex justify-between">
-                    <span class="text-gray-600">Gateway:</span>
-                    <span class="font-medium" data-field="gateway">-</span>
+                    <span class="text-gray-600 dark:text-gray-400">Gateway:</span>
+                    <span class="font-medium text-gray-900 dark:text-gray-100" data-field="gateway">-</span>
                 </div>
                 <div class="flex justify-between">
-                    <span class="text-gray-600">DNS:</span>
-                    <span class="font-medium" data-field="dns">-</span>
+                    <span class="text-gray-600 dark:text-gray-400">DNS:</span>
+                    <span class="font-medium text-gray-900 dark:text-gray-100" data-field="dns">-</span>
                 </div>
             </div>
         </div>
@@ -91,13 +91,13 @@
 
     <!-- MQTT Section Template -->
     <template id="mqtt-section-template">
-        <div class="bg-green-50 border border-green-200 rounded-lg p-4">
+        <div class="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-700 rounded-lg p-4">
             <div class="flex items-center justify-between mb-3">
-                <h4 class="text-lg font-semibold text-green-800 flex items-center">
+                <h4 class="text-lg font-semibold text-green-800 dark:text-green-300 flex items-center">
                     <span class="mr-2">📡</span>MQTT
                 </h4>
                 <button onclick="copyGenericSection('MQTT', this)"
-                    class="px-2 py-1 text-xs bg-green-100 hover:bg-green-200 text-green-700 rounded transition-colors">
+                    class="px-2 py-1 text-xs bg-green-100 dark:bg-green-900/30 hover:bg-green-200 dark:hover:bg-green-900/40 text-green-700 dark:text-green-300 rounded transition-colors">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
                         <path
                             d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z" />
@@ -106,20 +106,20 @@
             </div>
             <div class="space-y-2">
                 <div class="flex justify-between">
-                    <span class="text-gray-600">Status:</span>
-                    <span class="font-medium" data-field="mqtt-status">-</span>
+                    <span class="text-gray-600 dark:text-gray-400">Status:</span>
+                    <span class="font-medium text-gray-900 dark:text-gray-100" data-field="mqtt-status">-</span>
                 </div>
                 <div class="flex justify-between">
-                    <span class="text-gray-600">Server:</span>
-                    <span class="font-medium" data-field="mqtt-server">-</span>
+                    <span class="text-gray-600 dark:text-gray-400">Server:</span>
+                    <span class="font-medium text-gray-900 dark:text-gray-100" data-field="mqtt-server">-</span>
                 </div>
                 <div class="flex justify-between">
-                    <span class="text-gray-600">Port:</span>
-                    <span class="font-medium" data-field="mqtt-port">-</span>
+                    <span class="text-gray-600 dark:text-gray-400">Port:</span>
+                    <span class="font-medium text-gray-900 dark:text-gray-100" data-field="mqtt-port">-</span>
                 </div>
                 <div class="flex justify-between">
-                    <span class="text-gray-600">Topic:</span>
-                    <span class="font-medium" data-field="mqtt-topic">-</span>
+                    <span class="text-gray-600 dark:text-gray-400">Topic:</span>
+                    <span class="font-medium text-gray-900 dark:text-gray-100" data-field="mqtt-topic">-</span>
                 </div>
             </div>
         </div>
@@ -184,13 +184,13 @@
 
     <!-- Microcontroller Section Template -->
     <template id="microcontroller-section-template">
-        <div class="bg-orange-50 border border-orange-200 rounded-lg p-4">
+        <div class="bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-700 rounded-lg p-4">
             <div class="flex items-center justify-between mb-3">
-                <h4 class="text-lg font-semibold text-orange-800 flex items-center">
+                <h4 class="text-lg font-semibold text-orange-800 dark:text-orange-300 flex items-center">
                     <span class="mr-2">💾</span>Microcontroller
                 </h4>
                 <button onclick="copyGenericSection('Microcontroller', this)"
-                    class="px-2 py-1 text-xs bg-orange-100 hover:bg-orange-200 text-orange-700 rounded transition-colors">
+                    class="px-2 py-1 text-xs bg-orange-100 dark:bg-orange-900/30 hover:bg-orange-200 dark:hover:bg-orange-900/40 text-orange-700 dark:text-orange-300 rounded transition-colors">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
                         <path
                             d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z" />
@@ -199,36 +199,37 @@
             </div>
             <div class="space-y-2">
                 <div class="flex justify-between">
-                    <span class="text-gray-600">Chip Model:</span>
-                    <span class="font-medium" data-field="chip-model">-</span>
+                    <span class="text-gray-600 dark:text-gray-400">Chip Model:</span>
+                    <span class="font-medium text-gray-900 dark:text-gray-100" data-field="chip-model">-</span>
                 </div>
                 <div class="flex justify-between">
-                    <span class="text-gray-600">CPU Frequency:</span>
-                    <span class="font-medium" data-field="cpu-frequency">-</span>
+                    <span class="text-gray-600 dark:text-gray-400">CPU Frequency:</span>
+                    <span class="font-medium text-gray-900 dark:text-gray-100" data-field="cpu-frequency">-</span>
                 </div>
                 <div class="flex justify-between">
-                    <span class="text-gray-600">Temperature:</span>
-                    <span class="font-medium" data-field="temperature">-</span>
+                    <span class="text-gray-600 dark:text-gray-400">Temperature:</span>
+                    <span class="font-medium text-gray-900 dark:text-gray-100" data-field="temperature">-</span>
                 </div>
                 <div class="flex justify-between">
-                    <span class="text-gray-600">Uptime:</span>
-                    <span class="font-medium" data-field="uptime">-</span>
+                    <span class="text-gray-600 dark:text-gray-400">Uptime:</span>
+                    <span class="font-medium text-gray-900 dark:text-gray-100" data-field="uptime">-</span>
                 </div>
                 <div class="flex justify-between">
-                    <span class="text-gray-600">Reset Reason:</span>
-                    <span class="font-medium" data-field="reset-reason">-</span>
+                    <span class="text-gray-600 dark:text-gray-400">Reset Reason:</span>
+                    <span class="font-medium text-gray-900 dark:text-gray-100" data-field="reset-reason">-</span>
                 </div>
 
                 <!-- Memory Usage with Capacity Bars -->
-                <div class="mt-3 pt-2 border-t border-orange-200">
+                <div class="mt-3 pt-2 border-t border-orange-200 dark:border-orange-700">
                     <div class="space-y-3">
                         <!-- Heap Memory -->
                         <div>
                             <div class="flex justify-between text-sm mb-1">
-                                <span class="text-gray-600">Heap Memory</span>
-                                <span class="font-medium" data-field="heap-usage">-</span>
+                                <span class="text-gray-600 dark:text-gray-400">Heap Memory</span>
+                                <span class="font-medium text-gray-900 dark:text-gray-100"
+                                    data-field="heap-usage">-</span>
                             </div>
-                            <div class="w-full bg-orange-200 rounded-full h-2">
+                            <div class="w-full bg-orange-200 dark:bg-orange-800/30 rounded-full h-2">
                                 <div class="bg-orange-500 h-2 rounded-full transition-all duration-300"
                                     data-field="heap-bar" style="width: 0%"></div>
                             </div>
@@ -237,10 +238,11 @@
                         <!-- Flash Storage -->
                         <div>
                             <div class="flex justify-between text-sm mb-1">
-                                <span class="text-gray-600">Flash Storage</span>
-                                <span class="font-medium" data-field="flash-usage">-</span>
+                                <span class="text-gray-600 dark:text-gray-400">Flash Storage</span>
+                                <span class="font-medium text-gray-900 dark:text-gray-100"
+                                    data-field="flash-usage">-</span>
                             </div>
-                            <div class="w-full bg-orange-200 rounded-full h-2">
+                            <div class="w-full bg-orange-200 dark:bg-orange-800/30 rounded-full h-2">
                                 <div class="bg-orange-600 h-2 rounded-full transition-all duration-300"
                                     data-field="flash-bar" style="width: 0%"></div>
                             </div>
@@ -249,10 +251,11 @@
                         <!-- Firmware Size -->
                         <div>
                             <div class="flex justify-between text-sm mb-1">
-                                <span class="text-gray-600">Firmware Size</span>
-                                <span class="font-medium" data-field="sketch-usage">-</span>
+                                <span class="text-gray-600 dark:text-gray-400">Firmware Size</span>
+                                <span class="font-medium text-gray-900 dark:text-gray-100"
+                                    data-field="sketch-usage">-</span>
                             </div>
-                            <div class="w-full bg-orange-200 rounded-full h-2">
+                            <div class="w-full bg-orange-200 dark:bg-orange-800/30 rounded-full h-2">
                                 <div class="bg-orange-700 h-2 rounded-full transition-all duration-300"
                                     data-field="sketch-bar" style="width: 0%"></div>
                             </div>
@@ -265,13 +268,13 @@
 
     <!-- Hardware Buttons Section Template -->
     <template id="hardware-buttons-section-template">
-        <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+        <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 rounded-lg p-4">
             <div class="flex items-center justify-between mb-3">
-                <h4 class="text-lg font-semibold text-blue-800 flex items-center">
+                <h4 class="text-lg font-semibold text-blue-800 dark:text-blue-300 flex items-center">
                     <span class="mr-2">🔘</span>Hardware Buttons
                 </h4>
                 <button onclick="copyGenericSection('Hardware Buttons', this)"
-                    class="px-2 py-1 text-xs bg-blue-100 hover:bg-blue-200 text-blue-700 rounded transition-colors">
+                    class="px-2 py-1 text-xs bg-blue-100 dark:bg-blue-900/30 hover:bg-blue-200 dark:hover:bg-blue-900/40 text-blue-700 dark:text-blue-300 rounded transition-colors">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
                         <path
                             d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z" />
@@ -280,25 +283,25 @@
             </div>
             <div class="space-y-2">
                 <div class="flex justify-between">
-                    <span class="text-gray-600">Number of Buttons:</span>
-                    <span class="font-medium" data-field="num-buttons">-</span>
+                    <span class="text-gray-600 dark:text-gray-400">Number of Buttons:</span>
+                    <span class="font-medium text-gray-900 dark:text-gray-100" data-field="num-buttons">-</span>
                 </div>
                 <div class="flex justify-between">
-                    <span class="text-gray-600">Debounce Time:</span>
-                    <span class="font-medium" data-field="debounce-time">-</span>
+                    <span class="text-gray-600 dark:text-gray-400">Debounce Time:</span>
+                    <span class="font-medium text-gray-900 dark:text-gray-100" data-field="debounce-time">-</span>
                 </div>
                 <div class="flex justify-between">
-                    <span class="text-gray-600">Long Press Time:</span>
-                    <span class="font-medium" data-field="long-press-time">-</span>
+                    <span class="text-gray-600 dark:text-gray-400">Long Press Time:</span>
+                    <span class="font-medium text-gray-900 dark:text-gray-100" data-field="long-press-time">-</span>
                 </div>
                 <div class="flex justify-between">
-                    <span class="text-gray-600">Active State:</span>
-                    <span class="font-medium" data-field="active-state">-</span>
+                    <span class="text-gray-600 dark:text-gray-400">Active State:</span>
+                    <span class="font-medium text-gray-900 dark:text-gray-100" data-field="active-state">-</span>
                 </div>
 
                 <!-- Button List -->
-                <div class="mt-3 pt-2 border-t border-blue-200">
-                    <div id="buttons-list" class="space-y-1 text-xs">
+                <div class="mt-3 pt-2 border-t border-blue-200 dark:border-blue-700">
+                    <div id="buttons-list" class="space-y-1 text-xs text-gray-600 dark:text-gray-400">
                         <!-- Button entries will be populated by JavaScript -->
                     </div>
                 </div>
@@ -308,13 +311,13 @@
 
     <!-- Logging Section Template -->
     <template id="logging-section-template">
-        <div class="bg-gray-50 border border-gray-200 rounded-lg p-4">
+        <div class="bg-gray-50 dark:bg-gray-900/20 border border-gray-200 dark:border-gray-700 rounded-lg p-4">
             <div class="flex items-center justify-between mb-3">
-                <h4 class="text-lg font-semibold text-gray-800 flex items-center">
+                <h4 class="text-lg font-semibold text-gray-800 dark:text-gray-300 flex items-center">
                     <span class="mr-2">📝</span>Logging
                 </h4>
                 <button onclick="copyGenericSection('Logging', this)"
-                    class="px-2 py-1 text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 rounded transition-colors">
+                    class="px-2 py-1 text-xs bg-gray-100 dark:bg-gray-900/30 hover:bg-gray-200 dark:hover:bg-gray-900/40 text-gray-700 dark:text-gray-300 rounded transition-colors">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
                         <path
                             d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z" />
@@ -323,24 +326,24 @@
             </div>
             <div class="space-y-2">
                 <div class="flex justify-between">
-                    <span class="text-gray-600">Log Level:</span>
-                    <span class="font-medium" data-field="log-level">-</span>
+                    <span class="text-gray-600 dark:text-gray-400">Log Level:</span>
+                    <span class="font-medium text-gray-900 dark:text-gray-100" data-field="log-level">-</span>
                 </div>
                 <div class="flex justify-between">
-                    <span class="text-gray-600">Serial Logging:</span>
-                    <span class="font-medium" data-field="serial-logging">-</span>
+                    <span class="text-gray-600 dark:text-gray-400">Serial Logging:</span>
+                    <span class="font-medium text-gray-900 dark:text-gray-100" data-field="serial-logging">-</span>
                 </div>
                 <div class="flex justify-between">
-                    <span class="text-gray-600">File Logging:</span>
-                    <span class="font-medium" data-field="file-logging">-</span>
+                    <span class="text-gray-600 dark:text-gray-400">File Logging:</span>
+                    <span class="font-medium text-gray-900 dark:text-gray-100" data-field="file-logging">-</span>
                 </div>
                 <div class="flex justify-between">
-                    <span class="text-gray-600">MQTT Logging:</span>
-                    <span class="font-medium" data-field="mqtt-logging">-</span>
+                    <span class="text-gray-600 dark:text-gray-400">MQTT Logging:</span>
+                    <span class="font-medium text-gray-900 dark:text-gray-100" data-field="mqtt-logging">-</span>
                 </div>
                 <div class="flex justify-between">
-                    <span class="text-gray-600">BetterStack Logging:</span>
-                    <span class="font-medium" data-field="betterstack-logging">-</span>
+                    <span class="text-gray-600 dark:text-gray-400">BetterStack Logging:</span>
+                    <span class="font-medium text-gray-900 dark:text-gray-100" data-field="betterstack-logging">-</span>
                 </div>
             </div>
         </div>
@@ -348,20 +351,21 @@
 
     <!-- Settings File Section Template -->
     <template id="settings-file-section-template">
-        <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+        <div class="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-700 rounded-lg p-4">
             <div class="flex items-center justify-between mb-3">
-                <h4 class="text-lg font-semibold text-yellow-800 flex items-center">
+                <h4 class="text-lg font-semibold text-yellow-800 dark:text-yellow-300 flex items-center">
                     <span class="mr-2">📄</span>Settings File
                 </h4>
                 <button onclick="copyFileContents(this)"
-                    class="px-2 py-1 text-xs bg-yellow-100 hover:bg-yellow-200 text-yellow-700 rounded transition-colors">
+                    class="px-2 py-1 text-xs bg-yellow-100 dark:bg-yellow-900/30 hover:bg-yellow-200 dark:hover:bg-yellow-900/40 text-yellow-700 dark:text-yellow-300 rounded transition-colors">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
                         <path
                             d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z" />
                     </svg>
                 </button>
             </div>
-            <div class="bg-gray-800 text-green-400 p-3 rounded font-mono text-sm max-h-60 overflow-y-auto">
+            <div
+                class="bg-gray-800 dark:bg-gray-900 text-green-400 dark:text-green-300 p-3 rounded font-mono text-sm max-h-60 overflow-y-auto">
                 <pre id="file-contents">Loading...</pre>
             </div>
         </div>
@@ -370,22 +374,22 @@
     <!-- Loading Template -->
     <template id="loading-template">
         <div class="flex items-center justify-center py-8">
-            <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-            <span class="ml-3 text-gray-600">Loading diagnostics...</span>
+            <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 dark:border-blue-400"></div>
+            <span class="ml-3 text-gray-600 dark:text-gray-400">Loading diagnostics...</span>
         </div>
     </template>
 
     <!-- Error Template -->
     <template id="error-template">
-        <div class="bg-red-50 border border-red-200 rounded-lg p-4">
+        <div class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-700 rounded-lg p-4">
             <div class="flex items-center justify-between mb-3">
-                <h4 class="text-lg font-semibold text-red-800 flex items-center">
+                <h4 class="text-lg font-semibold text-red-800 dark:text-red-300 flex items-center">
                     <span class="mr-2">❌</span>Error Loading Diagnostics
                 </h4>
             </div>
             <div class="space-y-2">
-                <p class="text-red-700" data-field="error-message">An error occurred</p>
-                <p class="text-red-600 text-sm">Check the browser console for more details.</p>
+                <p class="text-red-700 dark:text-red-300" data-field="error-message">An error occurred</p>
+                <p class="text-red-600 dark:text-red-400 text-sm">Check the browser console for more details.</p>
             </div>
         </div>
     </template>

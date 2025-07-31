@@ -105,6 +105,10 @@ void handleWiFiReconnection()
         if (millis() - lastReconnectAttempt > reconnectInterval)
         {
             Serial.println("WiFi disconnected, attempting reconnection...");
+
+            // Feed watchdog before potentially blocking WiFi operation
+            esp_task_wdt_reset();
+
             WiFi.begin(getWifiSSID(), getWifiPassword());
             lastReconnectAttempt = millis();
         }

@@ -27,6 +27,7 @@
 #include "content_handlers.h"
 #include <LittleFS.h>
 #include <ArduinoJson.h>
+#include <esp_task_wdt.h>
 
 // Unbidden Ink timing variables
 static unsigned long nextUnbiddenInkTime = 0;
@@ -136,6 +137,9 @@ void checkUnbiddenInk()
         LOG_VERBOSE("UNBIDDENINK", "Token starts with: %.10s...", unbiddenInkApiToken);
         LOG_VERBOSE("UNBIDDENINK", "Prompt: %s", currentSettings.prompt.c_str());
 
+        // Feed watchdog before potentially long API call
+        esp_task_wdt_reset();
+
         // Use the unified endpoint processing to generate and print Unbidden Ink content
         if (processEndpoint("/unbidden-ink", "local-direct"))
         {
@@ -145,6 +149,9 @@ void checkUnbiddenInk()
         {
             LOG_ERROR("UNBIDDENINK", "Failed to generate Unbidden Ink content");
         }
+
+        // Feed watchdog after API call
+        esp_task_wdt_reset();
 
         // Schedule the next Unbidden Ink message
         scheduleNextUnbiddenInk();

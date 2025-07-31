@@ -154,6 +154,10 @@ void handleMQTTConnection()
         if (millis() - lastMQTTReconnectAttempt > mqttReconnectInterval)
         {
             Serial.println("MQTT disconnected, attempting reconnection...");
+
+            // Feed watchdog before potentially blocking MQTT operation
+            esp_task_wdt_reset();
+
             connectToMQTT();
             lastMQTTReconnectAttempt = millis();
         }

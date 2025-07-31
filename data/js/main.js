@@ -241,7 +241,7 @@ function initializePrinterSelection() {
 function createPrinterOption(value, icon, name, isSelected = false) {
   const option = document.createElement('div');
   option.className = `printer-option cursor-pointer p-4 rounded-xl border-2 transition-all duration-200 hover:scale-105 hover:shadow-md ${
-    isSelected ? 'border-orange-400 bg-orange-50 text-orange-700' : 'border-gray-200 bg-gray-50 text-gray-700 hover:border-gray-300'
+    isSelected ? 'border-orange-400 bg-orange-50 dark:bg-orange-900/20 text-orange-700 dark:text-orange-300 dark:border-orange-600' : 'border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:border-gray-300 dark:hover:border-gray-500'
   }`;
   option.setAttribute('data-value', value);
   
@@ -250,7 +250,7 @@ function createPrinterOption(value, icon, name, isSelected = false) {
       <span class="text-2xl">${icon}</span>
       <div>
         <div class="font-medium text-sm">${name}</div>
-        ${value === 'local-direct' ? '<div class="text-xs text-gray-500">Direct connection</div>' : '<div class="text-xs text-gray-500">MQTT connection</div>'}
+        ${value === 'local-direct' ? '<div class="text-xs text-gray-500 dark:text-gray-400">Direct connection</div>' : '<div class="text-xs text-gray-500 dark:text-gray-400">MQTT connection</div>'}
       </div>
     </div>
   `;
@@ -266,14 +266,14 @@ function createPrinterOption(value, icon, name, isSelected = false) {
 function selectPrinter(value, element) {
   // Remove selection from all options
   document.querySelectorAll('.printer-option').forEach(option => {
-    option.className = option.className.replace(/border-orange-400|bg-orange-50|text-orange-700/g, '')
-                                   .replace(/border-gray-200|bg-gray-50|text-gray-700/g, '')
-                        + ' border-gray-200 bg-gray-50 text-gray-700 hover:border-gray-300';
+    option.className = option.className.replace(/border-orange-400|bg-orange-50|text-orange-700|dark:bg-orange-900\/20|dark:text-orange-300|dark:border-orange-600/g, '')
+                                   .replace(/border-gray-200|bg-gray-50|text-gray-700|dark:border-gray-600|dark:bg-gray-700|dark:text-gray-300/g, '')
+                        + ' border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:border-gray-300 dark:hover:border-gray-500';
   });
   
   // Add selection to clicked option
-  element.className = element.className.replace(/border-gray-200|bg-gray-50|text-gray-700|hover:border-gray-300/g, '')
-                    + ' border-orange-400 bg-orange-50 text-orange-700';
+  element.className = element.className.replace(/border-gray-200|bg-gray-50|text-gray-700|hover:border-gray-300|dark:border-gray-600|dark:bg-gray-700|dark:text-gray-300|dark:hover:border-gray-500/g, '')
+                    + ' border-orange-400 bg-orange-50 dark:bg-orange-900/20 text-orange-700 dark:text-orange-300 dark:border-orange-600';
   
   // Update hidden input
   const hiddenInput = document.getElementById('printer-target');
