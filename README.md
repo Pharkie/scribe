@@ -67,6 +67,37 @@ enhanced functionality:
 
 ---
 
+## Build System
+
+This project uses npm for asset building and PlatformIO for firmware compilation.
+
+### CSS & JavaScript Assets
+
+The web interface uses Tailwind CSS and minified JavaScript:
+
+```bash
+npm install                # Install build dependencies
+npm run build             # Build CSS + JS (with source maps)
+npm run build-prod        # Production build (no source maps)
+```
+
+**Note:** The minified files (`data/css/tailwind.css` and `data/js/app.min.js`) are committed to the repository for users who don't have Node.js installed. If you modify CSS or JS files, rebuild the assets before committing.
+
+### Enhanced Upload Process
+
+Use the enhanced upload script for automatic asset building:
+
+```bash
+pio run --target upload_all   # Builds assets + uploads filesystem + firmware
+```
+
+This automatically:
+1. 🎨 Builds and minifies CSS/JavaScript
+2. 📁 Uploads filesystem to ESP32
+3. 💾 Uploads firmware to ESP32
+
+---
+
 ## Setup Instructions for PlatformIO
 
 ### 1. Configuration Setup
