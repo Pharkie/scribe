@@ -43,8 +43,8 @@ function getActionConfig(action) {
       return { colors: ['#f59e0b', '#d97706', '#fbbf24'], name: 'Quiz' }; // Amber
     case 'print-test':
       return { colors: ['#6b7280', '#4b5563', '#9ca3af'], name: 'Print Test' }; // Gray
-    case 'custom':
-      return { colors: ['#8b5cf6', '#7c3aed', '#a78bfa'], name: 'Custom Message' }; // Purple
+    case 'scribe-message':
+      return { colors: ['#8b5cf6', '#7c3aed', '#a78bfa'], name: 'Scribed' }; // Purple
     case 'unbidden-ink':
       return { colors: ['#8b5cf6', '#7c3aed', '#a78bfa'], name: 'Unbidden Ink' }; // Purple
     default:
@@ -81,7 +81,7 @@ function sendMessage(printerTarget, message, action = null) {
   }
 
   // Get action config for display
-  const config = getActionConfig(action || 'custom');
+  const config = getActionConfig(action || 'scribe-message');
   
   // Show confetti immediately
   triggerConfetti();
@@ -99,7 +99,7 @@ function sendMessage(printerTarget, message, action = null) {
   })
   .then(result => {
     // Show success message in a toast instead of full screen
-    showSuccessToast(`${config.name} sent successfully!`);
+    showSuccessToast(`${config.name} scribed`);
     
     // Clear the message input for non-action messages
     if (!action) {
@@ -170,7 +170,7 @@ function sendQuickAction(action) {
   })
   .then(result => {
     // Show success message in a toast/notification instead of full screen
-    showSuccessToast(`${config.name} sent successfully!`);
+    showSuccessToast(`${config.name} scribed`);
   })
   .catch(error => {
     console.error(`Failed to send ${config.name.toLowerCase()}:`, error);

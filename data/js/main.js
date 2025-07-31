@@ -13,21 +13,6 @@ document.addEventListener('DOMContentLoaded', function() {
   // Add keyboard event listeners
   document.addEventListener('keydown', handleKeyPress);
   
-  // Add form event listeners
-  const messageForm = document.getElementById('printer-form');
-  if (messageForm) {
-    messageForm.addEventListener('submit', function(event) {
-      event.preventDefault();
-      
-      const messageInput = document.getElementById('message-textarea');
-      const printerSelect = document.getElementById('printer-target');
-      
-      if (messageInput && printerSelect) {
-        sendMessage(messageInput.value, printerSelect.value);
-      }
-    });
-  }
-  
   // Update character counter on input
   const messageInput = document.getElementById('message-textarea');
   if (messageInput) {
