@@ -74,7 +74,8 @@ function copySection(sectionId, buttonElement) {
  * Copy file contents to clipboard
  */
 function copyFileContents(buttonElement) {
-  const fileContents = document.getElementById('file-contents');
+  // Look for the new integrated file contents in Unbidden Ink section
+  const fileContents = document.getElementById('unbidden-ink-file-contents') || document.getElementById('file-contents');
   if (!fileContents) return;
   
   copyToClipboard(fileContents.textContent, buttonElement);

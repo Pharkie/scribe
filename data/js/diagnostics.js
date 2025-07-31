@@ -19,10 +19,12 @@ async function loadDiagnosticsTemplates() {
     const doc = parser.parseFromString(html, 'text/html');
     
     diagnosticsTemplates = {
+      deviceConfig: doc.getElementById('device-config-section-template').content.cloneNode(true),
       network: doc.getElementById('network-section-template').content.cloneNode(true),
       mqtt: doc.getElementById('mqtt-section-template').content.cloneNode(true),
       unbiddenInk: doc.getElementById('unbidden-ink-section-template').content.cloneNode(true),
       microcontroller: doc.getElementById('microcontroller-section-template').content.cloneNode(true),
+      hardwareButtons: doc.getElementById('hardware-buttons-section-template').content.cloneNode(true),
       logging: doc.getElementById('logging-section-template').content.cloneNode(true),
       settingsFile: doc.getElementById('settings-file-section-template').content.cloneNode(true),
       loading: doc.getElementById('loading-template').content.cloneNode(true),
@@ -113,72 +115,115 @@ function displayDiagnostics(data) {
     const flashFree = data.flash_total - data.flash_used;
     const sketchUsedPercent = Math.round((data.sketch_size / (data.sketch_size + data.free_sketch_space)) * 100);
     
+  // Create and populate device configuration section
+  console.log('Creating device configuration section...');
+  const deviceConfigSection = diagnosticsTemplates.deviceConfig.cloneNode(true);
+  populateDataFields(deviceConfigSection, {
+    'device-owner': data.device_owner || 'Unknown',
+    'timezone': data.timezone || 'Not configured',
+    'mdns-hostname': data.mdns_hostname || 'Unknown'
+  });
+  content.appendChild(deviceConfigSection);
+    
   // Create and populate network section
   console.log('Creating network section...');
   const networkSection = diagnosticsTemplates.network.cloneNode(true);
   populateDataFields(networkSection, {
-    'wifi-status': data.wifi_connected ? 'Connected ✅' : 'Disconnected ❌',
+    'wifi-status': data.wifi_connected ? 'Connected' : 'Disconnected',
     'wifi-ssid': data.wifi_ssid || 'Not connected',
     'ip-address': data.ip_address || 'Not assigned',
     'signal-strength': data.rssi ? `${data.rssi} dBm` : 'Unknown',
-    'mac-address': data.mac_address || 'Unknown'
+    'mac-address': data.mac_address || 'Unknown',
+    'gateway': data.gateway || 'Unknown',
+    'dns': data.dns || 'Unknown'
   });
   content.appendChild(networkSection);
   
   // Create and populate MQTT section
   const mqttSection = diagnosticsTemplates.mqtt.cloneNode(true);
   populateDataFields(mqttSection, {
-    'mqtt-status': data.mqtt_connected ? 'Connected ✅' : 'Disconnected ❌',
+    'mqtt-status': data.mqtt_connected ? 'Connected' : 'Disconnected',
     'mqtt-server': data.mqtt_server || 'Not configured',
-    'mqtt-port': data.mqtt_port || 'Not configured',
-    'mqtt-client-id': data.mqtt_client_id || 'Not configured',
-    'mqtt-topic': data.local_topic || 'Not configured',
-    'mqtt-error': data.mqtt_error || 'None'
+    'mqtt-port': data.mqtt_port || 'Unknown',
+    'mqtt-topic': data.local_topic || 'Not configured'
   });
   content.appendChild(mqttSection);  // Create and populate Unbidden Ink section
   const unbiddenSection = diagnosticsTemplates.unbiddenInk.cloneNode(true);
   
   // Use the correct field from the JSON response
-  const unbiddenInkEnabled = data.unbidden_ink && data.unbidden_ink.enabled;
+  const unbiddenInkData = data.unbidden_ink || {};
+  const unbiddenInkEnabled = unbiddenInkData.enabled;
   
   populateDataFields(unbiddenSection, {
-    'unbidden-enabled': unbiddenInkEnabled ? 'Enabled ✅' : 'Disabled ❌',
-    'api-key-status': data.api_key_configured ? 'Configured ✅' : 'Not configured ❌',
-    'last-check': data.last_unbidden_check || 'Never',
-    'total-messages': data.unbidden_message_count || '0'
+    'unbidden-ink-status': unbiddenInkEnabled ? 'Enabled' : 'Disabled',
+    'working-hours': unbiddenInkData.start_hour !== undefined && unbiddenInkData.end_hour !== undefined 
+      ? `${unbiddenInkData.start_hour}:00 - ${unbiddenInkData.end_hour}:00` 
+      : 'Not configured',
+    'frequency': unbiddenInkData.frequency_minutes ? `${unbiddenInkData.frequency_minutes} minutes` : 'Not configured',
+    'next-scheduled': unbiddenInkData.next_message_time || 'Not scheduled'
   });
+  
+  // Add settings file content if available
+  if (data.configuration && data.configuration.settings_file_contents) {
+    const fileContents = unbiddenSection.querySelector('#unbidden-ink-file-contents');
+    if (fileContents) {
+      fileContents.textContent = data.configuration.settings_file_contents;
+    }
+  }
+  
   content.appendChild(unbiddenSection);
   
   // Create and populate microcontroller section
   const microSection = diagnosticsTemplates.microcontroller.cloneNode(true);
+  
   populateDataFields(microSection, {
     'chip-model': data.chip_model || 'Unknown',
     'cpu-frequency': data.cpu_freq ? `${data.cpu_freq} MHz` : 'Unknown',
-    'flash-size': data.flash_total ? `${(data.flash_total / 1024).toFixed(1)} KB` : 'Unknown',
-    'free-heap': data.free_heap ? `${(data.free_heap / 1024).toFixed(1)} KB` : 'Unknown',
+    'temperature': data.temperature_celsius ? `${data.temperature_celsius.toFixed(1)}°C` : 'Not available',
     'uptime': `${uptimeHours}h ${uptimeMinutes % 60}m ${uptimeSeconds % 60}s`,
     'reset-reason': data.reset_reason || 'Unknown',
-    'temperature': data.temperature_celsius ? `${data.temperature_celsius.toFixed(1)}°C` : 'Not available'
+    
+    // Memory usage text
+    'heap-usage': data.total_heap ? `${((data.total_heap - data.free_heap) / 1024).toFixed(1)} KB / ${(data.total_heap / 1024).toFixed(1)} KB (${memoryUsedPercent}%)` : 'Unknown',
+    'flash-usage': data.flash_total ? `${(data.flash_used / 1024).toFixed(1)} KB / ${(data.flash_total / 1024).toFixed(1)} KB (${flashUsedPercent}%)` : 'Unknown',
+    'sketch-usage': data.sketch_size ? `${(data.sketch_size / 1024).toFixed(1)} KB / ${((data.sketch_size + data.free_sketch_space) / 1024).toFixed(1)} KB (${sketchUsedPercent}%)` : 'Unknown'
   });
+  
+  // Set capacity bar widths
+  const heapBar = microSection.querySelector('[data-field="heap-bar"]');
+  const flashBar = microSection.querySelector('[data-field="flash-bar"]');
+  const sketchBar = microSection.querySelector('[data-field="sketch-bar"]');
+  
+  if (heapBar) heapBar.style.width = `${memoryUsedPercent}%`;
+  if (flashBar) flashBar.style.width = `${flashUsedPercent}%`;
+  if (sketchBar) sketchBar.style.width = `${sketchUsedPercent}%`;
+  
   content.appendChild(microSection);
+  
+  // Create and populate hardware buttons section
+  const hardwareSection = diagnosticsTemplates.hardwareButtons.cloneNode(true);
+  const hardwareData = data.hardware_buttons || {};
+  populateDataFields(hardwareSection, {
+    'paper-button-pin': hardwareData.paper_button_pin || 'Not configured',
+    'paper-button-enabled': hardwareData.paper_button_enabled ? 'Enabled' : 'Disabled',
+    'print-button-pin': hardwareData.print_button_pin || 'Not configured', 
+    'print-button-enabled': hardwareData.print_button_enabled ? 'Enabled' : 'Disabled',
+    'debounce-delay': hardwareData.debounce_delay ? `${hardwareData.debounce_delay} ms` : 'Default',
+    'last-button-press': hardwareData.last_button_press || 'None'
+  });
+  content.appendChild(hardwareSection);
   
   // Create and populate logging section
   const loggingSection = diagnosticsTemplates.logging.cloneNode(true);
+  const loggingData = data.logging || {};
   populateDataFields(loggingSection, {
-    'log-level': data.logging ? data.logging.level_name || 'Unknown' : 'Unknown',
-    'serial-logging': data.logging ? (data.logging.serial_enabled ? 'Enabled ✅' : 'Disabled ❌') : 'Unknown'
+    'log-level': loggingData.level_name || 'Unknown',
+    'serial-logging': loggingData.serial_enabled ? 'Enabled' : 'Disabled',
+    'file-logging': loggingData.file_enabled ? 'Enabled' : 'Disabled',
+    'mqtt-logging': loggingData.mqtt_enabled ? 'Enabled' : 'Disabled',
+    'betterstack-logging': loggingData.betterstack_enabled ? 'Enabled' : 'Disabled'
   });
   content.appendChild(loggingSection);
-  
-  // Create and populate settings file section if config data exists
-  if (data.configuration && data.configuration.settings_file_contents) {
-    const settingsSection = diagnosticsTemplates.settingsFile.cloneNode(true);
-    const fileContents = settingsSection.querySelector('#file-contents');
-    if (fileContents) {
-      fileContents.textContent = data.configuration.settings_file_contents;
-    }
-    content.appendChild(settingsSection);
-  }
   
   console.log('Diagnostics display completed successfully');
   } catch (error) {

@@ -63,13 +63,27 @@ async function saveSettings(event) {
   }
   
   // Collect settings from form elements directly
+  const enabled = document.getElementById('enable-unbidden-ink').checked;
   const settings = {
-    enabled: document.getElementById('enable-unbidden-ink').checked,
-    prompt: document.getElementById('custom-prompt').value,
-    startHour: parseInt(document.getElementById('start-hour').value),
-    endHour: parseInt(document.getElementById('end-hour').value),
-    frequencyMinutes: parseInt(document.getElementById('frequency').value)
+    enabled: enabled,
+    prompt: document.getElementById('custom-prompt').value || (enabled ? 'Write a short, interesting message.' : ''),
+    startHour: parseInt(document.getElementById('start-hour').value) || 9,
+    endHour: parseInt(document.getElementById('end-hour').value) || 17,
+    frequencyMinutes: parseInt(document.getElementById('frequency').value) || 60
   };
+  
+  // Validate settings before sending
+  if (enabled && !settings.prompt.trim()) {
+    showErrorMessage('Prompt is required when Unbidden Ink is enabled');
+    return;
+  }
+  
+  if (settings.startHour >= settings.endHour) {
+    showErrorMessage('Start hour must be before end hour');
+    return;
+  }
+  
+  console.log('Saving Unbidden Ink settings:', settings);
   
   try {
     const response = await fetch('/unbiddenink-settings', {
@@ -82,16 +96,20 @@ async function saveSettings(event) {
     
     if (response.ok) {
       const message = await response.text();
+      console.log('Server response:', message);
       showSuccessMessage('Unbidden Ink settings saved successfully');
       // Reload config to reflect changes
-      loadConfig();
+      if (typeof loadConfig === 'function') {
+        loadConfig();
+      }
     } else {
       const errorMessage = await response.text();
+      console.error('Server error response:', errorMessage);
       showErrorMessage(errorMessage || 'Failed to save Unbidden Ink settings');
     }
   } catch (error) {
     console.error('Error saving Unbidden Ink settings:', error);
-    showErrorMessage('Failed to save Unbidden Ink settings');
+    showErrorMessage('Failed to save Unbidden Ink settings: ' + error.message);
   }
 }
 
@@ -107,6 +125,9 @@ function toggleUnbiddenInkSettings() {
   } else {
     settingsContainer.classList.add('opacity-50', 'pointer-events-none');
   }
+  
+  // Auto-save when the enable/disable state changes
+  saveSettings();
 }
 
 /**

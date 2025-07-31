@@ -19,6 +19,7 @@
 #include <LittleFS.h>
 #include <ArduinoJson.h>
 #include <PubSubClient.h>
+#include <esp_system.h>
 
 // External declarations
 extern WebServer server;
@@ -38,15 +39,30 @@ void handleStatus()
 
     DynamicJsonDocument doc(2048); // Large size for comprehensive data
 
+    // Device configuration
+    doc["device_owner"] = String(deviceOwner);
+    doc["mdns_hostname"] = String(getMdnsHostname());
+
+    // Get current printer config for timezone
+    const PrinterConfig *currentConfig = findPrinterConfig(deviceOwner);
+    if (currentConfig)
+    {
+        doc["timezone"] = String(currentConfig->timezone);
+    }
+
     // Network information
     doc["wifi_connected"] = (WiFi.status() == WL_CONNECTED);
     doc["ip_address"] = WiFi.localIP().toString();
-    doc["mdns_hostname"] = String(getMdnsHostname());
     doc["wifi_ssid"] = WiFi.SSID();
+    doc["rssi"] = WiFi.RSSI(); // Signal strength
+    doc["mac_address"] = WiFi.macAddress();
+    doc["gateway"] = WiFi.gatewayIP().toString();
+    doc["dns"] = WiFi.dnsIP().toString();
 
     // MQTT information
     doc["mqtt_connected"] = mqttClient.connected();
     doc["mqtt_server"] = String(mqttServer);
+    doc["mqtt_port"] = mqttPort;
     doc["local_topic"] = String(getLocalPrinterTopic());
 
     // System information
@@ -57,6 +73,47 @@ void handleStatus()
     doc["cpu_freq"] = ESP.getCpuFreqMHz();
     doc["chip_revision"] = ESP.getChipRevision();
     doc["sdk_version"] = ESP.getSdkVersion();
+
+    // Reset reason
+    esp_reset_reason_t resetReason = esp_reset_reason();
+    const char *resetReasonStr = "Unknown";
+    switch (resetReason)
+    {
+    case ESP_RST_POWERON:
+        resetReasonStr = "Power-on";
+        break;
+    case ESP_RST_EXT:
+        resetReasonStr = "External reset";
+        break;
+    case ESP_RST_SW:
+        resetReasonStr = "Software reset";
+        break;
+    case ESP_RST_PANIC:
+        resetReasonStr = "Panic/exception";
+        break;
+    case ESP_RST_INT_WDT:
+        resetReasonStr = "Interrupt watchdog";
+        break;
+    case ESP_RST_TASK_WDT:
+        resetReasonStr = "Task watchdog";
+        break;
+    case ESP_RST_WDT:
+        resetReasonStr = "Other watchdog";
+        break;
+    case ESP_RST_DEEPSLEEP:
+        resetReasonStr = "Deep sleep";
+        break;
+    case ESP_RST_BROWNOUT:
+        resetReasonStr = "Brownout";
+        break;
+    case ESP_RST_SDIO:
+        resetReasonStr = "SDIO reset";
+        break;
+    default:
+        resetReasonStr = "Unknown";
+        break;
+    }
+    doc["reset_reason"] = resetReasonStr;
 
     // Flash storage information
     doc["flash_total"] = totalBytes;
