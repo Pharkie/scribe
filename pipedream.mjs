@@ -76,7 +76,10 @@ export default defineComponent({
     const remote_printer = data.remote_printer;
     const message = data.message;
     const timestamp = data.timestamp;
-    const sender = data.sender;    const missingFields = [];
+    const sender = data.sender;
+
+    // Validate required fields
+    const missingFields = [];
     if (!remote_printer) missingFields.push("remote_printer");
     if (!message) missingFields.push("message");
     if (!timestamp) missingFields.push("timestamp");

@@ -1,6 +1,7 @@
 #include "mqtt_handler.h"
 #include "../utils/time_utils.h"
 #include "../hardware/printer.h"
+#include "../content/content_handlers.h"
 #include "logging.h"
 #include "config_utils.h"
 #include <WiFi.h>
@@ -110,8 +111,27 @@ void handleMQTTMessage(String message)
         return;
     }
 
-    // Extract message from JSON
-    if (doc.containsKey("message"))
+    // Check if this is an endpoint-based action (like quick actions: /joke, /riddle, etc.)
+    if (doc.containsKey("endpoint"))
+    {
+        String endpoint = doc["endpoint"].as<String>();
+        LOG_VERBOSE("MQTT", "Processing endpoint action: %s", endpoint.c_str());
+
+        // Use the unified endpoint processing function
+        // This handles watchdog feeding, content generation, and routing properly
+        bool success = processEndpoint(endpoint.c_str(), "local-direct");
+
+        if (success)
+        {
+            LOG_VERBOSE("MQTT", "Successfully processed endpoint: %s", endpoint.c_str());
+        }
+        else
+        {
+            LOG_ERROR("MQTT", "Failed to process endpoint: %s", endpoint.c_str());
+        }
+    }
+    // Handle simple text messages (legacy support)
+    else if (doc.containsKey("message"))
     {
         String printMessage = doc["message"].as<String>();
         String timestamp = getFormattedDateTime();
@@ -121,7 +141,7 @@ void handleMQTTMessage(String message)
     }
     else
     {
-        Serial.println("MQTT JSON missing 'message' field");
+        Serial.println("MQTT JSON missing 'endpoint' or 'message' field");
     }
 }
 

@@ -84,6 +84,11 @@ void scheduleNextUnbiddenInk();
 String getUnbiddenInkPrompt();
 
 /**
+ * @brief Load Unbidden Ink settings from file
+ */
+void loadUnbiddenInkSettings();
+
+/**
  * @brief Get current Unbidden Ink settings for status display
  * @return Current settings structure
  */

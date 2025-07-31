@@ -33,6 +33,11 @@ function initializeUnbiddenInkSettings() {
   // Populate hour select options
   populateHourSelects();
   
+  // Load settings from server on page load (silently)
+  if (typeof loadSettings === 'function') {
+    loadSettings();
+  }
+  
   // Add event listeners for settings form
   const promptTextarea = document.getElementById('custom-prompt');
   if (promptTextarea) {
@@ -188,15 +193,18 @@ function showSuccessMessage(message) {
 function toggleUnbiddenInkSection() {
   const content = document.getElementById('unbidden-ink-content');
   const arrow = document.getElementById('unbidden-ink-arrow');
+  const button = document.getElementById('unbidden-ink-settings-button');
+  
+  // Don't toggle if button is disabled
+  if (button && button.disabled) {
+    return;
+  }
   
   if (content && arrow) {
     if (content.classList.contains('hidden')) {
       content.classList.remove('hidden');
       arrow.style.transform = 'rotate(180deg)';
-      // Load settings when opening the section
-      if (typeof loadSettings === 'function') {
-        loadSettings();
-      }
+      // Settings are already loaded on page load, no need to reload
     } else {
       content.classList.add('hidden');
       arrow.style.transform = 'rotate(0deg)';

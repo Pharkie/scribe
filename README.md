@@ -262,6 +262,32 @@ printer:
 All quick actions include timestamps and work seamlessly with both local and
 remote printing.
 
+### MQTT Message Formats
+
+The MQTT handler supports two message formats for direct MQTT communication:
+
+1. **Simple Text Messages**:
+
+   ```json
+   { "message": "Your text to print" }
+   ```
+
+2. **Endpoint Actions** (for quick actions via MQTT):
+   ```json
+   {"endpoint": "/joke"}
+   {"endpoint": "/riddle"}
+   {"endpoint": "/quote"}
+   {"endpoint": "/quiz"}
+   {"endpoint": "/test"}
+   ```
+
+Both formats are processed through the unified endpoint system with proper
+watchdog feeding to prevent system crashes during content generation.
+
+**Note**: The Pipedream HTTP-to-MQTT bridge is specifically for Unbidden Ink
+messages and only uses the simple text message format. Quick actions are
+triggered directly from the web interface or via direct MQTT clients.
+
 ## 🌐 Print from Apple Shortcuts etc
 
 ### Pipedream MQTT Bridge (Recommended)

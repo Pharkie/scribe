@@ -1,7 +1,7 @@
 {
-  "enabled": false,
-  "startHour": 9,
-  "endHour": 17,
-  "frequencyMinutes": 60,
-  "prompt": "Generate a short, encouraging motivational message to help me stay focused and positive. Keep it brief, uplifting, and practical."
+    "enabled": false,
+    "startHour": 9,
+    "endHour": 17,
+    "frequencyMinutes": 60,
+    "prompt": "Generate a short, encouraging motivational message to help me stay focused and positive. Keep it brief, uplifting, and practical."
 }

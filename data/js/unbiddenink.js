@@ -3,10 +3,13 @@
  * @brief Unbidden Ink settings panel functionality
  */
 
+// Flag to prevent auto-saving during initial load
+let isInitialLoad = true;
+
 /**
  * Load current Unbidden Ink settings from the server
  */
-async function loadSettings() {
+async function loadSettings(showToast = false) {
   try {
     const response = await fetch('/unbiddenink-settings');
     
@@ -32,10 +35,17 @@ async function loadSettings() {
     // Update settings visibility based on enabled state
     toggleUnbiddenInkSettings();
     
-    console.log('Unbidden Ink settings loaded successfully:', data);
+    // Clear the initial load flag after first load
+    isInitialLoad = false;
+    
+    if (showToast) {
+      console.log('Unbidden Ink settings loaded successfully:', data);
+    }
   } catch (error) {
     console.error('Error loading Unbidden Ink settings:', error);
-    showErrorMessage('Failed to load Unbidden Ink settings: ' + error.message);
+    if (showToast) {
+      showErrorMessage('Failed to load Unbidden Ink settings: ' + error.message);
+    }
   }
 }
 
@@ -100,14 +110,28 @@ async function saveSettings(event) {
 function toggleUnbiddenInkSettings() {
   const enableCheckbox = document.getElementById('unbidden-ink-enabled');
   const settingsContainer = document.getElementById('unbidden-ink-details');
+  const settingsButton = document.getElementById('unbidden-ink-settings-button');
   
-  if (enableCheckbox && settingsContainer) {
+  if (enableCheckbox && settingsContainer && settingsButton) {
     if (enableCheckbox.checked) {
       settingsContainer.classList.remove('hidden');
+      settingsButton.disabled = false;
     } else {
       settingsContainer.classList.add('hidden');
-      // Auto-save when disabled
-      saveSettings();
+      settingsButton.disabled = true;
+      // Close the settings panel if it's open when disabled
+      const content = document.getElementById('unbidden-ink-content');
+      const arrow = document.getElementById('unbidden-ink-arrow');
+      if (content && !content.classList.contains('hidden')) {
+        content.classList.add('hidden');
+        if (arrow) {
+          arrow.style.transform = 'rotate(0deg)';
+        }
+      }
+      // Only auto-save when disabled by user interaction, not during initial load
+      if (!isInitialLoad) {
+        saveSettings();
+      }
     }
   }
 }
