@@ -42,7 +42,64 @@ document.addEventListener('DOMContentLoaded', function() {
   
   // Initialize any other UI elements
   initializeUI();
+  
+  // Initialize Unbidden Ink settings
+  initializeUnbiddenInkSettings();
 });
+
+/**
+ * Initialize Unbidden Ink settings form
+ */
+function initializeUnbiddenInkSettings() {
+  // Populate hour select options
+  populateHourSelects();
+  
+  // Add event listeners for settings form
+  const promptTextarea = document.getElementById('custom-prompt');
+  if (promptTextarea) {
+    promptTextarea.addEventListener('input', updatePromptCharCount);
+  }
+  
+  const frequencySlider = document.getElementById('frequency');
+  if (frequencySlider) {
+    frequencySlider.addEventListener('input', updateFrequencyDisplay);
+  }
+  
+  // Initialize character count display
+  updatePromptCharCount();
+  updateFrequencyDisplay();
+}
+
+/**
+ * Populate hour select dropdowns with 0-23 options
+ */
+function populateHourSelects() {
+  const startHourSelect = document.getElementById('start-hour');
+  const endHourSelect = document.getElementById('end-hour');
+  
+  if (startHourSelect && endHourSelect) {
+    for (let hour = 0; hour < 24; hour++) {
+      const displayHour = hour === 0 ? '12 AM' : 
+                         hour < 12 ? hour + ' AM' : 
+                         hour === 12 ? '12 PM' : 
+                         (hour - 12) + ' PM';
+      
+      const startOption = document.createElement('option');
+      startOption.value = hour;
+      startOption.textContent = displayHour;
+      startHourSelect.appendChild(startOption);
+      
+      const endOption = document.createElement('option');
+      endOption.value = hour;
+      endOption.textContent = displayHour;
+      endHourSelect.appendChild(endOption);
+    }
+    
+    // Set default values
+    startHourSelect.value = 9;  // 9 AM
+    endHourSelect.value = 17;   // 5 PM
+  }
+}
 
 /**
  * Initialize UI elements and state

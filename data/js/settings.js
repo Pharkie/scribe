@@ -1,6 +1,6 @@
 /**
  * @file settings.js
- * @brief Settings panel functionality
+ * @brief Unbidden Ink settings panel functionality
  */
 
 /**
@@ -16,74 +16,50 @@ function toggleSettings() {
 }
 
 /**
- * Load current settings from the server
+ * Load current Unbidden Ink settings from the server
  */
 async function loadSettings() {
   try {
-    const response = await fetch('/api/settings');
+    const response = await fetch('/unbidden-ink/settings');
     const data = await response.json();
     
-    if (data.success) {
-      // Populate form fields
-      document.getElementById('device-name').value = data.settings.device_name || '';
-      document.getElementById('max-chars').value = data.settings.max_characters || '';
-      document.getElementById('printer-type').value = data.settings.printer_type || '';
-      document.getElementById('baud-rate').value = data.settings.baud_rate || '';
-      
-      // Network settings
-      document.getElementById('wifi-ssid').value = data.settings.wifi_ssid || '';
-      document.getElementById('wifi-password').value = data.settings.wifi_password || '';
-      
-      // MQTT settings
-      document.getElementById('mqtt-enabled').checked = data.settings.mqtt_enabled || false;
-      document.getElementById('mqtt-server').value = data.settings.mqtt_server || '';
-      document.getElementById('mqtt-port').value = data.settings.mqtt_port || '';
-      document.getElementById('mqtt-username').value = data.settings.mqtt_username || '';
-      document.getElementById('mqtt-password').value = data.settings.mqtt_password || '';
-      document.getElementById('mqtt-topic').value = data.settings.mqtt_topic || '';
-      
-      // API settings
-      document.getElementById('api-enabled').checked = data.settings.api_enabled || false;
-      document.getElementById('api-key').value = data.settings.api_key || '';
-      
-      // Logging settings
-      document.getElementById('log-level').value = data.settings.log_level || '';
-      document.getElementById('log-to-serial').checked = data.settings.log_to_serial || false;
-    }
+    // The API returns the settings directly as JSON
+    document.getElementById('enable-unbidden-ink').checked = data.enabled || false;
+    document.getElementById('custom-prompt').value = data.prompt || '';
+    document.getElementById('start-hour').value = data.startHour || 9;
+    document.getElementById('end-hour').value = data.endHour || 17;
+    document.getElementById('frequency').value = data.frequencyMinutes || 60;
+    
+    // Update frequency display
+    updateFrequencyDisplay();
+    
+    // Update settings visibility based on enabled state
+    toggleUnbiddenInkSettings();
   } catch (error) {
-    console.error('Error loading settings:', error);
-    showErrorMessage('Failed to load settings');
+    console.error('Error loading Unbidden Ink settings:', error);
+    showErrorMessage('Failed to load Unbidden Ink settings');
   }
 }
 
 /**
- * Save settings to the server
+ * Save Unbidden Ink settings to the server
  */
 async function saveSettings(event) {
-  event.preventDefault();
-  
-  const formData = new FormData(event.target);
-  const settings = {};
-  
-  // Convert FormData to object
-  for (const [key, value] of formData.entries()) {
-    if (key.includes('enabled') || key.includes('serial')) {
-      settings[key] = true; // Checkbox values
-    } else {
-      settings[key] = value;
-    }
+  if (event) {
+    event.preventDefault();
   }
   
-  // Handle unchecked checkboxes
-  const checkboxes = ['mqtt_enabled', 'api_enabled', 'log_to_serial'];
-  checkboxes.forEach(checkbox => {
-    if (!formData.has(checkbox)) {
-      settings[checkbox] = false;
-    }
-  });
+  // Collect settings from form elements directly
+  const settings = {
+    enabled: document.getElementById('enable-unbidden-ink').checked,
+    prompt: document.getElementById('custom-prompt').value,
+    startHour: parseInt(document.getElementById('start-hour').value),
+    endHour: parseInt(document.getElementById('end-hour').value),
+    frequencyMinutes: parseInt(document.getElementById('frequency').value)
+  };
   
   try {
-    const response = await fetch('/api/settings', {
+    const response = await fetch('/unbidden-ink/settings', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -91,116 +67,96 @@ async function saveSettings(event) {
       body: JSON.stringify(settings)
     });
     
-    const data = await response.json();
-    
-    if (data.success) {
-      showSuccessMessage('Settings saved successfully');
+    if (response.ok) {
+      const message = await response.text();
+      showSuccessMessage('Unbidden Ink settings saved successfully');
       // Reload config to reflect changes
       loadConfig();
     } else {
-      showErrorMessage(data.message || 'Failed to save settings');
+      const errorMessage = await response.text();
+      showErrorMessage(errorMessage || 'Failed to save Unbidden Ink settings');
     }
   } catch (error) {
-    console.error('Error saving settings:', error);
-    showErrorMessage('Failed to save settings');
+    console.error('Error saving Unbidden Ink settings:', error);
+    showErrorMessage('Failed to save Unbidden Ink settings');
   }
 }
 
 /**
- * Reset settings to defaults
+ * Toggle visibility of Unbidden Ink settings based on enabled state
  */
-async function resetSettings() {
-  if (!confirm('Are you sure you want to reset all settings to defaults? This action cannot be undone.')) {
-    return;
-  }
+function toggleUnbiddenInkSettings() {
+  const settingsContainer = document.getElementById('unbidden-ink-settings');
+  const enableCheckbox = document.getElementById('enable-unbidden-ink');
   
+  if (enableCheckbox.checked) {
+    settingsContainer.classList.remove('opacity-50', 'pointer-events-none');
+  } else {
+    settingsContainer.classList.add('opacity-50', 'pointer-events-none');
+  }
+}
+
+/**
+ * Update the frequency display text
+ */
+function updateFrequencyDisplay() {
+  const frequency = document.getElementById('frequency').value;
+  const display = document.getElementById('frequency-value');
+  if (display) {
+    display.textContent = frequency + ' min';
+  }
+}
+
+/**
+ * Load a prompt preset
+ */
+function loadPromptPreset(type) {
+  const promptTextarea = document.getElementById('custom-prompt');
+  const prompts = {
+    motivation: "Write a short, uplifting message to motivate someone during their workday. Keep it under 100 characters and focus on positivity and encouragement.",
+    doctorwho: "Share an interesting fact about Doctor Who - could be about the show, characters, or science fiction concepts from the series. Keep it under 150 characters.",
+    wonderful: "Write about something wonderful in the world - could be nature, science, human achievement, or something beautiful. Keep it positive and under 120 characters.",
+    creative: "Generate a creative writing prompt or artistic inspiration. Something to spark imagination and creativity. Keep it under 100 characters."
+  };
+  
+  if (prompts[type]) {
+    promptTextarea.value = prompts[type];
+    updatePromptCharCount();
+  }
+}
+
+/**
+ * Update prompt character count
+ */
+function updatePromptCharCount() {
+  const prompt = document.getElementById('custom-prompt').value;
+  const counter = document.getElementById('prompt-char-count');
+  if (counter) {
+    counter.textContent = prompt.length + '/500';
+    if (prompt.length > 450) {
+      counter.classList.add('text-red-500');
+    } else {
+      counter.classList.remove('text-red-500');
+    }
+  }
+}
+
+/**
+ * Test Unbidden Ink by triggering a sample message
+ */
+async function testUnbiddenInk() {
   try {
-    const response = await fetch('/api/settings/reset', {
+    const response = await fetch('/unbidden-ink', {
       method: 'POST'
     });
     
-    const data = await response.json();
-    
-    if (data.success) {
-      showSuccessMessage('Settings reset to defaults');
-      loadSettings(); // Reload the form
-      loadConfig(); // Reload the main config
+    if (response.ok) {
+      showSuccessMessage('Test message sent to printer!');
     } else {
-      showErrorMessage(data.message || 'Failed to reset settings');
+      showErrorMessage('Failed to send test message');
     }
   } catch (error) {
-    console.error('Error resetting settings:', error);
-    showErrorMessage('Failed to reset settings');
+    console.error('Error testing Unbidden Ink:', error);
+    showErrorMessage('Failed to send test message');
   }
-}
-
-/**
- * Export settings as JSON file
- */
-async function exportSettings() {
-  try {
-    const response = await fetch('/api/settings/export');
-    const data = await response.json();
-    
-    if (data.success) {
-      const blob = new Blob([JSON.stringify(data.settings, null, 2)], {
-        type: 'application/json'
-      });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = 'scribe-settings.json';
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-      
-      showSuccessMessage('Settings exported successfully');
-    } else {
-      showErrorMessage(data.message || 'Failed to export settings');
-    }
-  } catch (error) {
-    console.error('Error exporting settings:', error);
-    showErrorMessage('Failed to export settings');
-  }
-}
-
-/**
- * Import settings from JSON file
- */
-function importSettings() {
-  const input = document.createElement('input');
-  input.type = 'file';
-  input.accept = '.json';
-  input.onchange = async (event) => {
-    const file = event.target.files[0];
-    if (!file) return;
-    
-    try {
-      const text = await file.text();
-      const settings = JSON.parse(text);
-      
-      const response = await fetch('/api/settings/import', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(settings)
-      });
-      
-      const data = await response.json();
-      
-      if (data.success) {
-        showSuccessMessage('Settings imported successfully');
-        loadSettings(); // Reload the form
-        loadConfig(); // Reload the main config
-      } else {
-        showErrorMessage(data.message || 'Failed to import settings');
-      }
-    } catch (error) {
-      console.error('Error importing settings:', error);
-      showErrorMessage('Invalid settings file or import failed');
-    }
-  };
-  input.click();
 }

@@ -18,7 +18,10 @@
                 </h4>
                 <button onclick="copyGenericSection('Network', this)"
                     class="px-2 py-1 text-xs bg-blue-100 hover:bg-blue-200 text-blue-700 rounded transition-colors">
-                    📋
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                        <path
+                            d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z" />
+                    </svg>
                 </button>
             </div>
             <div class="space-y-2">
@@ -31,16 +34,24 @@
                     <span class="font-medium" data-field="wifi-ssid">-</span>
                 </div>
                 <div class="flex justify-between">
-                    <span class="text-gray-600">IP Address:</span>
-                    <span class="font-medium font-mono" data-field="ip-address">-</span>
+                    <span class="text-gray-600">Signal Strength:</span>
+                    <span class="font-medium" data-field="wifi-signal">-</span>
                 </div>
                 <div class="flex justify-between">
-                    <span class="text-gray-600">Signal Strength:</span>
-                    <span class="font-medium" data-field="signal-strength">-</span>
+                    <span class="text-gray-600">IP Address:</span>
+                    <span class="font-medium" data-field="ip-address">-</span>
                 </div>
                 <div class="flex justify-between">
                     <span class="text-gray-600">MAC Address:</span>
-                    <span class="font-medium font-mono" data-field="mac-address">-</span>
+                    <span class="font-medium" data-field="mac-address">-</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-gray-600">Gateway:</span>
+                    <span class="font-medium" data-field="gateway">-</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-gray-600">DNS:</span>
+                    <span class="font-medium" data-field="dns">-</span>
                 </div>
             </div>
         </div>
@@ -55,7 +66,10 @@
                 </h4>
                 <button onclick="copyGenericSection('MQTT', this)"
                     class="px-2 py-1 text-xs bg-green-100 hover:bg-green-200 text-green-700 rounded transition-colors">
-                    📋
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                        <path
+                            d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z" />
+                    </svg>
                 </button>
             </div>
             <div class="space-y-2">
@@ -72,8 +86,16 @@
                     <span class="font-medium" data-field="mqtt-port">-</span>
                 </div>
                 <div class="flex justify-between">
+                    <span class="text-gray-600">Client ID:</span>
+                    <span class="font-medium" data-field="mqtt-client-id">-</span>
+                </div>
+                <div class="flex justify-between">
                     <span class="text-gray-600">Topic:</span>
                     <span class="font-medium" data-field="mqtt-topic">-</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-gray-600">Last Error:</span>
+                    <span class="font-medium" data-field="mqtt-error">-</span>
                 </div>
             </div>
         </div>
@@ -86,23 +108,34 @@
                 <h4 class="text-lg font-semibold text-purple-800 flex items-center">
                     <span class="mr-2">🪄</span>Unbidden Ink
                 </h4>
-                <button onclick="copySection('unbidden-ink')"
+                <button onclick="copySection('unbidden-ink', this)"
                     class="px-2 py-1 text-xs bg-purple-100 hover:bg-purple-200 text-purple-700 rounded transition-colors">
-                    📋
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                        <path
+                            d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z" />
+                    </svg>
                 </button>
             </div>
-            <div id="unbidden-ink-content" class="space-y-3">
+            <div id="unbidden-ink-content" class="space-y-2">
                 <div class="flex justify-between">
-                    <span class="text-gray-600">Enabled:</span>
-                    <span class="font-medium" data-field="unbidden-enabled">-</span>
+                    <span class="text-gray-600">Status:</span>
+                    <span class="font-medium" data-field="unbidden-ink-status">-</span>
                 </div>
                 <div class="flex justify-between">
-                    <span class="text-gray-600">API Key Status:</span>
-                    <span class="font-medium" data-field="api-key-status">-</span>
+                    <span class="text-gray-600">Working Hours:</span>
+                    <span class="font-medium" data-field="working-hours">-</span>
                 </div>
                 <div class="flex justify-between">
-                    <span class="text-gray-600">Last Check:</span>
-                    <span class="font-medium" data-field="last-check">-</span>
+                    <span class="text-gray-600">Frequency:</span>
+                    <span class="font-medium" data-field="frequency">-</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-gray-600">Last Generated:</span>
+                    <span class="font-medium" data-field="last-generated">-</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-gray-600">Next Scheduled:</span>
+                    <span class="font-medium" data-field="next-scheduled">-</span>
                 </div>
                 <div class="flex justify-between">
                     <span class="text-gray-600">Total Messages:</span>
@@ -121,7 +154,10 @@
                 </h4>
                 <button onclick="copyGenericSection('Microcontroller', this)"
                     class="px-2 py-1 text-xs bg-orange-100 hover:bg-orange-200 text-orange-700 rounded transition-colors">
-                    📋
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                        <path
+                            d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z" />
+                    </svg>
                 </button>
             </div>
             <div class="space-y-2">
@@ -134,28 +170,24 @@
                     <span class="font-medium" data-field="cpu-frequency">-</span>
                 </div>
                 <div class="flex justify-between">
-                    <span class="text-gray-600">Free RAM:</span>
-                    <span class="font-medium" data-field="free-ram">-</span>
+                    <span class="text-gray-600">Flash Size:</span>
+                    <span class="font-medium" data-field="flash-size">-</span>
                 </div>
                 <div class="flex justify-between">
-                    <span class="text-gray-600">Used RAM:</span>
-                    <span class="font-medium" data-field="used-ram">-</span>
-                </div>
-                <div class="flex justify-between">
-                    <span class="text-gray-600">Free Flash:</span>
-                    <span class="font-medium" data-field="free-flash">-</span>
-                </div>
-                <div class="flex justify-between">
-                    <span class="text-gray-600">Used Flash:</span>
-                    <span class="font-medium" data-field="used-flash">-</span>
-                </div>
-                <div class="flex justify-between">
-                    <span class="text-gray-600">Sketch Size:</span>
-                    <span class="font-medium" data-field="sketch-size">-</span>
+                    <span class="text-gray-600">Free Heap:</span>
+                    <span class="font-medium" data-field="free-heap">-</span>
                 </div>
                 <div class="flex justify-between">
                     <span class="text-gray-600">Uptime:</span>
                     <span class="font-medium" data-field="uptime">-</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-gray-600">Reset Reason:</span>
+                    <span class="font-medium" data-field="reset-reason">-</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-gray-600">Temperature:</span>
+                    <span class="font-medium" data-field="temperature">-</span>
                 </div>
             </div>
         </div>
@@ -170,7 +202,10 @@
                 </h4>
                 <button onclick="copyGenericSection('Logging', this)"
                     class="px-2 py-1 text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 rounded transition-colors">
-                    📋
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                        <path
+                            d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z" />
+                    </svg>
                 </button>
             </div>
             <div class="space-y-2">
@@ -181,6 +216,18 @@
                 <div class="flex justify-between">
                     <span class="text-gray-600">Serial Logging:</span>
                     <span class="font-medium" data-field="serial-logging">-</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-gray-600">File Logging:</span>
+                    <span class="font-medium" data-field="file-logging">-</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-gray-600">MQTT Logging:</span>
+                    <span class="font-medium" data-field="mqtt-logging">-</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-gray-600">BetterStack Logging:</span>
+                    <span class="font-medium" data-field="betterstack-logging">-</span>
                 </div>
             </div>
         </div>
@@ -193,9 +240,12 @@
                 <h4 class="text-lg font-semibold text-yellow-800 flex items-center">
                     <span class="mr-2">📄</span>Settings File
                 </h4>
-                <button onclick="copyFileContents()"
+                <button onclick="copyFileContents(this)"
                     class="px-2 py-1 text-xs bg-yellow-100 hover:bg-yellow-200 text-yellow-700 rounded transition-colors">
-                    📋
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                        <path
+                            d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z" />
+                    </svg>
                 </button>
             </div>
             <div class="bg-gray-800 text-green-400 p-3 rounded font-mono text-sm max-h-60 overflow-y-auto">
@@ -204,14 +254,6 @@
         </div>
     </template>
 
-    <!-- Error Template -->
-    <template id="error-template">
-        <div class="text-center text-red-600">
-            <span class="text-2xl">❌</span>
-            <div class="mt-2">Failed to load diagnostics</div>
-            <div class="text-sm text-gray-500 mt-1" data-field="error-message">Unknown error</div>
-        </div>
-    </template>
 </body>
 
 </html>

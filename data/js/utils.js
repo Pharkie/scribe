@@ -29,7 +29,7 @@ function handleKeyPress(event) {
 /**
  * Copy section content to clipboard
  */
-function copySection(sectionId) {
+function copySection(sectionId, buttonElement) {
   const content = document.getElementById(sectionId + '-content');
   if (!content) return;
   
@@ -52,37 +52,17 @@ function copySection(sectionId) {
     textContent += fileContents.textContent;
   }
   
-  navigator.clipboard.writeText(textContent).then(() => {
-    // Brief visual feedback
-    const button = event.target;
-    const originalText = button.textContent;
-    button.textContent = '✅';
-    setTimeout(() => {
-      button.textContent = originalText;
-    }, 1000);
-  }).catch(err => {
-    console.error('Failed to copy:', err);
-  });
+  copyToClipboard(textContent, buttonElement);
 }
 
 /**
  * Copy file contents to clipboard
  */
-function copyFileContents() {
+function copyFileContents(buttonElement) {
   const fileContents = document.getElementById('file-contents');
   if (!fileContents) return;
   
-  navigator.clipboard.writeText(fileContents.textContent).then(() => {
-    // Brief visual feedback
-    const button = event.target;
-    const originalText = button.textContent;
-    button.textContent = '✅';
-    setTimeout(() => {
-      button.textContent = originalText;
-    }, 1000);
-  }).catch(err => {
-    console.error('Failed to copy:', err);
-  });
+  copyToClipboard(fileContents.textContent, buttonElement);
 }
 
 /**
@@ -108,14 +88,69 @@ function copyGenericSection(sectionName, buttonElement) {
     }
   });
   
-  navigator.clipboard.writeText(textContent).then(() => {
-    // Brief visual feedback
-    const originalText = buttonElement.textContent;
-    buttonElement.textContent = '✅';
-    setTimeout(() => {
-      buttonElement.textContent = originalText;
-    }, 1000);
-  }).catch(err => {
+  copyToClipboard(textContent, buttonElement);
+}
+
+/**
+ * Universal clipboard copy function with fallback support
+ */
+function copyToClipboard(text, buttonElement) {
+  // Modern browsers with clipboard API support
+  if (navigator.clipboard && window.isSecureContext) {
+    navigator.clipboard.writeText(text).then(() => {
+      showCopyFeedback(buttonElement);
+    }).catch(() => {
+      // Fallback if clipboard API fails
+      fallbackCopyToClipboard(text, buttonElement);
+    });
+  } else {
+    // Fallback for older browsers or non-HTTPS contexts
+    fallbackCopyToClipboard(text, buttonElement);
+  }
+}
+
+/**
+ * Fallback clipboard copy using textarea selection
+ */
+function fallbackCopyToClipboard(text, buttonElement) {
+  // Create a temporary textarea
+  const textArea = document.createElement('textarea');
+  textArea.value = text;
+  textArea.style.position = 'fixed';
+  textArea.style.left = '-999999px';
+  textArea.style.top = '-999999px';
+  document.body.appendChild(textArea);
+  
+  try {
+    textArea.focus();
+    textArea.select();
+    const successful = document.execCommand('copy');
+    if (successful) {
+      showCopyFeedback(buttonElement);
+    } else {
+      console.error('Failed to copy text');
+      showErrorMessage('Copy failed - please select and copy manually');
+    }
+  } catch (err) {
     console.error('Failed to copy:', err);
-  });
+    showErrorMessage('Copy not supported - please select and copy manually');
+  } finally {
+    document.body.removeChild(textArea);
+  }
+}
+
+/**
+ * Show visual feedback for successful copy
+ */
+function showCopyFeedback(buttonElement) {
+  if (!buttonElement) return;
+  
+  const originalContent = buttonElement.innerHTML;
+  buttonElement.innerHTML = '✅';
+  buttonElement.disabled = true;
+  
+  setTimeout(() => {
+    buttonElement.innerHTML = originalContent;
+    buttonElement.disabled = false;
+  }, 1500);
 }
