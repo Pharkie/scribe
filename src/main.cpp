@@ -22,6 +22,7 @@
  * - Unbidden Ink
  * - FastLED support for LED strip
  * - Hardware button testing
+ * - OTA flash capability
  */
 
 #include <WiFi.h>
