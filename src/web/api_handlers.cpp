@@ -487,6 +487,16 @@ void handleUnbiddenInkSettingsPost()
 
     LOG_VERBOSE("WEB", "Unbidden Ink settings saved successfully");
 
+    // Reload settings to update the runtime configuration
+    loadUnbiddenInkSettings();
+
+    // If Unbidden Ink was just enabled, schedule the next message
+    if (doc["enabled"].as<bool>())
+    {
+        scheduleNextUnbiddenInk();
+        LOG_NOTICE("UNBIDDENINK", "Unbidden Ink enabled and next message scheduled");
+    }
+
     // Return JSON response
     DynamicJsonDocument response(256);
     response["success"] = true;
