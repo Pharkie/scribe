@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Settings - Scribe</title>
+    <title>Settings - Scribe Evolution</title>
     <link rel="icon" type="image/png" href="/favicon-96x96.png" sizes="96x96" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="shortcut icon" href="/favicon.ico" />
@@ -73,8 +73,8 @@
 
                     <!-- Device Section -->
                     <div x-show="activeSection === 'device'" class="settings-section">
-                        <div class="settings-card settings-card-purple">
-                            <h2 class="settings-card-header settings-card-header-purple">
+                        <div class="settings-card settings-card-blue">
+                            <h2 class="settings-card-header settings-card-header-blue">
                                 <span class="text-3xl">⚙️</span>
                                 <span>Device</span>
                             </h2>
@@ -548,10 +548,60 @@
                         </div>
                     </div>
 
+                    <!-- Memos Section -->
+                    <div x-show="activeSection === 'memos'" class="settings-section">
+                        <div class="settings-card settings-card-pink">
+                            <h2 class="settings-card-header settings-card-header-pink">
+                                <span class="text-3xl">📝</span>
+                                <span>Memos</span>
+                            </h2>
+
+                            <!-- Placeholder Documentation -->
+                            <div class="mb-6 p-4 bg-purple-50 dark:bg-purple-900/20 rounded-xl">
+                                <h3 class="text-lg font-semibold text-purple-800 dark:text-purple-200 mb-3">Available Placeholders</h3>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+                                    <div class="space-y-1">
+                                        <p><code class="px-2 py-1 bg-gray-200 dark:bg-gray-700 rounded">[date]</code> → Current date (24Aug25)</p>
+                                        <p><code class="px-2 py-1 bg-gray-200 dark:bg-gray-700 rounded">[time]</code> → Current time (12:30)</p>
+                                        <p><code class="px-2 py-1 bg-gray-200 dark:bg-gray-700 rounded">[weekday]</code> → Day name (Sunday)</p>
+                                        <p><code class="px-2 py-1 bg-gray-200 dark:bg-gray-700 rounded">[uptime]</code> → Device uptime (2h13m)</p>
+                                        <p><code class="px-2 py-1 bg-gray-200 dark:bg-gray-700 rounded">[ip]</code> → Device IP address</p>
+                                    </div>
+                                    <div class="space-y-1">
+                                        <p><code class="px-2 py-1 bg-gray-200 dark:bg-gray-700 rounded">[mdns]</code> → mDNS hostname</p>
+                                        <p><code class="px-2 py-1 bg-gray-200 dark:bg-gray-700 rounded">[coin]</code> → Heads or Tails</p>
+                                        <p><code class="px-2 py-1 bg-gray-200 dark:bg-gray-700 rounded">[dice:n]</code> → Random 1-n (default 6)</p>
+                                        <p><code class="px-2 py-1 bg-gray-200 dark:bg-gray-700 rounded">[pick:a|b|c]</code> → Random choice</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Memo Text Areas -->
+                            <div class="space-y-6">
+                                <template x-for="memoNum in [1, 2, 3, 4]" :key="memoNum">
+                                    <div class="space-y-2">
+                                        <label :for="`memo-${memoNum}`" class="form-label">
+                                            Memo <span x-text="memoNum"></span>:
+                                        </label>
+                                        <textarea 
+                                            :id="`memo-${memoNum}`" 
+                                            rows="4"
+                                            class="w-full p-3 rounded-xl border border-gray-200 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent text-gray-800 dark:text-gray-100 bg-white dark:bg-gray-700 resize-vertical"
+                                            :placeholder="`Enter memo ${memoNum} content with placeholders...`"
+                                            :x-model="`config.memos.memo${memoNum}`"></textarea>
+                                        <div :class="getMemoCharacterClass(memoNum)" class="text-xs text-right font-mono">
+                                            <span x-text="getMemoCharacterText(memoNum)"></span>
+                                        </div>
+                                    </div>
+                                </template>
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- Buttons Section -->
                     <div x-show="activeSection === 'buttons'" class="settings-section">
-                        <div class="settings-card settings-card-orange">
-                            <h2 class="settings-card-header settings-card-header-orange">
+                        <div class="settings-card settings-card-teal">
+                            <h2 class="settings-card-header settings-card-header-teal">
                                 <span class="text-3xl">🎛️</span>
                                 <span>Button Actions</span>
                             </h2>
@@ -572,13 +622,17 @@
                                                 <select :id="`button${buttonNum}-short`" class="input-standard"
                                                     x-model="config.buttons[`button${buttonNum}`].shortAction">
                                                     <option value="">None</option>
-                                                    <option value="/api/joke">Joke</option>
-                                                    <option value="/api/riddle">Riddle</option>
-                                                    <option value="/api/quote">Quote</option>
-                                                    <option value="/api/quiz">Quiz</option>
-                                                    <option value="/api/news">News</option>
-                                                    <option value="/api/character-test">Character Test</option>
-                                                    <option value="/api/unbidden-ink">Unbidden Ink</option>
+                                                    <option value="JOKE">Joke</option>
+                                                    <option value="RIDDLE">Riddle</option>
+                                                    <option value="QUOTE">Quote</option>
+                                                    <option value="QUIZ">Quiz</option>
+                                                    <option value="NEWS">News</option>
+                                                    <option value="CHARACTER_TEST">Character Test</option>
+                                                    <option value="UNBIDDEN_INK">Unbidden Ink</option>
+                                                    <option value="MEMO1">Memo 1</option>
+                                                    <option value="MEMO2">Memo 2</option>
+                                                    <option value="MEMO3">Memo 3</option>
+                                                    <option value="MEMO4">Memo 4</option>
                                                 </select>
                                             </div>
 
@@ -590,13 +644,17 @@
                                                 <select :id="`button${buttonNum}-long`" class="input-standard"
                                                     x-model="config.buttons[`button${buttonNum}`].longAction">
                                                     <option value="">None</option>
-                                                    <option value="/api/joke">Joke</option>
-                                                    <option value="/api/riddle">Riddle</option>
-                                                    <option value="/api/quote">Quote</option>
-                                                    <option value="/api/quiz">Quiz</option>
-                                                    <option value="/api/news">News</option>
-                                                    <option value="/api/character-test">Character Test</option>
-                                                    <option value="/api/unbidden-ink">Unbidden Ink</option>
+                                                    <option value="JOKE">Joke</option>
+                                                    <option value="RIDDLE">Riddle</option>
+                                                    <option value="QUOTE">Quote</option>
+                                                    <option value="QUIZ">Quiz</option>
+                                                    <option value="NEWS">News</option>
+                                                    <option value="CHARACTER_TEST">Character Test</option>
+                                                    <option value="UNBIDDEN_INK">Unbidden Ink</option>
+                                                    <option value="MEMO1">Memo 1</option>
+                                                    <option value="MEMO2">Memo 2</option>
+                                                    <option value="MEMO3">Memo 3</option>
+                                                    <option value="MEMO4">Memo 4</option>
                                                 </select>
                                             </div>
 
