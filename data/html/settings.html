@@ -791,17 +791,20 @@
                                             <label for="led-pin"
                                                 class="block text-sm font-medium text-gray-700 dark:text-gray-300">GPIO
                                                 Pin</label>
-                                            <select id="led-pin" class="input-standard" x-model="config.leds.pin">
-                                                <template x-if="loading">
-                                                    <option value="" disabled>Loading GPIO options...</option>
-                                                </template>
-                                                <template x-if="!loading">
-                                                    <template x-for="option in gpioOptions" :key="option.value">
-                                                        <option :value="option.value" :disabled="option.disabled" 
-                                                                :class="{ 'text-red-600': option.disabled, 'text-green-600': option.isSafe }"
-                                                                x-text="option.label">
-                                                        </option>
-                                                    </template>
+                                            <select id="led-pin" class="input-standard" x-model="config.leds.pin"
+                                                    x-effect="
+                                                        if (!loading && config.leds.pin !== null && gpioOptions.length > 0) {
+                                                            $nextTick(() => { 
+                                                                $el.value = config.leds.pin;
+                                                                console.log('🔄 Forced select sync:', config.leds.pin, 'to element value:', $el.value);
+                                                            });
+                                                        }
+                                                    ">
+                                                <template x-for="option in allGpioOptions" :key="option.value">
+                                                    <option :value="option.value" :disabled="option.disabled" 
+                                                            :class="{ 'text-red-600': option.disabled, 'text-green-600': option.isSafe }"
+                                                            x-text="option.label">
+                                                    </option>
                                                 </template>
                                             </select>
                                             <p class="text-xs text-gray-500 dark:text-gray-400">
