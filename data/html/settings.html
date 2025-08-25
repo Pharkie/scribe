@@ -794,12 +794,9 @@
                                             <select id="led-pin" class="input-standard" x-model="config.leds.pin"
                                                     x-effect="
                                                         if (!loading && config.leds.pin !== null && gpioOptions.length > 0) {
-                                                            $nextTick(() => { 
-                                                                $el.value = config.leds.pin;
-                                                                console.log('🔄 Forced select sync:', config.leds.pin, 'to element value:', $el.value);
-                                                            });
+                                                            $nextTick(() => $el.value = config.leds.pin);
                                                         }
-                                                    ">
+                                                    "
                                                 <template x-for="option in allGpioOptions" :key="option.value">
                                                     <option :value="option.value" :disabled="option.disabled" 
                                                             :class="{ 'text-red-600': option.disabled, 'text-green-600': option.isSafe }"
