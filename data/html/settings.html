@@ -792,28 +792,12 @@
                                                 class="block text-sm font-medium text-gray-700 dark:text-gray-300">GPIO
                                                 Pin</label>
                                             <select id="led-pin" class="input-standard" x-model="config.leds.pin">
-                                                <option value="0">GPIO0 (boot mode, avoid)</option>
-                                                <option value="1">GPIO1 (usable)</option>
-                                                <option value="2">GPIO2 (usable)</option>
-                                                <option value="3">GPIO3 (usable)</option>
-                                                <option value="4" selected>GPIO4 (usable)</option>
-                                                <option value="5">GPIO5 (usable)</option>
-                                                <option value="6">GPIO6 (usable)</option>
-                                                <option value="7">GPIO7 (usable)</option>
-                                                <option value="8">GPIO8 (flash, avoid)</option>
-                                                <option value="9">GPIO9 (flash, avoid)</option>
-                                                <option value="10">GPIO10 (flash, avoid)</option>
-                                                <option value="11">GPIO11 (not broken out)</option>
-                                                <option value="12">GPIO12 (not broken out)</option>
-                                                <option value="13">GPIO13 (usable, often SCL)</option>
-                                                <option value="14">GPIO14 (usable, often SDA)</option>
-                                                <option value="15">GPIO15 (not broken out)</option>
-                                                <option value="16">GPIO16 (not broken out)</option>
-                                                <option value="17">GPIO17 (not broken out)</option>
-                                                <option value="18">GPIO18 (USB/JTAG, avoid unless advanced)</option>
-                                                <option value="19">GPIO19 (USB/JTAG, avoid unless advanced)</option>
-                                                <option value="20">GPIO20 (usable, often RX)</option>
-                                                <option value="21">GPIO21 (usable, often TX)</option>
+                                                <template x-for="option in gpioOptions" :key="option.value">
+                                                    <option :value="option.value" :disabled="option.disabled" 
+                                                            :class="{ 'text-red-600': option.disabled, 'text-green-600': option.isSafe }"
+                                                            x-text="option.label">
+                                                    </option>
+                                                </template>
                                             </select>
                                             <p class="text-xs text-gray-500 dark:text-gray-400">
                                                 ⚠️ Not all boards expose every pin. On boards like the ESP32-C3
@@ -845,26 +829,25 @@
                                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         <div class="space-y-2">
                                             <label for="led-brightness"
-                                                class="block text-sm font-medium text-gray-700 dark:text-gray-300">Brightness
-                                                (0-255)</label>
-                                            <input type="number" id="led-brightness" min="0" max="255"
-                                                class="input-standard" x-model="config.leds.brightness"
-                                                placeholder="128">
+                                                class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                                Brightness (<span x-text="config.leds.brightness"></span>/255)
+                                            </label>
+                                            <input type="range" id="led-brightness" min="10" max="255" step="5"
+                                                class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                                                x-model="config.leds.brightness">
                                             <p class="text-xs text-gray-500 dark:text-gray-400">Lower values save power
-                                                and
-                                                reduce heat</p>
+                                                and reduce heat</p>
                                         </div>
                                         <div class="space-y-2">
                                             <label for="led-refresh-rate"
-                                                class="block text-sm font-medium text-gray-700 dark:text-gray-300">Refresh
-                                                Rate
-                                                (Hz)</label>
-                                            <input type="number" id="led-refresh-rate" min="10" max="120"
-                                                class="input-standard" x-model="config.leds.refreshRate"
-                                                placeholder="30">
+                                                class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                                Refresh Rate (<span x-text="config.leds.refreshRate"></span> Hz)
+                                            </label>
+                                            <input type="range" id="led-refresh-rate" min="10" max="120" step="5"
+                                                class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                                                x-model="config.leds.refreshRate">
                                             <p class="text-xs text-gray-500 dark:text-gray-400">Higher values make
-                                                animations
-                                                smoother but use more CPU</p>
+                                                animations smoother but use more CPU</p>
                                         </div>
                                     </div>
                                 </div>
@@ -1057,8 +1040,9 @@
                             class="px-6 py-3 bg-gray-500 hover:bg-gray-600 text-white font-medium rounded-xl transition-colors duration-200">
                             Cancel
                         </button>
-                        <button type="submit" :disabled="saving" class="btn-primary btn-primary-large"
-                            :class="{ 'opacity-50 cursor-not-allowed': saving }">
+                        <button type="submit" :disabled="saving || !canSaveForm" class="btn-primary btn-primary-large"
+                            :class="{ 'opacity-50 cursor-not-allowed': saving || !canSaveForm }"
+                            :title="!canSaveForm ? 'Please fill in all required fields to save' : ''">
                             <span x-show="!saving">💾 Save Settings</span>
                             <span x-show="saving">
                                 <div class="flex items-center space-x-2">
@@ -1076,6 +1060,7 @@
         </template>
     </main>
 
+    <script src="/js/shared.js"></script>
     <script src="/js/vendor.min.js" defer></script>
     <script src="/js/page-settings.min.js" defer></script>
 </body>
