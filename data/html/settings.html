@@ -791,7 +791,8 @@
                                             <label for="led-pin"
                                                 class="block text-sm font-medium text-gray-700 dark:text-gray-300">GPIO
                                                 Pin</label>
-                                            <select id="led-pin" class="input-standard" x-model="config.leds.pin">
+                                            <select id="led-pin" class="input-standard" x-model="config.leds.pin" 
+                                                    x-show="gpioOptions.length > 0 && !loading">
                                                 <template x-for="option in gpioOptions" :key="option.value">
                                                     <option :value="option.value" :disabled="option.disabled" 
                                                             :class="{ 'text-red-600': option.disabled, 'text-green-600': option.isSafe }"
