@@ -14,20 +14,9 @@
         <script src="/js/page-404.min.js"></script>
         <script src="/js/vendor.min.js" defer></script>
         <script src="/js/app-common.min.js" defer></script>
-        <script>
-                // Register Alpine stores during initialization
-                document.addEventListener('alpine:init', () => {
-                        // Create and register error store immediately, initialize it once
-                        const errorStore = initializeErrorStore();
-                        Alpine.store('error', errorStore);
-                        
-                        // Make store available globally for body x-data
-                        window.errorStoreInstance = errorStore;
-                });
-        </script>
 </head>
 
-<body class="page-body" x-data="window.errorStoreInstance || {}" x-init="init()">
+<body class="page-body" x-data="window.errorStoreInstance || {}">
         <main class="page-main">
                 <!-- Header with title and back button -->
                 <header class="page-header">

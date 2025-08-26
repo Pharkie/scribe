@@ -16,7 +16,7 @@
     <script src="/js/app-common.min.js" defer></script>
 </head>
 
-<body class="page-body" x-data="window.settingsStoreInstance || {}" x-init="init()">
+<body class="page-body" x-data="window.settingsStoreInstance || {}">
     <main class="page-main">
         <!-- Header with title and back button -->
         <header class="page-header">
@@ -71,134 +71,54 @@
                 </nav>
 
                 <!-- Settings Content -->
-                <div class="space-y-6">
-
+                <form @submit.prevent="saveConfiguration" class="space-y-6">
                     <!-- Device Section -->
-                    <div x-html="$store.partials.load('device')" x-show="activeSection === 'device'"></div>
-
-                    <!-- MQTT Section -->
-                    <div x-html="$store.partials.load('mqtt')" x-show="activeSection === 'mqtt'"></div>
-
-                    <!-- Unbidden Ink Section -->
-                    <div x-html="$store.partials.load('unbidden')" x-show="activeSection === 'unbidden'"></div>
+                    <div x-show="activeSection === 'device'" x-html="$store.partials.load('device')"></div>
 
                     <!-- Memos Section -->
-                    <div x-html="$store.partials.load('memos')" x-show="activeSection === 'memos'"></div>
+                    <div x-show="activeSection === 'memos'" x-html="$store.partials.load('memos')"></div>
+
+                    <!-- MQTT Section -->
+                    <div x-show="activeSection === 'mqtt'" x-html="$store.partials.load('mqtt')"></div>
+
+                    <!-- Unbidden Ink Section -->
+                    <div x-show="activeSection === 'unbidden'" x-html="$store.partials.load('unbidden')"></div>
 
                     <!-- Buttons Section -->
-                    <div x-html="$store.partials.load('buttons')" x-show="activeSection === 'buttons'"></div>
+                    <div x-show="activeSection === 'buttons'" x-html="$store.partials.load('buttons')"></div>
 
                     <!-- LEDs Section -->
-                    <div x-html="$store.partials.load('leds')" x-show="activeSection === 'leds'"></div>
-                </div>
+                    <div x-show="activeSection === 'leds'" x-html="$store.partials.load('leds')"></div>
 
-                <!-- Form Actions (shown when not loading and no error) -->
-                <form @submit.prevent="saveConfiguration()">
                     <!-- Action Buttons -->
-                    <div class="flex justify-center gap-4 pt-6">
-                        <button type="button" @click="cancelConfiguration()"
-                            class="px-6 py-3 bg-gray-500 hover:bg-gray-600 text-white font-medium rounded-xl transition-colors duration-200">
-                            Cancel
-                        </button>
-                        <button type="submit" :disabled="saving || !canSaveForm" class="btn-primary btn-primary-large"
-                            :class="{ 'opacity-50 cursor-not-allowed': saving || !canSaveForm }"
-                            :title="!canSaveForm ? 'Please fill in all required fields to save' : ''">
-                            <span x-show="!saving">💾 Save Settings</span>
-                            <span x-show="saving">
-                                <div class="flex items-center space-x-2">
-                                    <div
-                                        class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin">
-                                    </div>
-                                    <span>Saving...</span>
-                                </div>
+                    <div class="flex flex-col sm:flex-row gap-3 justify-center">
+                        <button type="submit" class="save-button" :disabled="!canSaveForm || saving">
+                            <span x-show="!saving" class="flex items-center">
+                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M5 13l4 4L19 7"></path>
+                                </svg>
+                                Stash Settings
                             </span>
+                            <span x-show="saving" class="flex items-center">
+                                <svg class="animate-spin -ml-1 mr-3 h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                </svg>
+                                Stashing...
+                            </span>
+                        </button>
+                        <button type="button" @click="cancelConfiguration" class="cancel-button">
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M6 18L18 6M6 6l12 12"></path>
+                            </svg>
+                            Cancel
                         </button>
                     </div>
                 </form>
             </div> <!-- End main content wrapper -->
         </template>
     </main>
-    <script src="/js/vendor.min.js" defer></script>
-    <script>
-        // Register Alpine stores and components during initialization
-        document.addEventListener('alpine:init', () => {
-            // Create and register settings store immediately, initialize it once
-            const settingsStore = initializeSettingsStore();
-            Alpine.store('settings', settingsStore);
-            
-            // Make store available globally for body x-data
-            window.settingsStoreInstance = settingsStore;
-            // All partials now use direct $store.settings access - no proxy functions needed
-
-            window.mqttPartial = function() {
-                return {
-                    get config() { return Alpine.store('settings').config; }
-                }
-            };
-
-            window.memosPartial = function() {
-                return {
-                    get config() { return Alpine.store('settings').config; },
-                    getMemoCharacterText(memoNum) {
-                        const memo = this.config.memos[`memo${memoNum}`] || '';
-                        const length = memo.length;
-                        const maxLength = 500;
-                        return `${length}/${maxLength} characters`;
-                    },
-                    getMemoCharacterClass(memoNum) {
-                        const memo = this.config.memos[`memo${memoNum}`] || '';
-                        const length = memo.length;
-                        const maxLength = 500;
-                        
-                        if (length > maxLength) {
-                            return 'text-red-500 dark:text-red-400';
-                        } else if (length > maxLength * 0.9) {
-                            return 'text-orange-500 dark:text-orange-400';
-                        } else {
-                            return 'text-gray-500 dark:text-gray-400';
-                        }
-                    }
-                }
-            };
-
-            window.buttonsPartial = function() {
-                return {
-                    get config() { return Alpine.store('settings').config; }
-                }
-            };
-
-
-
-            // Alpine.js store for loading partials (clean version)
-            Alpine.store('partials', {
-                cache: {},
-                loading: {},
-                load(name) {
-                    if (this.cache[name]) return this.cache[name];
-                    if (this.loading[name]) return '<div class="p-4 text-center text-gray-500">Loading...</div>';
-                    
-                    this.loading[name] = true;
-                    fetch(`/html/partials/settings/${name}.html`)
-                        .then(response => {
-                            if (!response.ok) throw new Error(`Failed to load partial: ${name}`);
-                            return response.text();
-                        })
-                        .then(html => {
-                            this.loading[name] = false;
-                            this.cache[name] = html;
-                            Alpine.store('partials', { ...this });
-                        })
-                        .catch(error => {
-                            console.error(`Error loading partial ${name}:`, error);
-                            this.cache[name] = `<div class="p-4 bg-red-50 border border-red-200 rounded-lg"><p class="text-red-600">Failed to load ${name} section</p></div>`;
-                            this.loading[name] = false;
-                            Alpine.store('partials', { ...this });
-                        });
-                    
-                    return '<div class="p-4 text-center text-gray-500">Loading...</div>';
-                }
-            });
-        });
-    </script>
 </body>
 </html>
