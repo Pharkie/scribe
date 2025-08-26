@@ -11,9 +11,9 @@
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
     <link rel="manifest" href="/site.webmanifest" />
     <link rel="stylesheet" href="/css/settings.min.css">
+    <script src="/js/app-common.min.js"></script>
     <script src="/js/page-settings.min.js"></script>
     <script src="/js/vendor.min.js" defer></script>
-    <script src="/js/app-common.min.js" defer></script>
 </head>
 
 <body class="page-body" x-data="window.settingsStoreInstance || {}">
@@ -79,22 +79,22 @@
                 <!-- Settings Content -->
                 <form @submit.prevent="saveConfiguration" class="space-y-6">
                     <!-- Device Section -->
-                    <div x-show="activeSection === 'device'" x-html="$store.partials.load('device')"></div>
+                    <div x-show="activeSection === 'device'" x-transition.opacity.duration.300ms x-html="$store.partials.load('device')"></div>
 
                     <!-- Memos Section -->
-                    <div x-show="activeSection === 'memos'" x-html="$store.partials.load('memos')"></div>
+                    <div x-show="activeSection === 'memos'" x-transition.opacity.duration.300ms x-html="$store.partials.load('memos')"></div>
 
                     <!-- MQTT Section -->
-                    <div x-show="activeSection === 'mqtt'" x-html="$store.partials.load('mqtt')"></div>
+                    <div x-show="activeSection === 'mqtt'" x-transition.opacity.duration.300ms x-html="$store.partials.load('mqtt')"></div>
 
                     <!-- Unbidden Ink Section -->
-                    <div x-show="activeSection === 'unbidden'" x-html="$store.partials.load('unbidden')"></div>
+                    <div x-show="activeSection === 'unbidden'" x-transition.opacity.duration.300ms x-html="$store.partials.load('unbidden')"></div>
 
                     <!-- Buttons Section -->
-                    <div x-show="activeSection === 'buttons'" x-html="$store.partials.load('buttons')"></div>
+                    <div x-show="activeSection === 'buttons'" x-transition.opacity.duration.300ms x-html="$store.partials.load('buttons')"></div>
 
                     <!-- LEDs Section -->
-                    <div x-show="activeSection === 'leds'" x-html="$store.partials.load('leds')"></div>
+                    <div x-show="activeSection === 'leds'" x-transition.opacity.duration.300ms x-html="$store.partials.load('leds')"></div>
 
                     <!-- Action Buttons -->
                     <div class="flex justify-center gap-4 pt-6">

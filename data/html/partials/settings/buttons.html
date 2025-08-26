@@ -1,4 +1,4 @@
-<div x-data="{}" x-show="$store.settings && !$store.settings.loading" class="settings-section">
+<div x-data="{}" x-show="$store.settings && !$store.settings.loading" x-transition.opacity.duration.300ms class="settings-section">
     <div class="settings-card settings-card-teal">
         <h2 class="settings-card-header settings-card-header-teal">
 <span x-html="window.renderSectionIcon ? window.renderSectionIcon('arrowDownCircle') : '🎛️'"></span>
