@@ -35,7 +35,9 @@
                         <!-- Centered title -->
                         <div class="header-center">
                                 <h1 class="page-title">
-                                        <span class="text-4xl sm:text-5xl" :class="errorIconClass">🗑️</span>
+                                        <svg class="w-10 h-10 sm:w-12 sm:h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24" :class="errorIconClass">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m19 7-.867 12.142A2 2 0 0 1 16.138 21H7.862a2 2 0 0 1-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v3M4 7h16"></path>
+                                        </svg>
                                         <span>Paper Jam</span>
                                 </h1>
                         </div>
@@ -78,7 +80,10 @@
                                 <!-- Action Buttons -->
                                 <div class="error-actions">
                                         <button @click="goHome()" class="error-btn error-btn-primary">
-                                                🏠 Home
+                                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m3 12 2-2m0 0 7-7 7 7M5 10v10a1 1 0 0 0 1 1h3m0 0a1 1 0 0 0 1 1h2a1 1 0 0 0 1-1m0 0h3a1 1 0 0 0 1-1V10M9 21v-6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v6"></path>
+                                                </svg>
+                                                Home
                                         </button>
                                 </div>
                         </div>

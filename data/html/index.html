@@ -58,7 +58,9 @@
 
         <!-- Error State -->
         <div x-show="error" x-transition.opacity.duration.300ms class="text-center text-red-600 dark:text-red-400 mb-6">
-            <span class="text-4xl mb-4 block">⚠️</span>
+            <svg class="w-10 h-10 mb-4 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"></path>
+            </svg>
             <h3 class="text-lg font-semibold text-red-800 dark:text-red-200 mb-2">Loading Error</h3>
             <p class="text-red-600 dark:text-red-300 mb-4" x-text="error"></p>
             <button @click="init()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg">
@@ -75,7 +77,7 @@
                     <form @submit="handleSubmit($event)" class="vertical-stack-lg">
                         <!-- Printer Selection -->
                         <div class="vertical-stack">
-                            <label class="form-label">Print to:</label>
+                            <label class="form-label">Select where to print:</label>
                             <div class="printer-grid">
                                 <template x-for="printer in printers" :key="printer.value">
                                     <div @click="selectPrinter(printer.value)" :class="{
@@ -86,7 +88,7 @@
                                         <div class="flex items-center justify-between w-full">
                                             <!-- Left side with icon and name -->
                                             <div class="flex items-center space-x-4 flex-1 min-w-0">
-                                                <span class="text-3xl" x-text="printer.icon"></span>
+                                                <span class="text-3xl" x-html="window.getIcon ? window.getIcon(printer.icon, 'scribe-icon w-8 h-8') : printer.icon"></span>
                                                 <div class="flex-1 min-w-0 flex items-center">
                                                     <div class="font-medium text-base truncate" x-text="printer.name">
                                                     </div>
@@ -134,7 +136,10 @@
                         'opacity-50 cursor-not-allowed': !canSubmit,
                         'hover:bg-blue-700 dark:hover:bg-blue-500': canSubmit
                     }" class="w-full px-6 py-3 bg-blue-600 dark:bg-blue-600 text-white font-medium rounded-lg shadow-lg hover:shadow-xl transition-all duration-200">
-                            <span x-show="!submitting && !buttonTextOverride">🖨️&nbsp;Scribe</span>
+                            <span x-show="!submitting && !buttonTextOverride" class="flex items-center justify-center">
+                                <img src="/images/scribe_magic.svg" alt="Magic Scribe" class="w-4 h-4 mr-2" />
+                                Scribe
+                            </span>
                             <span x-show="!submitting && buttonTextOverride" x-text="buttonTextOverride"></span>
                             <span x-show="submitting" class="flex items-center justify-center">
                                 <span class="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></span>
@@ -149,7 +154,9 @@
                                     class="action-button action-button-yellow quick-action-btn"
                                     :class="{ 'opacity-75': activeQuickAction === 'riddle' }"
                                     :disabled="activeQuickAction !== null" data-action="riddle">
-                                    <span class="action-button-icon">🧩</span>
+                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M14.25 6.087c0-.355.186-.676.401-.959.221-.29.349-.634.349-1.003 0-1.036-1.007-1.875-2.25-1.875s-2.25.84-2.25 1.875c0 .369.128.713.349 1.003.215.283.401.604.401.959v0a.64.64 0 0 1-.657.643 48.39 48.39 0 0 1-4.163-.3c.186 1.613.293 3.25.315 4.907a.656.656 0 0 1-.658.663v0c-.355 0-.676-.186-.959-.401a1.647 1.647 0 0 0-1.003-.349c-1.036 0-1.875 1.007-1.875 2.25s.84 2.25 1.875 2.25c.369 0 .713-.128 1.003-.349.283-.215.604-.401.959-.401v0c.31 0 .555.26.532.57a48.039 48.039 0 0 1-.642 5.056c1.518.19 3.058.309 4.616.354a.64.64 0 0 0 .657-.643v0c0-.355-.186-.676-.401-.959a1.647 1.647 0 0 1-.349-1.003c0-1.035 1.008-1.875 2.25-1.875 1.243 0 2.25.84 2.25 1.875 0 .369-.128.713-.349 1.003-.215.283-.4.604-.4.959v0c0 .333.277.599.61.58a48.1 48.1 0 0 0 5.427-.63 48.05 48.05 0 0 0 .582-4.717.532.532 0 0 0-.533-.57v0c-.355 0-.676.186-.959.401-.29.221-.634.349-1.003.349-1.035 0-1.875-1.007-1.875-2.25s.84-2.25 1.875-2.25c.37 0 .713.128 1.003.349.283.215.604.401.959.401v0a.656.656 0 0 0 .658-.663 48.422 48.422 0 0 0-.37-5.36c-1.886.342-3.81.574-5.766.689a.578.578 0 0 1-.61-.58v0Z" />
+                                    </svg>
                                     <span class="action-button-label"
                                         x-text="activeQuickAction === 'riddle' ? 'Scribing' : 'Riddle'"></span>
                                 </button>
@@ -157,7 +164,9 @@
                                     class="action-button action-button-emerald quick-action-btn"
                                     :class="{ 'opacity-75': activeQuickAction === 'joke' }"
                                     :disabled="activeQuickAction !== null" data-action="joke">
-                                    <span class="action-button-icon">😄</span>
+                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15.182 15.182a4.5 4.5 0 0 1-6.364 0M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0ZM9.75 9.75c0 .414-.168.75-.375.75S9 10.164 9 9.75 9.168 9 9.375 9s.375.336.375.75Zm-.375 0h.008v.015h-.008V9.75Zm5.625 0c0 .414-.168.75-.375.75s-.375-.336-.375-.75.168-.75.375-.75.375.336.375.75Zm-.375 0h.008v.015h-.008V9.75Z" />
+                                    </svg>
                                     <span class="action-button-label"
                                         x-text="activeQuickAction === 'joke' ? 'Scribing' : 'Joke'"></span>
                                 </button>
@@ -165,7 +174,9 @@
                                     class="action-button action-button-purple quick-action-btn"
                                     :class="{ 'opacity-75': activeQuickAction === 'quote' }"
                                     :disabled="activeQuickAction !== null" data-action="quote">
-                                    <span class="action-button-icon">💭</span>
+                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M2.25 15a4.5 4.5 0 0 0 4.5 4.5H18a3.75 3.75 0 0 0 1.332-7.257 3 3 0 0 0-3.758-3.848 5.25 5.25 0 0 0-10.233 2.33A4.502 4.502 0 0 0 2.25 15Z" />
+                                    </svg>
                                     <span class="action-button-label"
                                         x-text="activeQuickAction === 'quote' ? 'Scribing' : 'Quote'"></span>
                                 </button>
@@ -173,7 +184,9 @@
                                     class="action-button action-button-pink quick-action-btn"
                                     :class="{ 'opacity-75': activeQuickAction === 'memo' }"
                                     :disabled="activeQuickAction !== null" data-action="memo">
-                                    <span class="action-button-icon">📝</span>
+                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
+                                    </svg>
                                     <span class="action-button-label"
                                         x-text="activeQuickAction === 'memo' ? 'Scribed' : 'Memo'"></span>
                                 </button>
@@ -181,7 +194,7 @@
                                     class="action-button action-button-cyan quick-action-btn"
                                     :class="{ 'opacity-75': activeQuickAction === 'quiz' }"
                                     :disabled="activeQuickAction !== null" data-action="quiz">
-                                    <span class="action-button-icon">🧠</span>
+                                    <span x-html="window.getIcon ? window.getIcon('mask', 'w-6 h-6') : '🎭'"></span>
                                     <span class="action-button-label"
                                         x-text="activeQuickAction === 'quiz' ? 'Scribing' : 'Quiz'"></span>
                                 </button>
@@ -189,7 +202,9 @@
                                     class="action-button action-button-gray quick-action-btn"
                                     :class="{ 'opacity-75': activeQuickAction === 'news' }"
                                     :disabled="activeQuickAction !== null" data-action="news">
-                                    <span class="action-button-icon">📰</span>
+                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 7.5h1.5m-1.5 3h1.5m-7.5 3h7.5m-7.5 3h7.5m3-9h3.375c.621 0 1.125.504 1.125 1.125V18a2.25 2.25 0 0 1-2.25 2.25M16.5 7.5V18a2.25 2.25 0 0 0 2.25 2.25M16.5 7.5V4.875c0-.621-.504-1.125-1.125-1.125H4.125C3.504 3.75 3 4.254 3 4.875V18a2.25 2.25 0 0 0 2.25 2.25h13.5M6 7.5h3v3H6v-3Z" />
+                                    </svg>
                                     <span class="action-button-label"
                                         x-text="activeQuickAction === 'news' ? 'Scribing' : 'News'"></span>
                                 </button>
@@ -203,7 +218,9 @@
             <div x-show="error" x-transition.opacity.duration.300ms
                 class="card-primary bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800">
                 <div class="text-center">
-                    <span class="text-4xl mb-4 block">⚠️</span>
+                    <svg class="w-10 h-10 mb-4 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"></path>
+                    </svg>
                     <h3 class="text-lg font-semibold text-red-800 dark:text-red-200 mb-2">Configuration Error</h3>
                     <p class="text-red-600 dark:text-red-300 mb-4" x-text="error"></p>
                     <p class="text-sm text-red-500 dark:text-red-400">Please check the system.</p>
@@ -232,7 +249,7 @@
                 <!-- Header -->
                 <div class="flex items-center justify-between mb-6">
                     <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 flex items-center">
-                        <span class="text-2xl mr-2" x-text="overlayData?.printerIcon"></span>
+                        <span class="mr-2" x-html="overlayData?.printerIcon"></span>
                         <span x-text="overlayPrinterName + ' Details'"></span>
                     </h3>
                     <button @click="closePrinterOverlay()"
@@ -260,7 +277,9 @@
                                                 d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z" />
                                         </svg>
                                     </span>
-                                    <span x-show="copied" class="text-green-600 dark:text-green-400 text-sm">✓</span>
+                                    <svg x-show="copied" class="w-4 h-4 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="m4.5 12.75 6 6 9-13.5" />
+                                    </svg>
                                 </button>
                             </div>
                         </div>
@@ -330,7 +349,9 @@
                 <!-- Header -->
                 <div class="flex items-center justify-between mb-6">
                     <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 flex items-center">
-                        <span class="text-2xl mr-2">📝</span>
+                        <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
+                        </svg>
                         <span>Select a Memo</span>
                     </h3>
                     <button @click="closeMemoModal()"
@@ -409,7 +430,10 @@
 
     <footer class="page-footer vertical-stack">
         <a href="/diagnostics.html" class="link-button">
-            🛠️ Diagnostics
+            <svg class="inline w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.42 15.17 17.25 21A2.652 2.652 0 0 0 21 17.25l-5.877-5.877M11.42 15.17l2.496-3.03c.317-.384.74-.626 1.208-.766M11.42 15.17l-4.655 5.653a2.548 2.548 0 1 1-3.586-3.586l6.837-5.63m5.108-.233c.55-.164 1.163-.188 1.743-.14a4.5 4.5 0 0 0 4.486-6.336l-3.276 3.277a3.004 3.004 0 0 1-2.25-2.25l3.276-3.276a4.5 4.5 0 0 0-6.336 4.486c.091 1.076-.071 2.264-.904 2.95l-.102.085m-1.745 1.437L5.909 7.5H4.5L2.25 3.75l1.5-1.5L7.5 4.5v1.409l4.26 4.26m-1.745 1.437 1.745-1.437m6.615 8.206L15.75 15.75M4.867 19.125h.008v.008h-.008v-.008Z"></path>
+            </svg>
+            Diagnostics
         </a>
         <div>
             Scribe Evolution was invented with love by <a href="https://urbancircles.club" target="_blank"

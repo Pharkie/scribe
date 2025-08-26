@@ -1,7 +1,7 @@
 <div x-data="{}" x-show="$store.settings && !$store.settings.loading" class="settings-section">
     <div class="settings-card settings-card-green">
         <h2 class="settings-card-header settings-card-header-green">
-            <span class="text-3xl">🎲</span>
+<span x-html="window.renderSectionIcon ? window.renderSectionIcon('sparkles') : '✨'"></span>
             <span>Unbidden Ink</span>
         </h2>
 

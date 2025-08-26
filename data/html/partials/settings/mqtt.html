@@ -1,7 +1,7 @@
 <div x-data="{}" x-show="$store.settings && !$store.settings.loading" class="settings-section">
     <div class="settings-card settings-card-yellow">
         <h2 class="settings-card-header settings-card-header-yellow">
-            <span class="text-3xl">📡</span>
+<span x-html="window.renderSectionIcon ? window.renderSectionIcon('signal') : '📡'"></span>
             <span>MQTT</span>
         </h2>
 

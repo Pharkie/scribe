@@ -1,12 +1,12 @@
 <div x-data="{}" x-show="$store.settings && !$store.settings.loading" class="settings-section">
     <div class="settings-card settings-card-pink">
         <h2 class="settings-card-header settings-card-header-pink">
-            <span class="text-3xl">📝</span>
+<span x-html="window.renderSectionIcon ? window.renderSectionIcon('pencil') : '📝'"></span>
             <span>Memos</span>
         </h2>
 
         <!-- Placeholder Documentation -->
-        <div class="mb-6 p-4 bg-purple-50 dark:bg-purple-900/20 rounded-xl">
+        <div class="mb-6 p-4 bg-purple-50 dark:bg-purple-50/20 rounded-xl">
             <h3 class="text-lg font-semibold text-purple-800 dark:text-purple-200 mb-3">Available Placeholders</h3>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
                 <div class="space-y-1">
