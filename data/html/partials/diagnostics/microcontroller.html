@@ -53,21 +53,3 @@
     </div>
 </div>
 
-<script>
-window.microcontrollerPartial = function() {
-    return {
-        get microcontrollerInfo() {
-            return window.diagnosticsStore.microcontrollerInfo;
-        },
-        get memoryUsage() {
-            return window.diagnosticsStore.memoryUsage;
-        },
-        get progressReady() {
-            return window.diagnosticsStore.progressReady;
-        },
-        getProgressBarClass(percent) {
-            return window.diagnosticsStore.getProgressBarClass(percent);
-        }
-    }
-}
-</script>

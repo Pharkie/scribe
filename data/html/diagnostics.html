@@ -13,43 +13,72 @@
     <link rel="stylesheet" href="/css/diagnostics.min.css">
     <script src="/js/page-diagnostics.min.js"></script>
     <script src="/js/vendor.min.js" defer></script>
+    <script src="/js/app-common.min.js" defer></script>
     <script>
-        // Alpine.js store for loading diagnostics partials
+        // Register all Alpine component functions upfront
         document.addEventListener('alpine:init', () => {
+            // Register all diagnostics partial component functions globally
+            window.microcontrollerPartial = function() {
+                return {
+                    get microcontrollerInfo() { return Alpine.store('diagnostics').microcontrollerInfo; },
+                    get memoryUsage() { return Alpine.store('diagnostics').memoryUsage; },
+                    get progressReady() { return Alpine.store('diagnostics').progressReady; },
+                    getProgressBarClass(percent) { return Alpine.store('diagnostics').getProgressBarClass(percent); }
+                }
+            };
+
+            window.loggingPartial = function() {
+                return {
+                    get loggingInfo() { return Alpine.store('diagnostics').loggingInfo; }
+                }
+            };
+
+            window.pagesEndpointsPartial = function() {
+                return {
+                    get sortedRoutes() { return Alpine.store('diagnostics').sortedRoutes; },
+                    get apiEndpoints() { return Alpine.store('diagnostics').apiEndpoints; }
+                }
+            };
+
+            window.configFilePartial = function() {
+                return {
+                    get configFileFormatted() { return Alpine.store('diagnostics').configFileFormatted; },
+                    highlightJSON(json) { return Alpine.store('diagnostics').highlightJSON(json); }
+                }
+            };
+
+            window.nvsStoragePartial = function() {
+                return {
+                    get nvsDataFormatted() { return Alpine.store('diagnostics').nvsDataFormatted; },
+                    highlightJSON(json) { return Alpine.store('diagnostics').highlightJSON(json); }
+                }
+            };
+
+            // Alpine.js store for loading diagnostics partials (clean version)
             Alpine.store('diagnosticsPartials', {
                 cache: {},
                 loading: {},
                 load(name) {
-                    // Return cached content if available
-                    if (this.cache[name]) {
-                        return this.cache[name];
-                    }
+                    if (this.cache[name]) return this.cache[name];
+                    if (this.loading[name]) return '<div class="p-4 text-center text-gray-500">Loading...</div>';
                     
-                    // Return loading placeholder if already loading
-                    if (this.loading[name]) {
-                        return '<div class="p-4 text-center text-gray-500">Loading...</div>';
-                    }
-                    
-                    // Mark as loading and fetch
                     this.loading[name] = true;
                     fetch(`/html/partials/diagnostics/${name}.html`)
                         .then(response => {
-                            if (!response.ok) {
-                                throw new Error(`Failed to load partial: ${name}`);
-                            }
+                            if (!response.ok) throw new Error(`Failed to load partial: ${name}`);
                             return response.text();
                         })
                         .then(html => {
-                            this.cache[name] = html;
                             this.loading[name] = false;
-                            // Force re-render by dispatching custom event
-                            document.dispatchEvent(new CustomEvent('partial-loaded', { detail: { name } }));
+                            this.cache[name] = html;
+                            // Trigger reactivity by updating the store
+                            Alpine.store('diagnosticsPartials', { ...this });
                         })
                         .catch(error => {
                             console.error('Error loading partial:', error);
                             this.cache[name] = `<div class="p-4 text-center text-red-500">Error loading ${name}</div>`;
                             this.loading[name] = false;
-                            document.dispatchEvent(new CustomEvent('partial-loaded', { detail: { name } }));
+                            Alpine.store('diagnosticsPartials', { ...this });
                         });
                     
                     return '<div class="p-4 text-center text-gray-500">Loading...</div>';
@@ -117,32 +146,25 @@
                 </nav>
 
                 <!-- Diagnostics Content -->
-                <div class="space-y-6" 
-                     x-data="{ refreshKey: 0 }"
-                     @partial-loaded.document="refreshKey++">
+                <div class="space-y-6">
                     <!-- Microcontroller Section -->
                     <div x-show="currentSection === 'microcontroller-section'"
-                         :key="`microcontroller-${refreshKey}`"
                          x-html="$store.diagnosticsPartials.load('microcontroller')"></div>
 
                     <!-- Logging Section -->
                     <div x-show="currentSection === 'logging-section'"
-                         :key="`logging-${refreshKey}`"
                          x-html="$store.diagnosticsPartials.load('logging')"></div>
 
                     <!-- Pages & Endpoints Section -->
                     <div x-show="currentSection === 'pages-endpoints-section'"
-                         :key="`pages-endpoints-${refreshKey}`"
                          x-html="$store.diagnosticsPartials.load('pages-endpoints')"></div>
 
                     <!-- Runtime Configuration Section -->
                     <div x-show="currentSection === 'config-file-section'"
-                         :key="`config-file-${refreshKey}`"
                          x-html="$store.diagnosticsPartials.load('config-file')"></div>
 
                     <!-- NVS Storage Section -->
                     <div x-show="currentSection === 'nvs-storage-section'"
-                         :key="`nvs-storage-${refreshKey}`"
                          x-html="$store.diagnosticsPartials.load('nvs-storage')"></div>
                 </div>
             </div>

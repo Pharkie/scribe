@@ -47,31 +47,3 @@
     </div>
 </div>
 
-<script>
-window.memosPartial = function() {
-    return {
-        get config() {
-            return window.settingsStore.config;
-        },
-        getMemoCharacterText(memoNum) {
-            const memo = this.config.memos[`memo${memoNum}`] || '';
-            const length = memo.length;
-            const maxLength = 500;
-            return `${length}/${maxLength} characters`;
-        },
-        getMemoCharacterClass(memoNum) {
-            const memo = this.config.memos[`memo${memoNum}`] || '';
-            const length = memo.length;
-            const maxLength = 500;
-            
-            if (length > maxLength) {
-                return 'text-red-500 dark:text-red-400';
-            } else if (length > maxLength * 0.9) {
-                return 'text-orange-500 dark:text-orange-400';
-            } else {
-                return 'text-gray-500 dark:text-gray-400';
-            }
-        }
-    }
-}
-</script>

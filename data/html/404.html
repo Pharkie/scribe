@@ -13,9 +13,10 @@
         <link rel="stylesheet" href="/css/404.min.css">
         <script src="/js/page-404.min.js"></script>
         <script src="/js/vendor.min.js" defer></script>
+        <script src="/js/app-common.min.js" defer></script>
 </head>
 
-<body class="page-body" x-data="ErrorStore()" x-init="init()">
+<body class="page-body" x-data="initializeErrorStore()" x-init="init()">
         <main class="page-main">
                 <!-- Header with title and back button -->
                 <header class="page-header">

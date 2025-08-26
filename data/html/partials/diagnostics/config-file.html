@@ -11,15 +11,3 @@
     </div>
 </div>
 
-<script>
-window.configFilePartial = function() {
-    return {
-        get configFileFormatted() {
-            return window.diagnosticsStore.configFileFormatted;
-        },
-        highlightJSON(json) {
-            return window.diagnosticsStore.highlightJSON(json);
-        }
-    }
-}
-</script>
