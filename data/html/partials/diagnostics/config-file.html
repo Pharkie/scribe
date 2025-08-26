@@ -1,0 +1,25 @@
+<div class="diag-section green">
+    <div class="diag-header">
+        <h4 class="diag-title green"><span class="mr-2">⚙️</span>Runtime Configuration</h4>
+    </div>
+    <div class="space-y-3">
+        <p class="diag-config-warning green mb-3">🔑 Secrets are redacted</p>
+        <div class="diag-json-wrapper">
+            <pre class="diag-json-content-fullscreen"
+                x-html="highlightJSON(configFileFormatted)"></pre>
+        </div>
+    </div>
+</div>
+
+<script>
+window.configFilePartial = function() {
+    return {
+        get configFileFormatted() {
+            return window.diagnosticsStore.configFileFormatted;
+        },
+        highlightJSON(json) {
+            return window.diagnosticsStore.highlightJSON(json);
+        }
+    }
+}
+</script>

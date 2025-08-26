@@ -1,0 +1,230 @@
+<div x-data="ledsPartial()" class="settings-section">
+    <div
+        class="bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-700 shadow-2xl rounded-3xl p-8">
+        <h2
+            class="text-2xl font-bold text-purple-800 dark:text-purple-100 mb-6 flex items-center space-x-2">
+            <span class="text-3xl">🌈</span>
+            <span>LEDs</span>
+        </h2>
+
+        <div class="space-y-6">
+            <!-- Hardware Configuration -->
+            <div class="border border-gray-200 dark:border-gray-600 rounded-xl p-4">
+                <h3 class="text-lg font-medium text-gray-800 dark:text-gray-100 mb-4">Hardware Configuration</h3>
+                <div class="space-y-4">
+                    <div>
+                        <span class="text-sm text-gray-600 dark:text-gray-400">LEDs on </span>
+                        <span class="font-mono font-medium text-gray-800 dark:text-gray-200"
+                              x-text="config.leds.pin === -1 ? 'Not connected' : `GPIO ${config.leds.pin || 'Unknown'}`"></span>
+                        <span class="text-xs text-gray-500 dark:text-gray-400"> (Configure in Settings > Device)</span>
+                    </div>
+                    <div class="space-y-2">
+                        <label for="led-count"
+                            class="block text-sm font-medium text-gray-700 dark:text-gray-300">LED
+                            Count</label>
+                        <input type="number" id="led-count" min="1" max="300" class="input-standard"
+                            x-model="config.leds.count" placeholder="60">
+                        <p class="text-xs text-gray-500 dark:text-gray-400">Number of LEDs in your
+                            strip
+                            (typically 30, 60, or 144 per meter)</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- System Settings -->
+            <div class="border border-gray-200 dark:border-gray-600 rounded-xl p-4">
+                <h3 class="text-lg font-medium text-gray-800 dark:text-gray-100 mb-4">System
+                    Settings
+                </h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="space-y-2">
+                        <label for="led-brightness"
+                            class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                            Brightness (<span x-text="config.leds.brightness"></span>/255)
+                        </label>
+                        <input type="range" id="led-brightness" min="10" max="255" step="5"
+                            class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                            x-model="config.leds.brightness">
+                        <p class="text-xs text-gray-500 dark:text-gray-400">Lower values save power
+                            and reduce heat</p>
+                    </div>
+                    <div class="space-y-2">
+                        <label for="led-refresh-rate"
+                            class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                            Refresh Rate (<span x-text="config.leds.refreshRate"></span> Hz)
+                        </label>
+                        <input type="range" id="led-refresh-rate" min="10" max="120" step="5"
+                            class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                            x-model="config.leds.refreshRate">
+                        <p class="text-xs text-gray-500 dark:text-gray-400">Higher values make
+                            animations smoother but use more CPU</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- LED Effect Playground -->
+            <div class="border border-gray-200 dark:border-gray-600 rounded-xl p-4">
+                <h3 class="text-lg font-medium text-gray-800 dark:text-gray-100 mb-4">Effect
+                    Playground
+                </h3>
+                <!-- Effect Selection -->
+                <div class="space-y-4">
+                    <div class="space-y-2">
+                        <label for="led-effect-selector"
+                            class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                            Effect
+                        </label>
+                        <select id="led-effect-selector" class="input-standard"
+                            x-model="selectedEffect" @change="initEffectParams()">
+                            <option value="chase_single">Single Colour Chase</option>
+                            <option value="rainbow">Rainbow Wave</option>
+                            <option value="twinkle">Twinkle</option>
+                            <option value="chase_multi">Multicolour Chase</option>
+                            <option value="pulse">Pulse</option>
+                            <option value="matrix">Matrix</option>
+                        </select>
+                    </div>
+
+                    <!-- Effect Description -->
+                    <div class="p-3 bg-gray-50 dark:bg-gray-700 rounded-lg mb-4">
+                        <p class="text-sm text-gray-600 dark:text-gray-300"
+                            x-text="getEffectDescription()">
+                        </p>
+                    </div>
+
+                    <!-- Generic Parameters -->
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                        <!-- Speed -->
+                        <div class="space-y-2">
+                            <label for="led-speed"
+                                class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                Speed (1-100)
+                            </label>
+                            <input type="range" id="led-speed" min="1" max="100" step="1"
+                                class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                                x-model="effectParams.speed">
+                            <div class="text-xs text-gray-500 text-center"
+                                x-text="effectParams.speed">
+                            </div>
+                        </div>
+
+                        <!-- Intensity -->
+                        <div class="space-y-2">
+                            <label for="led-intensity"
+                                class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                Intensity (1-100)
+                            </label>
+                            <input type="range" id="led-intensity" min="1" max="100" step="1"
+                                class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                                x-model="effectParams.intensity">
+                            <div class="text-xs text-gray-500 text-center"
+                                x-text="effectParams.intensity">
+                            </div>
+                        </div>
+
+                        <!-- Number of Cycles -->
+                        <div class="space-y-2">
+                            <label for="led-cycles"
+                                class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                Number of Cycles (1-10)
+                            </label>
+                            <input type="range" id="led-cycles" min="1" max="10" step="1"
+                                class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                                x-model.number="effectParams.cycles">
+                            <div class="text-xs text-gray-500 text-center"
+                                x-text="effectParams.cycles">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Effect-Specific Parameters -->
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                        <!-- Custom Slider 1 -->
+                        <div class="space-y-2" x-show="getCustomSlider1Label()">
+                            <label for="led-custom1"
+                                class="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                                x-text="getCustomSlider1Label()">
+                            </label>
+                            <input type="range" id="led-custom1" :min="getCustomSlider1Range().min"
+                                :max="getCustomSlider1Range().max"
+                                :step="getCustomSlider1Range().step"
+                                class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                                x-model="effectParams.custom1">
+                            <div class="text-xs text-gray-500 text-center"
+                                x-text="effectParams.custom1">
+                            </div>
+                        </div>
+
+                        <!-- Custom Slider 2 -->
+                        <div class="space-y-2" x-show="getCustomSlider2Label()">
+                            <label for="led-custom2"
+                                class="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                                x-text="getCustomSlider2Label()">
+                            </label>
+                            <input type="range" id="led-custom2" :min="getCustomSlider2Range().min"
+                                :max="getCustomSlider2Range().max"
+                                :step="getCustomSlider2Range().step"
+                                class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                                x-model="effectParams.custom2">
+                            <div class="text-xs text-gray-500 text-center"
+                                x-text="effectParams.custom2">
+                            </div>
+                        </div>
+
+                        <!-- Custom Slider 3 -->
+                        <div class="space-y-2" x-show="getCustomSlider3Label()">
+                            <label for="led-custom3"
+                                class="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                                x-text="getCustomSlider3Label()">
+                            </label>
+                            <input type="range" id="led-custom3" :min="getCustomSlider3Range().min"
+                                :max="getCustomSlider3Range().max"
+                                :step="getCustomSlider3Range().step"
+                                class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                                x-model="effectParams.custom3">
+                            <div class="text-xs text-gray-500 text-center"
+                                x-text="effectParams.custom3">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Color Controls -->
+                    <div x-show="showColorControls()">
+                        <h4 class="text-md font-medium text-gray-700 dark:text-gray-300 mb-3">Colors</h4>
+                        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3">
+                            <template x-for="(colorName, index) in getColorNames()" :key="index">
+                                <div class="space-y-2">
+                                    <label :for="`led-color-${index}`"
+                                        class="block text-xs font-medium text-gray-600 dark:text-gray-400 text-center"
+                                        x-text="colorName">
+                                    </label>
+                                    <input type="color" :id="`led-color-${index}`"
+                                        class="w-full h-8 border border-gray-300 rounded cursor-pointer"
+                                        x-model="effectParams.colors[index]">
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+
+                    <!-- Control Buttons -->
+                    <div class="flex space-x-3 pt-4">
+                        <button type="button" @click="testEffect()"
+                            :disabled="testingEffect"
+                            class="px-6 py-2 bg-purple-600 hover:bg-purple-700 disabled:bg-purple-400 text-white rounded-xl font-medium flex items-center space-x-2 transition-colors">
+                            <span x-show="!testingEffect">🎭 Test Effect</span>
+                            <span x-show="testingEffect" class="flex items-center space-x-2">
+                                <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                                <span>Testing...</span>
+                            </span>
+                        </button>
+                        <button type="button" @click="stopEffect()"
+                            class="px-6 py-2 bg-red-600 hover:bg-red-700 text-white rounded-xl font-medium transition-colors">
+                            🛑 Stop
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+

@@ -1,0 +1,77 @@
+<div x-data="memosPartial()" class="settings-section">
+    <div class="settings-card settings-card-pink">
+        <h2 class="settings-card-header settings-card-header-pink">
+            <span class="text-3xl">📝</span>
+            <span>Memos</span>
+        </h2>
+
+        <!-- Placeholder Documentation -->
+        <div class="mb-6 p-4 bg-purple-50 dark:bg-purple-900/20 rounded-xl">
+            <h3 class="text-lg font-semibold text-purple-800 dark:text-purple-200 mb-3">Available Placeholders</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+                <div class="space-y-1">
+                    <p><code class="px-2 py-1 bg-gray-200 dark:bg-gray-700 rounded">[date]</code> → Current date (24Aug25)</p>
+                    <p><code class="px-2 py-1 bg-gray-200 dark:bg-gray-700 rounded">[time]</code> → Current time (12:30)</p>
+                    <p><code class="px-2 py-1 bg-gray-200 dark:bg-gray-700 rounded">[weekday]</code> → Day name (Sunday)</p>
+                    <p><code class="px-2 py-1 bg-gray-200 dark:bg-gray-700 rounded">[uptime]</code> → Device uptime (2h13m)</p>
+                    <p><code class="px-2 py-1 bg-gray-200 dark:bg-gray-700 rounded">[ip]</code> → Device IP address</p>
+                </div>
+                <div class="space-y-1">
+                    <p><code class="px-2 py-1 bg-gray-200 dark:bg-gray-700 rounded">[mdns]</code> → mDNS hostname</p>
+                    <p><code class="px-2 py-1 bg-gray-200 dark:bg-gray-700 rounded">[coin]</code> → Heads or Tails</p>
+                    <p><code class="px-2 py-1 bg-gray-200 dark:bg-gray-700 rounded">[dice:n]</code> → Random 1-n (default 6)</p>
+                    <p><code class="px-2 py-1 bg-gray-200 dark:bg-gray-700 rounded">[pick:a|b|c]</code> → Random choice</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Memo Text Areas -->
+        <div class="space-y-6">
+            <template x-for="memoNum in [1, 2, 3, 4]" :key="memoNum">
+                <div class="space-y-2">
+                    <label :for="`memo-${memoNum}`" class="form-label">
+                        Memo <span x-text="memoNum"></span>:
+                    </label>
+                    <textarea 
+                        :id="`memo-${memoNum}`" 
+                        rows="4"
+                        class="w-full p-3 rounded-xl border border-gray-200 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent text-gray-800 dark:text-gray-100 bg-white dark:bg-gray-700 resize-vertical"
+                        :placeholder="`Enter memo ${memoNum} content with placeholders...`"
+                        :x-model="`config.memos.memo${memoNum}`"></textarea>
+                    <div :class="getMemoCharacterClass(memoNum)" class="text-xs text-right font-mono">
+                        <span x-text="getMemoCharacterText(memoNum)"></span>
+                    </div>
+                </div>
+            </template>
+        </div>
+    </div>
+</div>
+
+<script>
+window.memosPartial = function() {
+    return {
+        get config() {
+            return window.settingsStore.config;
+        },
+        getMemoCharacterText(memoNum) {
+            const memo = this.config.memos[`memo${memoNum}`] || '';
+            const length = memo.length;
+            const maxLength = 500;
+            return `${length}/${maxLength} characters`;
+        },
+        getMemoCharacterClass(memoNum) {
+            const memo = this.config.memos[`memo${memoNum}`] || '';
+            const length = memo.length;
+            const maxLength = 500;
+            
+            if (length > maxLength) {
+                return 'text-red-500 dark:text-red-400';
+            } else if (length > maxLength * 0.9) {
+                return 'text-orange-500 dark:text-orange-400';
+            } else {
+                return 'text-gray-500 dark:text-gray-400';
+            }
+        }
+    }
+}
+</script>

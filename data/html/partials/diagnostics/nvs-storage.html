@@ -1,0 +1,29 @@
+<div class="diag-section cyan">
+    <div class="diag-header">
+        <div>
+            <h4 class="diag-title cyan"><span class="mr-2">💾</span>NVS Storage</h4>
+            <p class="text-sm text-cyan-600 dark:text-cyan-400 mt-1">NVS key-value pairs from
+                "scribe-app" namespace</p>
+        </div>
+    </div>
+    <div class="space-y-3">
+        <p class="diag-config-warning cyan mb-3">🔑 Secrets are redacted</p>
+        <div class="diag-json-wrapper">
+            <pre class="diag-json-content-fullscreen"
+                x-html="highlightJSON(nvsDataFormatted)"></pre>
+        </div>
+    </div>
+</div>
+
+<script>
+window.nvsStoragePartial = function() {
+    return {
+        get nvsDataFormatted() {
+            return window.diagnosticsStore.nvsDataFormatted;
+        },
+        highlightJSON(json) {
+            return window.diagnosticsStore.highlightJSON(json);
+        }
+    }
+}
+</script>

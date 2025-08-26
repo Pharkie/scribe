@@ -1,0 +1,330 @@
+<div x-data="unbiddenPartial()" class="settings-section">
+    <div class="settings-card settings-card-green">
+        <h2 class="settings-card-header settings-card-header-green">
+            <span class="text-3xl">🎲</span>
+            <span>Unbidden Ink</span>
+        </h2>
+
+        <!-- Enable/Disable Toggle -->
+        <div
+            class="flex items-center justify-between p-4 bg-purple-50 dark:bg-purple-900/20 rounded-xl">
+            <div class="flex items-center space-x-3">
+                <div>
+                    <p class="text-sm text-gray-600 dark:text-gray-400">
+                        AI generate and print creative content
+                    </p>
+                </div>
+            </div>
+            <label class="relative inline-flex items-center cursor-pointer">
+                <input type="checkbox" class="sr-only peer" x-model="config.unbiddenInk.enabled">
+                <div
+                    class="w-14 h-7 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-purple-300 dark:peer-focus:ring-purple-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[4px] after:bg-white dark:after:bg-gray-200 after:border-gray-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all dark:border-gray-600 peer-checked:bg-purple-600 dark:peer-checked:bg-purple-500">
+                </div>
+            </label>
+        </div>
+
+        <!-- Settings panel (shown when enabled) -->
+        <div x-show="config.unbiddenInk.enabled" x-transition class="space-y-6">
+
+            <!-- ChatGPT API Token -->
+            <div class="space-y-2">
+                <label for="chatgpt-api-token"
+                    class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                    ChatGPT API Token:
+                </label>
+                <input type="password" id="chatgpt-api-token" required
+                    class="w-full p-3 rounded-xl border border-gray-200 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent text-gray-800 dark:text-gray-100 bg-white dark:bg-gray-700"
+                    x-model="config.unbiddenInk.chatgptApiToken">
+                <p class="text-sm text-gray-600 dark:text-gray-400">
+                    Your OpenAI API key for GPT access.
+                    <a href="https://platform.openai.com/api-keys" target="_blank"
+                        class="text-purple-600 dark:text-purple-400 hover:underline">
+                        Get your API key here
+                    </a>.
+                </p>
+            </div>
+
+            <!-- Time Range Slider (Alpine Implementation) -->
+            <div class="space-y-4">
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                    Active Time Range:
+                </label>
+
+                <!-- Hour markers -->
+                <div class="mx-2">
+                    <div class="relative text-xs text-gray-400 dark:text-gray-500 mb-2 h-4">
+                        <!-- Grid positioning for each hour marker (24-hour scale: scaled to fit 0-98%) -->
+                        <span class="absolute transform -translate-x-1/2" style="left: 0%;">0</span>
+                        <span class="absolute hidden lg:inline transform -translate-x-1/2"
+                            style="left: 4.08%;">1</span>
+                        <span class="absolute hidden md:inline transform -translate-x-1/2"
+                            style="left: 8.17%;">2</span>
+                        <span class="absolute hidden lg:inline transform -translate-x-1/2"
+                            style="left: 12.25%;">3</span>
+                        <span class="absolute hidden sm:inline transform -translate-x-1/2"
+                            style="left: 16.33%;">4</span>
+                        <span class="absolute hidden lg:inline transform -translate-x-1/2"
+                            style="left: 20.42%;">5</span>
+                        <span class="absolute hidden md:inline transform -translate-x-1/2"
+                            style="left: 24.5%;">6</span>
+                        <span class="absolute hidden lg:inline transform -translate-x-1/2"
+                            style="left: 28.58%;">7</span>
+                        <span class="absolute transform -translate-x-1/2"
+                            style="left: 32.67%;">8</span>
+                        <span class="absolute hidden lg:inline transform -translate-x-1/2"
+                            style="left: 36.75%;">9</span>
+                        <span class="absolute hidden md:inline transform -translate-x-1/2"
+                            style="left: 40.83%;">10</span>
+                        <span class="absolute hidden lg:inline transform -translate-x-1/2"
+                            style="left: 44.92%;">11</span>
+                        <span class="absolute hidden sm:inline transform -translate-x-1/2"
+                            style="left: 49%;">12</span>
+                        <span class="absolute hidden lg:inline transform -translate-x-1/2"
+                            style="left: 53.08%;">13</span>
+                        <span class="absolute hidden md:inline transform -translate-x-1/2"
+                            style="left: 57.17%;">14</span>
+                        <span class="absolute hidden lg:inline transform -translate-x-1/2"
+                            style="left: 61.25%;">15</span>
+                        <span class="absolute transform -translate-x-1/2"
+                            style="left: 65.33%;">16</span>
+                        <span class="absolute hidden lg:inline transform -translate-x-1/2"
+                            style="left: 69.42%;">17</span>
+                        <span class="absolute hidden md:inline transform -translate-x-1/2"
+                            style="left: 73.5%;">18</span>
+                        <span class="absolute hidden lg:inline transform -translate-x-1/2"
+                            style="left: 77.58%;">19</span>
+                        <span class="absolute hidden sm:inline transform -translate-x-1/2"
+                            style="left: 81.67%;">20</span>
+                        <span class="absolute hidden lg:inline transform -translate-x-1/2"
+                            style="left: 85.75%;">21</span>
+                        <span class="absolute hidden md:inline transform -translate-x-1/2"
+                            style="left: 89.83%;">22</span>
+                        <span class="absolute hidden lg:inline transform -translate-x-1/2"
+                            style="left: 93.92%;">23</span>
+                        <span class="absolute transform -translate-x-1/2"
+                            style="left: 98%;">24</span>
+                    </div>
+                </div>
+
+                <div class="dual-range-slider mx-2">
+                    <!-- Background track -->
+                    <div class="dual-range-track"></div>
+
+                    <!-- Active time track (reactive) -->
+                    <div class="dual-range-active"
+                        :style="`left: ${timeRangeStyle.left}; width: ${timeRangeStyle.width};`">
+                    </div>
+
+                    <!-- Start time handle -->
+                    <input type="range" min="0" max="24" step="1"
+                        class="dual-range-input dual-range-start" :value="startHourSafe"
+                        @input="handleStartHourChange($event)">
+
+                    <!-- End time handle -->
+                    <input type="range" min="0" max="24" step="1"
+                        class="dual-range-input dual-range-end" :value="endHourSafe"
+                        @input="handleEndHourChange($event)">
+                </div>
+
+                <!-- Time display (reactive) -->
+                <div class="flex justify-between text-sm text-gray-600 dark:text-gray-400 mt-4">
+                    <span x-text="formatHour(config.unbiddenInk.startHour)"></span>
+                    <span class="text-purple-600 dark:text-purple-400 font-medium">
+                        <span x-text="timeRangeDisplay"></span>
+                    </span>
+                    <span x-text="formatHour(config.unbiddenInk.endHour)"></span>
+                </div>
+            </div>
+
+            <!-- Frequency Slider -->
+            <div class="space-y-4">
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                    Frequency:
+                </label>
+
+                <div class="space-y-3">
+                    <!-- Frequency slider markers -->
+                    <div class="mx-2">
+                        <div
+                            class="flex justify-between text-xs text-gray-400 dark:text-gray-500 mb-2">
+                            <template x-for="label in frequencyLabels" :key="label">
+                                <span x-text="label"></span>
+                            </template>
+                        </div>
+                    </div>
+
+                    <input type="range" min="0" max="6" step="1"
+                        class="w-full h-3 bg-gray-200 dark:bg-gray-700 rounded-lg appearance-none cursor-pointer slider-purple mx-2"
+                        x-model.number="frequencySliderValue">
+
+                    <!-- Frequency display (reactive) -->
+                    <div class="text-center">
+                        <div
+                            class="inline-flex items-center px-3 py-1 rounded-full text-sm bg-purple-100 dark:bg-purple-900/40 text-purple-700 dark:text-purple-300">
+                            <span x-text="frequencyDisplay"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Prompts -->
+            <div class="space-y-3">
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                    Quick Prompts:
+                </label>
+                <div class="grid grid-cols-2 gap-3">
+                    <button type="button" @click="setQuickPrompt('creative')"
+                        :class="isPromptActive('creative') ? 
+                    'p-3 text-left rounded-xl border border-purple-400 bg-purple-100 dark:bg-purple-900/40 ring-2 ring-purple-400 transition-colors' : 
+                    'p-3 text-left rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors'">
+                        <div class="font-medium text-sm text-gray-800 dark:text-gray-100">🎨
+                            Creative
+                        </div>
+                        <div class="text-xs text-gray-600 dark:text-gray-400">Artistic & imaginative
+                            content
+                        </div>
+                    </button>
+                    <button type="button" @click="setQuickPrompt('doctorwho')"
+                        :class="isPromptActive('doctorwho') ? 
+                    'p-3 text-left rounded-xl border border-purple-400 bg-purple-100 dark:bg-purple-900/40 ring-2 ring-purple-400 transition-colors' : 
+                    'p-3 text-left rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors'">
+                        <div class="font-medium text-sm text-gray-800 dark:text-gray-100">🚀 Doctor
+                            Who
+                        </div>
+                        <div class="text-xs text-gray-600 dark:text-gray-400">Sci-fi themed content
+                        </div>
+                    </button>
+                    <button type="button" @click="setQuickPrompt('wisdom')"
+                        :class="isPromptActive('wisdom') ? 
+                    'p-3 text-left rounded-xl border border-purple-400 bg-purple-100 dark:bg-purple-900/40 ring-2 ring-purple-400 transition-colors' : 
+                    'p-3 text-left rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors'">
+                        <div class="font-medium text-sm text-gray-800 dark:text-gray-100">🧙 Wisdom
+                        </div>
+                        <div class="text-xs text-gray-600 dark:text-gray-400">Philosophical insights
+                        </div>
+                    </button>
+                    <button type="button" @click="setQuickPrompt('humor')"
+                        :class="isPromptActive('humor') ? 
+                    'p-3 text-left rounded-xl border border-purple-400 bg-purple-100 dark:bg-purple-900/40 ring-2 ring-purple-400 transition-colors' : 
+                    'p-3 text-left rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors'">
+                        <div class="font-medium text-sm text-gray-800 dark:text-gray-100">😄 Humor
+                        </div>
+                        <div class="text-xs text-gray-600 dark:text-gray-400">Jokes & funny content
+                        </div>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Prompt -->
+            <div class="space-y-2">
+                <label for="unbidden-ink-prompt"
+                    class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                    Custom Prompt:
+                </label>
+                <textarea id="unbidden-ink-prompt" rows="4"
+                    class="w-full p-3 rounded-xl border border-gray-200 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent text-gray-800 dark:text-gray-100 bg-white dark:bg-gray-700 resize-vertical"
+                    placeholder="Enter a custom prompt for content generation..."
+                    x-model="config.unbiddenInk.prompt"></textarea>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+window.unbiddenPartial = function() {
+    return {
+        init() {
+            this.frequencySliderValue = this.getSliderFromMinutes(this.config.unbiddenInk.frequencyMinutes);
+        },
+        get config() {
+            return window.settingsStore.config;
+        },
+        get startHourSafe() {
+            return typeof this.config.unbiddenInk.startHour === 'number' ? this.config.unbiddenInk.startHour : 0;
+        },
+        get endHourSafe() {
+            return typeof this.config.unbiddenInk.endHour === 'number' ? this.config.unbiddenInk.endHour : 24;
+        },
+        get timeRangeStyle() {
+            const start = this.startHourSafe;
+            const end = this.endHourSafe;
+            const left = (start / 24) * 100;
+            const width = ((end - start) / 24) * 100;
+            return {
+                left: `${left}%`,
+                width: `${width}%`
+            };
+        },
+        get timeRangeDisplay() {
+            const hours = this.endHourSafe - this.startHourSafe;
+            return `${hours} hours`;
+        },
+        get frequencyLabels() {
+            return ['15m', '30m', '1h', '2h', '4h', '6h', '8h'];
+        },
+        frequencySliderValue: 0,
+        get frequencyOptions() {
+            return [15, 30, 60, 120, 240, 360, 480];
+        },
+        get frequencyDisplay() {
+            const minutes = this.frequencyOptions[this.frequencySliderValue] || 60;
+            if (minutes < 60) {
+                return `Every ${minutes} minutes`;
+            } else {
+                const hours = minutes / 60;
+                return `Every ${hours} hour${hours > 1 ? 's' : ''}`;
+            }
+        },
+        formatHour(hour) {
+            const h = typeof hour === 'number' ? hour : 0;
+            return h === 0 ? '12 AM' : h < 12 ? `${h} AM` : h === 12 ? '12 PM' : `${h - 12} PM`;
+        },
+        handleStartHourChange(event) {
+            const newStartHour = parseInt(event.target.value);
+            this.config.unbiddenInk.startHour = newStartHour;
+            if (newStartHour >= this.config.unbiddenInk.endHour) {
+                this.config.unbiddenInk.endHour = Math.min(24, newStartHour + 1);
+            }
+        },
+        handleEndHourChange(event) {
+            const newEndHour = parseInt(event.target.value);
+            this.config.unbiddenInk.endHour = newEndHour;
+            if (newEndHour <= this.config.unbiddenInk.startHour) {
+                this.config.unbiddenInk.startHour = Math.max(0, newEndHour - 1);
+            }
+        },
+        getSliderFromMinutes(minutes) {
+            const index = this.frequencyOptions.findIndex(opt => opt === minutes);
+            return index >= 0 ? index : 2; // Default to 1 hour (index 2)
+        },
+        setQuickPrompt(type) {
+            const prompts = {
+                creative: "Generate creative, artistic content - poetry, short stories, or imaginative scenarios. Keep it engaging and printable.",
+                wisdom: "Share philosophical insights, life wisdom, or thought-provoking reflections. Keep it meaningful and contemplative.",
+                humor: "Create funny content - jokes, witty observations, or humorous takes on everyday situations. Keep it light and entertaining.",
+                doctorwho: "Generate content inspired by Doctor Who - time travel adventures, alien encounters, or sci-fi scenarios with a whimsical tone."
+            };
+            this.config.unbiddenInk.prompt = prompts[type] || '';
+        },
+        isPromptActive(type) {
+            const prompts = {
+                creative: "Generate creative, artistic content - poetry, short stories, or imaginative scenarios. Keep it engaging and printable.",
+                wisdom: "Share philosophical insights, life wisdom, or thought-provoking reflections. Keep it meaningful and contemplative.",
+                humor: "Create funny content - jokes, witty observations, or humorous takes on everyday situations. Keep it light and entertaining.",
+                doctorwho: "Generate content inspired by Doctor Who - time travel adventures, alien encounters, or sci-fi scenarios with a whimsical tone."
+            };
+            return this.config.unbiddenInk.prompt === prompts[type];
+        }
+    }
+}
+
+// Watch for frequency slider changes
+document.addEventListener('alpine:init', () => {
+    Alpine.effect(() => {
+        const component = window.unbiddenPartial;
+        if (component && component.frequencySliderValue !== undefined) {
+            window.settingsStore.config.unbiddenInk.frequencyMinutes = component.frequencyOptions[component.frequencySliderValue] || 60;
+        }
+    });
+});
+</script>

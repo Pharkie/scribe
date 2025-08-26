@@ -1,0 +1,66 @@
+<div x-data="mqttPartial()" class="settings-section">
+    <div class="settings-card settings-card-yellow">
+        <h2 class="settings-card-header settings-card-header-yellow">
+            <span class="text-3xl">📡</span>
+            <span>MQTT</span>
+        </h2>
+
+        <!-- MQTT Server - Full width row -->
+        <div class="space-y-2">
+            <label for="mqtt-server" class="form-label">MQTT Server:</label>
+            <input id="mqtt-server" type="text" placeholder="Enter MQTT broker address"
+                class="input-standard" x-model="config.mqtt.server">
+        </div>
+
+        <!-- Username, Password, Port - Three columns on desktop -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="space-y-2">
+                <label for="mqtt-username" class="form-label">MQTT Username:</label>
+                <input id="mqtt-username" type="text" placeholder="Optional MQTT username"
+                    class="input-standard" x-model="config.mqtt.username">
+            </div>
+            <div class="space-y-2">
+                <label for="mqtt-password" class="form-label">MQTT Password:</label>
+                <input type="password" id="mqtt-password" placeholder="Optional MQTT password"
+                    class="input-standard" x-model="config.mqtt.password">
+            </div>
+            <div class="space-y-2">
+                <label for="mqtt-port" class="form-label">MQTT Port:</label>
+                <input type="number" id="mqtt-port" min="1" max="65535" class="input-standard"
+                    x-model.number="config.mqtt.port">
+            </div>
+        </div>
+
+        <!-- Current MQTT Status (Read-only) -->
+        <div class="status-info-box">
+            <div class="status-info-header">
+                <span class="text-2xl mr-2">📊</span>
+                <span>Current MQTT Status</span>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="space-y-2">
+                    <div class="text-sm">
+                        <span class="font-medium text-gray-700 dark:text-gray-300">Status:</span>
+                        <span class="text-gray-800 dark:text-gray-200"
+                            x-text="config.mqtt?.connected ? 'Connected' : 'Disconnected'"></span>
+                    </div>
+                    <div class="text-sm">
+                        <span class="font-medium text-gray-700 dark:text-gray-300">Topic:</span>
+                        <span class="text-gray-800 dark:text-gray-200"
+                            x-text="config.device?.mqtt_topic || '-'"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+window.mqttPartial = function() {
+    return {
+        get config() {
+            return window.settingsStore.config;
+        }
+    }
+}
+</script>

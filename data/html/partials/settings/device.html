@@ -1,0 +1,264 @@
+<div x-data="devicePartial()" class="settings-section">
+    <div class="settings-card settings-card-blue">
+        <h2 class="settings-card-header settings-card-header-blue">
+            <span class="text-3xl">⚙️</span>
+            <span>Device</span>
+        </h2>
+
+        <!-- Device Info -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+            <div class="space-y-2">
+                <label for="device-owner" class="form-label">Device Owner:</label>
+                <input id="device-owner" type="text" placeholder="Enter device owner name"
+                    class="input-standard" x-model="config.device.owner">
+                <p x-show="validation.errors['device.owner']"
+                    class="text-xs text-red-600 dark:text-red-400"
+                    x-text="validation.errors['device.owner']"></p>
+                <p x-show="!validation.errors['device.owner'] && config.device.mdns"
+                    class="text-xs text-gray-500 dark:text-gray-400">
+                    mDNS Hostname: <span x-text="config.device.mdns"></span>
+                </p>
+            </div>
+            <div class="space-y-2">
+                <label for="timezone" class="form-label">Timezone:</label>
+                <input id="timezone" type="text"
+                    placeholder="Enter IANA timezone (e.g., America/New_York)"
+                    class="input-standard" x-model="config.device.timezone">
+                <p class="text-xs text-gray-500 dark:text-gray-400">
+                    Enter a valid IANA timezone identifier. Examples: America/New_York,
+                    Europe/London,
+                    Asia/Tokyo, Australia/Sydney
+                </p>
+            </div>
+        </div>
+
+        <!-- WiFi -->
+        <div class="space-y-4 mb-8">
+            <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-100 border-b border-gray-200 dark:border-gray-700 pb-2">
+                WiFi
+            </h3>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- WiFi Network Selection -->
+                <div class="space-y-2">
+                    <label class="form-label">WiFi Network (Signal Strength):</label>
+
+                    <!-- Network Selection Dropdown -->
+                    <select id="wifi-network-select" @change="selectNetwork($event.target.value)"
+                        :disabled="wifiScan.dropdownDisabled" :class="{
+                    'input-standard': true,
+                    'opacity-60 cursor-not-allowed': wifiScan.dropdownDisabled,
+                    'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-700': wifiScan.isScanning
+                }" x-model="wifiScan.selectedNetwork"
+                x-effect="
+                    if (wifiScan.selectedNetwork !== null && wifiScan.options.length > 0) {
+                        $nextTick(() => $el.value = wifiScan.selectedNetwork);
+                    }
+                ">
+
+                        <template x-for="option in wifiScan.options" :key="option.value">
+                            <option :value="option.value" :disabled="option.disabled"
+                                x-text="option.label">
+                            </option>
+                        </template>
+                    </select>
+
+                    <!-- Manual SSID Input (reactive display) -->
+                    <div x-show="wifiScan.showManualEntry" class="mt-2"
+                        x-transition:enter="transition ease-out duration-200"
+                        x-transition:enter-start="opacity-0 transform scale-95"
+                        x-transition:enter-end="opacity-100 transform scale-100">
+                        <label for="wifi-ssid" class="form-label text-sm">Network Name
+                            (SSID):</label>
+                        <input id="wifi-ssid" type="text" placeholder="Enter WiFi network name"
+                            class="input-standard" x-model="config.device.wifi.ssid">
+                    </div>
+
+                    <!-- WiFi Scan Status/Error Messages -->
+                    <div x-show="wifiScan.isScanning"
+                        class="text-xs text-blue-600 dark:text-blue-400 flex items-center">
+                        <div
+                            class="animate-spin rounded-full h-3 w-3 border-b-2 border-blue-600 mr-2">
+                        </div>
+                        Sniffing the Air…
+                    </div>
+                    <div x-show="wifiScan.error" class="text-xs text-red-600 dark:text-red-400"
+                        x-text="wifiScan.error"></div>
+
+                    <!-- Validation Error Display -->
+                    <p x-show="validation.errors['wifi.ssid']"
+                        class="text-xs text-red-600 dark:text-red-400"
+                        x-text="validation.errors['wifi.ssid']"></p>
+                </div>
+                
+                <!-- WiFi Password -->
+                <div class="space-y-2">
+                    <label for="wifi-password" class="form-label">WiFi Password:</label>
+                    <input type="password" id="wifi-password" class="input-standard"
+                        x-model="config.device.wifi.password">
+                </div>
+
+                <!-- Connection Timeout -->
+                <div class="space-y-2">
+                    <label for="wifi-timeout" class="form-label">Connection Timeout (seconds):</label>
+                    <input type="number" id="wifi-timeout" min="5" max="60" class="input-standard"
+                        :value="Math.floor(config.device.wifi.connect_timeout / 1000)"
+                        @input="config.device.wifi.connect_timeout = parseInt($el.value) * 1000">
+                    <p x-show="validation.errors['wifi.connect_timeout']"
+                        class="text-xs text-red-600 dark:text-red-400"
+                        x-text="validation.errors['wifi.connect_timeout']"></p>
+                    <p x-show="!validation.errors['wifi.connect_timeout']"
+                        class="text-xs text-gray-500 dark:text-gray-400">
+                        Time to wait before falling back to AP mode (5-60 seconds)
+                    </p>
+                </div>
+            </div>
+
+            <!-- Current WiFi Status (Read-only) -->
+            <div class="status-info-box">
+                <div class="status-info-header">
+                    <span class="text-2xl mr-2">📊</span>
+                    <span>Current WiFi Status</span>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="space-y-2">
+                        <div class="text-sm">
+                            <span class="font-medium text-gray-700 dark:text-gray-300">IP
+                                Address:</span>
+                            <span class="text-gray-800 dark:text-gray-200"
+                                x-text="config.device.wifi.status?.ip_address || '-'"></span>
+                        </div>
+                        <div class="text-sm">
+                            <span class="font-medium text-gray-700 dark:text-gray-300">Signal
+                                Strength:</span>
+                            <span class="text-gray-800 dark:text-gray-200"
+                                x-text="config.device.wifi.status?.signal_strength || '-'"></span>
+                        </div>
+                        <div class="text-sm">
+                            <span class="font-medium text-gray-700 dark:text-gray-300">MAC
+                                Address:</span>
+                            <span class="text-gray-800 dark:text-gray-200"
+                                x-text="config.device.wifi.status?.mac_address || '-'"></span>
+                        </div>
+                    </div>
+                    <div class="space-y-2">
+                        <div class="text-sm">
+                            <span
+                                class="font-medium text-gray-700 dark:text-gray-300">Gateway:</span>
+                            <span class="text-gray-800 dark:text-gray-200"
+                                x-text="config.device.wifi.status?.gateway || '-'"></span>
+                        </div>
+                        <div class="text-sm">
+                            <span class="font-medium text-gray-700 dark:text-gray-300">DNS:</span>
+                            <span class="text-gray-800 dark:text-gray-200"
+                                x-text="config.device.wifi.status?.dns || '-'"></span>
+                        </div>
+                        <div class="text-sm">
+                            <span class="font-medium text-gray-700 dark:text-gray-300">mDNS
+                                Hostname:</span>
+                            <span class="text-gray-800 dark:text-gray-200"
+                                x-text="config.device?.mdns || '-'"></span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- WiFi Warning Message -->
+                <div class="mt-4 pt-3 border-t border-gray-200 dark:border-gray-600">
+                    <p class="text-xs text-gray-600 dark:text-gray-400">
+                        ⚠️ WiFi changes restart device. Fallback AP: 
+                        <span class="font-mono font-medium" x-text="config?.device?.wifi?.fallback_ap_ssid || 'Scribe-setup'"></span> / 
+                        <span class="font-mono font-medium" x-text="config?.device?.wifi?.fallback_ap_password || 'scribe123'"></span>
+                        <button @click="printAPDetails()" :disabled="apPrintStatus === 'scribing'"
+                            class="ml-2 px-2 py-1 text-xs bg-gray-500 hover:bg-gray-600 dark:bg-gray-600 dark:hover:bg-gray-700 text-white rounded transition-colors duration-200 inline-flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed">
+                            🖨️ <span x-text="apPrintButtonText"></span>
+                        </button>
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- GPIO Configuration -->
+        <div class="space-y-4 mb-8">
+            <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-100 border-b border-gray-200 dark:border-gray-700 pb-2">
+                GPIO Configuration
+            </h3>
+            
+            <!-- Printer TX GPIO -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="space-y-2">
+                    <label for="printer-tx-pin" class="form-label">Printer TX GPIO:</label>
+                    <select id="printer-tx-pin" class="input-standard" 
+                            x-model="config.device.printerTxPin"
+                            x-effect="
+                                if (!loading && config.device.printerTxPin !== null && printerGpioOptions.length > 0) {
+                                    $nextTick(() => $el.value = config.device.printerTxPin);
+                                }
+                            ">
+                        <template x-for="gpio in printerGpioOptions" :key="gpio.pin">
+                            <option :value="gpio.pin" 
+                                    :disabled="!gpio.available"
+                                    x-text="`GPIO ${gpio.pin} - ${gpio.description}${!gpio.available ? ' (In Use)' : ''}`">
+                            </option>
+                        </template>
+                    </select>
+                    <p class="text-xs text-gray-500 dark:text-gray-400">
+                        UART communication to thermal printer
+                    </p>
+                </div>
+
+                <!-- LED Strip GPIO -->
+                <div class="space-y-2">
+                    <label for="led-strip-pin" class="form-label">LED Strip GPIO:</label>
+                    <select id="led-strip-pin" class="input-standard" 
+                            x-model="config.leds.pin"
+                            x-effect="
+                                if (!loading && config.leds.pin !== null && gpioOptions.length > 0) {
+                                    $nextTick(() => $el.value = config.leds.pin);
+                                }
+                            ">
+                        <template x-for="gpio in gpioOptions" :key="gpio.pin">
+                            <option :value="gpio.pin" 
+                                    :disabled="!gpio.available"
+                                    x-text="gpio.pin === -1 ? gpio.description : `GPIO ${gpio.pin} - ${gpio.description}${!gpio.available ? ' (In Use)' : ''}`">
+                            </option>
+                        </template>
+                    </select>
+                    <p class="text-xs text-gray-500 dark:text-gray-400">
+                        Data pin for addressable LED strip
+                    </p>
+                </div>
+            </div>
+
+            <!-- Button GPIO Pins -->
+            <div class="mt-6">
+                <h4 class="text-md font-medium text-gray-700 dark:text-gray-300 mb-3">Button GPIO Pins</h4>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <template x-for="buttonNum in [1, 2, 3, 4]" :key="buttonNum">
+                        <div class="space-y-2">
+                            <label :for="`device-button${buttonNum}-gpio`" class="form-label"
+                                   x-text="`Button ${buttonNum}:`"></label>
+                            <select :id="`device-button${buttonNum}-gpio`" class="input-standard"
+                                    x-model="config.buttons[`button${buttonNum}`].gpio"
+                                    x-effect="
+                                        if (!loading && config.buttons[`button${buttonNum}`].gpio !== null && gpioOptions.length > 0) {
+                                            $nextTick(() => $el.value = config.buttons[`button${buttonNum}`].gpio);
+                                        }
+                                    ">
+                                <template x-for="gpio in gpioOptions" :key="gpio.pin">
+                                    <option :value="gpio.pin" 
+                                            :disabled="!gpio.available"
+                                            x-text="gpio.pin === -1 ? gpio.description : `GPIO ${gpio.pin} - ${gpio.description}${!gpio.available ? ' (In Use)' : ''}`">
+                                    </option>
+                                </template>
+                            </select>
+                        </div>
+                    </template>
+                </div>
+                <p class="text-xs text-gray-500 dark:text-gray-400 mt-2">
+                    GPIO pins for hardware button inputs (pull-up enabled)
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+

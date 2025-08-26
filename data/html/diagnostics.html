@@ -13,6 +13,50 @@
     <link rel="stylesheet" href="/css/diagnostics.min.css">
     <script src="/js/page-diagnostics.min.js"></script>
     <script src="/js/vendor.min.js" defer></script>
+    <script>
+        // Alpine.js store for loading diagnostics partials
+        document.addEventListener('alpine:init', () => {
+            Alpine.store('diagnosticsPartials', {
+                cache: {},
+                loading: {},
+                load(name) {
+                    // Return cached content if available
+                    if (this.cache[name]) {
+                        return this.cache[name];
+                    }
+                    
+                    // Return loading placeholder if already loading
+                    if (this.loading[name]) {
+                        return '<div class="p-4 text-center text-gray-500">Loading...</div>';
+                    }
+                    
+                    // Mark as loading and fetch
+                    this.loading[name] = true;
+                    fetch(`/html/partials/diagnostics/${name}.html`)
+                        .then(response => {
+                            if (!response.ok) {
+                                throw new Error(`Failed to load partial: ${name}`);
+                            }
+                            return response.text();
+                        })
+                        .then(html => {
+                            this.cache[name] = html;
+                            this.loading[name] = false;
+                            // Force re-render by dispatching custom event
+                            document.dispatchEvent(new CustomEvent('partial-loaded', { detail: { name } }));
+                        })
+                        .catch(error => {
+                            console.error('Error loading partial:', error);
+                            this.cache[name] = `<div class="p-4 text-center text-red-500">Error loading ${name}</div>`;
+                            this.loading[name] = false;
+                            document.dispatchEvent(new CustomEvent('partial-loaded', { detail: { name } }));
+                        });
+                    
+                    return '<div class="p-4 text-center text-gray-500">Loading...</div>';
+                }
+            });
+        });
+    </script>
 </head>
 
 <body class="page-body" x-data="initializeDiagnosticsStore()" x-init="init()">
@@ -73,191 +117,33 @@
                 </nav>
 
                 <!-- Diagnostics Content -->
-                <div class="space-y-6">
-
+                <div class="space-y-6" 
+                     x-data="{ refreshKey: 0 }"
+                     @partial-loaded.document="refreshKey++">
                     <!-- Microcontroller Section -->
-                    <div x-show="currentSection === 'microcontroller-section'" class="diag-section orange">
-                        <div class="diag-header">
-                            <h4 class="diag-title orange"><span class="mr-2">🎛️</span>Microcontroller</h4>
-                        </div>
-                        <div class="space-y-2">
-                            <div class="diag-row">
-                                <span class="diag-label">Chip Model:</span>
-                                <span class="diag-value" x-text="microcontrollerInfo.chipModel"></span>
-                            </div>
-                            <div class="diag-row">
-                                <span class="diag-label">CPU Frequency:</span>
-                                <span class="diag-value" x-text="microcontrollerInfo.cpuFrequency"></span>
-                            </div>
-                            <div class="diag-row">
-                                <span class="diag-label">Flash Size:</span>
-                                <span class="diag-value" x-text="microcontrollerInfo.flashSize"></span>
-                            </div>
-                            <div class="diag-row">
-                                <span class="diag-label">Firmware Version:</span>
-                                <span class="diag-value" x-text="microcontrollerInfo.firmwareVersion"></span>
-                            </div>
-                            <div class="diag-row">
-                                <span class="diag-label">Uptime:</span>
-                                <span class="diag-value" x-text="microcontrollerInfo.uptime"></span>
-                            </div>
-                            <div class="diag-row">
-                                <span class="diag-label">Temperature:</span>
-                                <span class="diag-value" x-text="microcontrollerInfo.temperature"></span>
-                            </div>
-
-                            <!-- Memory Usage -->
-                            <div class="diag-row">
-                                <span class="diag-label">Flash Usage:</span>
-                                <span class="diag-value" x-text="memoryUsage.flashUsageText"></span>
-                            </div>
-                            <div class="diag-progress-bar">
-                                <div :class="getProgressBarClass(memoryUsage.flashUsagePercent)"
-                                    class="h-full rounded-full transition-all duration-1000 ease-out"
-                                    :style="progressReady ? `width: ${Math.min(Math.max(memoryUsage.flashUsagePercent, 0), 100)}%` : 'width: 0%'">
-                                </div>
-                            </div>
-
-                            <div class="diag-row">
-                                <span class="diag-label">Heap Usage:</span>
-                                <span class="diag-value" x-text="memoryUsage.heapUsageText"></span>
-                            </div>
-                            <div class="diag-progress-bar">
-                                <div :class="getProgressBarClass(memoryUsage.heapUsagePercent)"
-                                    class="h-full rounded-full transition-all duration-1000 ease-out"
-                                    :style="progressReady ? `width: ${Math.min(Math.max(memoryUsage.heapUsagePercent, 0), 100)}%` : 'width: 0%'">
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                    <div x-show="currentSection === 'microcontroller-section'"
+                         :key="`microcontroller-${refreshKey}`"
+                         x-html="$store.diagnosticsPartials.load('microcontroller')"></div>
 
                     <!-- Logging Section -->
-                    <div x-show="currentSection === 'logging-section'" class="diag-section indigo">
-                        <div class="diag-header">
-                            <h4 class="diag-title indigo"><span class="mr-2">📋</span>Logging</h4>
-                        </div>
-                        <div class="space-y-2">
-                            <div class="diag-row">
-                                <span class="diag-label">Log Level:</span>
-                                <span class="diag-value" x-text="loggingInfo.level"></span>
-                            </div>
-                            <div class="diag-row">
-                                <span class="diag-label">Serial Logging:</span>
-                                <span class="diag-value" x-text="loggingInfo.serialLogging"></span>
-                            </div>
-                            <div class="diag-row">
-                                <span class="diag-label">Web Logging:</span>
-                                <span class="diag-value" x-text="loggingInfo.webLogging"></span>
-                            </div>
-                            <div class="diag-row">
-                                <span class="diag-label">File Logging:</span>
-                                <span class="diag-value" x-text="loggingInfo.fileLogging"></span>
-                            </div>
-                            <div class="diag-row">
-                                <span class="diag-label">MQTT Logging:</span>
-                                <span class="diag-value" x-text="loggingInfo.mqttLogging"></span>
-                            </div>
-                        </div>
-                    </div>
+                    <div x-show="currentSection === 'logging-section'"
+                         :key="`logging-${refreshKey}`"
+                         x-html="$store.diagnosticsPartials.load('logging')"></div>
 
                     <!-- Pages & Endpoints Section -->
-                    <div x-show="currentSection === 'pages-endpoints-section'" class="diag-section teal">
-                        <div class="diag-header">
-                            <h4 class="diag-title teal"><span class="mr-2">🔗</span>Pages & Endpoints</h4>
-                        </div>
-                        <div class="space-y-4">
-                            <!-- Routes -->
-                            <div>
-                                <h5 class="font-medium text-gray-900 dark:text-gray-100 mb-2">Routes</h5>
-                                <div class="space-y-1">
-                                    <template x-for="route in sortedRoutes" :key="route.path">
-                                        <div class="diag-row">
-                                            <!-- Route path - make HTML pages clickable -->
-                                            <span class="diag-label">
-                                                <template x-if="route.isHtmlPage">
-                                                    <a :href="route.linkPath"
-                                                        class="text-teal-600 dark:text-teal-400 hover:underline"
-                                                        x-text="route.path"></a>
-                                                </template>
-                                                <template x-if="route.isUnmatched">
-                                                    <a :href="route.linkPath"
-                                                        class="text-teal-600 dark:text-teal-400 hover:underline"
-                                                        x-text="route.path"></a>
-                                                </template>
-                                                <template x-if="!route.isHtmlPage && !route.isUnmatched">
-                                                    <span x-text="route.path"></span>
-                                                </template>
-                                            </span>
-                                            <span class="diag-value" x-text="route.description"></span>
-                                        </div>
-                                    </template>
-                                    <div x-show="sortedRoutes.length === 0" class="diag-row">
-                                        <span class="diag-label">Loading routes...</span>
-                                        <span class="diag-value">-</span>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- API Endpoints -->
-                            <div>
-                                <h5 class="font-medium text-gray-900 dark:text-gray-100 mb-3">API Endpoints</h5>
-                                <div class="space-y-3">
-                                    <template x-for="(endpoints, method) in apiEndpoints" :key="method">
-                                        <div class="border-l-2 border-teal-300 dark:border-teal-600 pl-3">
-                                            <h6 class="font-semibold text-sm text-teal-700 dark:text-teal-300 mb-2 uppercase tracking-wide"
-                                                x-text="`${method} (${endpoints.length})`"></h6>
-                                            <div class="space-y-1">
-                                                <template x-for="endpoint in endpoints" :key="endpoint.path">
-                                                    <div class="diag-row text-sm">
-                                                        <span class="diag-label font-mono"
-                                                            x-text="endpoint.path"></span>
-                                                        <span class="diag-value" x-text="endpoint.description"></span>
-                                                    </div>
-                                                </template>
-                                            </div>
-                                        </div>
-                                    </template>
-                                    <div x-show="Object.keys(apiEndpoints).length === 0" class="diag-row">
-                                        <span class="diag-label">Loading API endpoints...</span>
-                                        <span class="diag-value">-</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                    <div x-show="currentSection === 'pages-endpoints-section'"
+                         :key="`pages-endpoints-${refreshKey}`"
+                         x-html="$store.diagnosticsPartials.load('pages-endpoints')"></div>
 
                     <!-- Runtime Configuration Section -->
-                    <div x-show="currentSection === 'config-file-section'" class="diag-section green">
-                        <div class="diag-header">
-                            <h4 class="diag-title green"><span class="mr-2">⚙️</span>Runtime Configuration</h4>
-                        </div>
-                        <div class="space-y-3">
-                            <p class="diag-config-warning green mb-3">🔑 Secrets are redacted</p>
-                            <div class="diag-json-wrapper">
-                                <pre class="diag-json-content-fullscreen"
-                                    x-html="highlightJSON(configFileFormatted)"></pre>
-                            </div>
-                        </div>
-                    </div>
+                    <div x-show="currentSection === 'config-file-section'"
+                         :key="`config-file-${refreshKey}`"
+                         x-html="$store.diagnosticsPartials.load('config-file')"></div>
 
                     <!-- NVS Storage Section -->
-                    <div x-show="currentSection === 'nvs-storage-section'" class="diag-section cyan">
-                        <div class="diag-header">
-                            <div>
-                                <h4 class="diag-title cyan"><span class="mr-2">💾</span>NVS Storage</h4>
-                                <p class="text-sm text-cyan-600 dark:text-cyan-400 mt-1">NVS key-value pairs from
-                                    "scribe-app" namespace</p>
-                            </div>
-                        </div>
-                        <div class="space-y-3">
-                            <p class="diag-config-warning cyan mb-3">🔑 Secrets are redacted</p>
-                            <div class="diag-json-wrapper">
-                                <pre class="diag-json-content-fullscreen"
-                                    x-html="highlightJSON(nvsDataFormatted)"></pre>
-                            </div>
-                        </div>
-                    </div>
-
+                    <div x-show="currentSection === 'nvs-storage-section'"
+                         :key="`nvs-storage-${refreshKey}`"
+                         x-html="$store.diagnosticsPartials.load('nvs-storage')"></div>
                 </div>
             </div>
         </template>

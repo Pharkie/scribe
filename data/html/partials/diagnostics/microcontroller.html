@@ -1,0 +1,73 @@
+<div class="diag-section orange">
+    <div class="diag-header">
+        <h4 class="diag-title orange"><span class="mr-2">🎛️</span>Microcontroller</h4>
+    </div>
+    <div class="space-y-2">
+        <div class="diag-row">
+            <span class="diag-label">Chip Model:</span>
+            <span class="diag-value" x-text="microcontrollerInfo.chipModel"></span>
+        </div>
+        <div class="diag-row">
+            <span class="diag-label">CPU Frequency:</span>
+            <span class="diag-value" x-text="microcontrollerInfo.cpuFrequency"></span>
+        </div>
+        <div class="diag-row">
+            <span class="diag-label">Flash Size:</span>
+            <span class="diag-value" x-text="microcontrollerInfo.flashSize"></span>
+        </div>
+        <div class="diag-row">
+            <span class="diag-label">Firmware Version:</span>
+            <span class="diag-value" x-text="microcontrollerInfo.firmwareVersion"></span>
+        </div>
+        <div class="diag-row">
+            <span class="diag-label">Uptime:</span>
+            <span class="diag-value" x-text="microcontrollerInfo.uptime"></span>
+        </div>
+        <div class="diag-row">
+            <span class="diag-label">Temperature:</span>
+            <span class="diag-value" x-text="microcontrollerInfo.temperature"></span>
+        </div>
+
+        <!-- Memory Usage -->
+        <div class="diag-row">
+            <span class="diag-label">Flash Usage:</span>
+            <span class="diag-value" x-text="memoryUsage.flashUsageText"></span>
+        </div>
+        <div class="diag-progress-bar">
+            <div :class="getProgressBarClass(memoryUsage.flashUsagePercent)"
+                class="h-full rounded-full transition-all duration-1000 ease-out"
+                :style="progressReady ? `width: ${Math.min(Math.max(memoryUsage.flashUsagePercent, 0), 100)}%` : 'width: 0%'">
+            </div>
+        </div>
+
+        <div class="diag-row">
+            <span class="diag-label">Heap Usage:</span>
+            <span class="diag-value" x-text="memoryUsage.heapUsageText"></span>
+        </div>
+        <div class="diag-progress-bar">
+            <div :class="getProgressBarClass(memoryUsage.heapUsagePercent)"
+                class="h-full rounded-full transition-all duration-1000 ease-out"
+                :style="progressReady ? `width: ${Math.min(Math.max(memoryUsage.heapUsagePercent, 0), 100)}%` : 'width: 0%'">
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+window.microcontrollerPartial = function() {
+    return {
+        get microcontrollerInfo() {
+            return window.diagnosticsStore.microcontrollerInfo;
+        },
+        get memoryUsage() {
+            return window.diagnosticsStore.memoryUsage;
+        },
+        get progressReady() {
+            return window.diagnosticsStore.progressReady;
+        },
+        getProgressBarClass(percent) {
+            return window.diagnosticsStore.getProgressBarClass(percent);
+        }
+    }
+}
+</script>

@@ -1,0 +1,37 @@
+<div class="diag-section indigo">
+    <div class="diag-header">
+        <h4 class="diag-title indigo"><span class="mr-2">📋</span>Logging</h4>
+    </div>
+    <div class="space-y-2">
+        <div class="diag-row">
+            <span class="diag-label">Log Level:</span>
+            <span class="diag-value" x-text="loggingInfo.level"></span>
+        </div>
+        <div class="diag-row">
+            <span class="diag-label">Serial Logging:</span>
+            <span class="diag-value" x-text="loggingInfo.serialLogging"></span>
+        </div>
+        <div class="diag-row">
+            <span class="diag-label">Web Logging:</span>
+            <span class="diag-value" x-text="loggingInfo.webLogging"></span>
+        </div>
+        <div class="diag-row">
+            <span class="diag-label">File Logging:</span>
+            <span class="diag-value" x-text="loggingInfo.fileLogging"></span>
+        </div>
+        <div class="diag-row">
+            <span class="diag-label">MQTT Logging:</span>
+            <span class="diag-value" x-text="loggingInfo.mqttLogging"></span>
+        </div>
+    </div>
+</div>
+
+<script>
+window.loggingPartial = function() {
+    return {
+        get loggingInfo() {
+            return window.diagnosticsStore.loggingInfo;
+        }
+    }
+}
+</script>
