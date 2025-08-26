@@ -1,4 +1,4 @@
-<div x-data="unbiddenPartial()" class="settings-section">
+<div x-data="{}" x-show="$store.settings && !$store.settings.loading" class="settings-section">
     <div class="settings-card settings-card-green">
         <h2 class="settings-card-header settings-card-header-green">
             <span class="text-3xl">🎲</span>
@@ -16,7 +16,7 @@
                 </div>
             </div>
             <label class="relative inline-flex items-center cursor-pointer">
-                <input type="checkbox" class="sr-only peer" x-model="config.unbiddenInk.enabled">
+                <input type="checkbox" class="sr-only peer" x-model="$store.settings.$store.settings.config.unbiddenInk.enabled">
                 <div
                     class="w-14 h-7 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-purple-300 dark:peer-focus:ring-purple-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[4px] after:bg-white dark:after:bg-gray-200 after:border-gray-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all dark:border-gray-600 peer-checked:bg-purple-600 dark:peer-checked:bg-purple-500">
                 </div>
@@ -24,7 +24,7 @@
         </div>
 
         <!-- Settings panel (shown when enabled) -->
-        <div x-show="config.unbiddenInk.enabled" x-transition class="space-y-6">
+        <div x-show="$store.settings.config.unbiddenInk.enabled" x-transition class="space-y-6">
 
             <!-- ChatGPT API Token -->
             <div class="space-y-2">
@@ -34,7 +34,7 @@
                 </label>
                 <input type="password" id="chatgpt-api-token" required
                     class="w-full p-3 rounded-xl border border-gray-200 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent text-gray-800 dark:text-gray-100 bg-white dark:bg-gray-700"
-                    x-model="config.unbiddenInk.chatgptApiToken">
+                    x-model="$store.settings.config.unbiddenInk.chatgptApiToken">
                 <p class="text-sm text-gray-600 dark:text-gray-400">
                     Your OpenAI API key for GPT access.
                     <a href="https://platform.openai.com/api-keys" target="_blank"
@@ -112,27 +112,27 @@
 
                     <!-- Active time track (reactive) -->
                     <div class="dual-range-active"
-                        :style="`left: ${timeRangeStyle.left}; width: ${timeRangeStyle.width};`">
+                        :style="`left: ${$store.settings.timeRangeStyle.left}; width: ${$store.settings.timeRangeStyle.width};`">
                     </div>
 
                     <!-- Start time handle -->
                     <input type="range" min="0" max="24" step="1"
-                        class="dual-range-input dual-range-start" :value="startHourSafe"
-                        @input="handleStartHourChange($event)">
+                        class="dual-range-input dual-range-start" :value="$store.settings.startHourSafe"
+                        @input="$store.settings.handleStartHourChange($event)">
 
                     <!-- End time handle -->
                     <input type="range" min="0" max="24" step="1"
-                        class="dual-range-input dual-range-end" :value="endHourSafe"
-                        @input="handleEndHourChange($event)">
+                        class="dual-range-input dual-range-end" :value="$store.settings.endHourSafe"
+                        @input="$store.settings.handleEndHourChange($event)">
                 </div>
 
                 <!-- Time display (reactive) -->
                 <div class="flex justify-between text-sm text-gray-600 dark:text-gray-400 mt-4">
-                    <span x-text="formatHour(config.unbiddenInk.startHour)"></span>
+                    <span x-text="$store.settings.formatHour($store.settings.config.unbiddenInk.startHour)"></span>
                     <span class="text-purple-600 dark:text-purple-400 font-medium">
-                        <span x-text="timeRangeDisplay"></span>
+                        <span x-text="$store.settings.timeRangeDisplay"></span>
                     </span>
-                    <span x-text="formatHour(config.unbiddenInk.endHour)"></span>
+                    <span x-text="$store.settings.formatHour($store.settings.config.unbiddenInk.endHour)"></span>
                 </div>
             </div>
 
@@ -147,7 +147,7 @@
                     <div class="mx-2">
                         <div
                             class="flex justify-between text-xs text-gray-400 dark:text-gray-500 mb-2">
-                            <template x-for="label in frequencyLabels" :key="label">
+                            <template x-for="label in $store.settings.frequencyLabels" :key="label">
                                 <span x-text="label"></span>
                             </template>
                         </div>
@@ -155,13 +155,13 @@
 
                     <input type="range" min="0" max="6" step="1"
                         class="w-full h-3 bg-gray-200 dark:bg-gray-700 rounded-lg appearance-none cursor-pointer slider-purple mx-2"
-                        x-model.number="frequencySliderValue">
+                        x-model.number="$store.settings.frequencySliderValue">
 
                     <!-- Frequency display (reactive) -->
                     <div class="text-center">
                         <div
                             class="inline-flex items-center px-3 py-1 rounded-full text-sm bg-purple-100 dark:bg-purple-900/40 text-purple-700 dark:text-purple-300">
-                            <span x-text="frequencyDisplay"></span>
+                            <span x-text="$store.settings.frequencyDisplay"></span>
                         </div>
                     </div>
                 </div>
@@ -173,8 +173,8 @@
                     Quick Prompts:
                 </label>
                 <div class="grid grid-cols-2 gap-3">
-                    <button type="button" @click="setQuickPrompt('creative')"
-                        :class="isPromptActive('creative') ? 
+                    <button type="button" @click="$store.settings.setQuickPrompt('creative')"
+                        :class="$store.settings.isPromptActive('creative') ? 
                     'p-3 text-left rounded-xl border border-purple-400 bg-purple-100 dark:bg-purple-900/40 ring-2 ring-purple-400 transition-colors' : 
                     'p-3 text-left rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors'">
                         <div class="font-medium text-sm text-gray-800 dark:text-gray-100">🎨
@@ -184,8 +184,8 @@
                             content
                         </div>
                     </button>
-                    <button type="button" @click="setQuickPrompt('doctorwho')"
-                        :class="isPromptActive('doctorwho') ? 
+                    <button type="button" @click="$store.settings.setQuickPrompt('doctorwho')"
+                        :class="$store.settings.isPromptActive('doctorwho') ? 
                     'p-3 text-left rounded-xl border border-purple-400 bg-purple-100 dark:bg-purple-900/40 ring-2 ring-purple-400 transition-colors' : 
                     'p-3 text-left rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors'">
                         <div class="font-medium text-sm text-gray-800 dark:text-gray-100">🚀 Doctor
@@ -194,8 +194,8 @@
                         <div class="text-xs text-gray-600 dark:text-gray-400">Sci-fi themed content
                         </div>
                     </button>
-                    <button type="button" @click="setQuickPrompt('wisdom')"
-                        :class="isPromptActive('wisdom') ? 
+                    <button type="button" @click="$store.settings.setQuickPrompt('wisdom')"
+                        :class="$store.settings.isPromptActive('wisdom') ? 
                     'p-3 text-left rounded-xl border border-purple-400 bg-purple-100 dark:bg-purple-900/40 ring-2 ring-purple-400 transition-colors' : 
                     'p-3 text-left rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors'">
                         <div class="font-medium text-sm text-gray-800 dark:text-gray-100">🧙 Wisdom
@@ -203,8 +203,8 @@
                         <div class="text-xs text-gray-600 dark:text-gray-400">Philosophical insights
                         </div>
                     </button>
-                    <button type="button" @click="setQuickPrompt('humor')"
-                        :class="isPromptActive('humor') ? 
+                    <button type="button" @click="$store.settings.setQuickPrompt('humor')"
+                        :class="$store.settings.isPromptActive('humor') ? 
                     'p-3 text-left rounded-xl border border-purple-400 bg-purple-100 dark:bg-purple-900/40 ring-2 ring-purple-400 transition-colors' : 
                     'p-3 text-left rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors'">
                         <div class="font-medium text-sm text-gray-800 dark:text-gray-100">😄 Humor
@@ -224,7 +224,7 @@
                 <textarea id="unbidden-ink-prompt" rows="4"
                     class="w-full p-3 rounded-xl border border-gray-200 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent text-gray-800 dark:text-gray-100 bg-white dark:bg-gray-700 resize-vertical"
                     placeholder="Enter a custom prompt for content generation..."
-                    x-model="config.unbiddenInk.prompt"></textarea>
+                    x-model="$store.settings.config.unbiddenInk.prompt"></textarea>
             </div>
         </div>
     </div>

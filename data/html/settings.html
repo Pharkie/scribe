@@ -122,20 +122,6 @@
         // Register all Alpine component functions upfront
         document.addEventListener('alpine:init', () => {
             // Register all partial component functions globally
-            window.devicePartial = function() {
-                return {
-                    get config() { return Alpine.store('settings').config; },
-                    get validation() { return Alpine.store('settings').validation; },
-                    get loading() { return Alpine.store('settings').loading; },
-                    get wifiScan() { return Alpine.store('settings').wifiScan; },
-                    get gpioOptions() { return Alpine.store('settings').gpioOptions; },
-                    get printerGpioOptions() { return Alpine.store('settings').printerGpioOptions; },
-                    get apPrintStatus() { return Alpine.store('settings').apPrintStatus; },
-                    get apPrintButtonText() { return Alpine.store('settings').apPrintButtonText; },
-                    selectNetwork(value) { return Alpine.store('settings').selectNetwork(value); },
-                    printAPDetails() { return Alpine.store('settings').printAPDetails(); }
-                }
-            };
 
             window.mqttPartial = function() {
                 return {
@@ -174,11 +160,6 @@
                 }
             };
 
-            window.unbiddenPartial = function() {
-                return {
-                    get config() { return Alpine.store('settings').config; }
-                }
-            };
 
             window.ledsPartial = function() {
                 return {
@@ -268,7 +249,7 @@
                                 custom3: parseInt(this.effectParams.custom3),
                                 colors: this.effectParams.colors
                             };
-                            const response = await fetch('/api/leds/test', {
+                            const response = await fetch('/api/led-effect', {
                                 method: 'POST',
                                 headers: { 'Content-Type': 'application/json' },
                                 body: JSON.stringify(payload)
@@ -283,7 +264,7 @@
                     
                     async stopEffect() {
                         try {
-                            const response = await fetch('/api/leds/stop', { method: 'POST' });
+                            const response = await fetch('/api/leds-off', { method: 'POST' });
                             if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
                         } catch (error) {
                             console.error('Failed to stop LED effect:', error);
