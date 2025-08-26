@@ -27,22 +27,61 @@
 
         <!-- Memo Text Areas -->
         <div class="space-y-6">
-            <template x-for="memoNum in [1, 2, 3, 4]" :key="memoNum">
-                <div class="space-y-2">
-                    <label :for="`memo-${memoNum}`" class="form-label">
-                        Memo <span x-text="memoNum"></span>:
-                    </label>
-                    <textarea 
-                        :id="`memo-${memoNum}`" 
-                        rows="4"
-                        class="w-full p-3 rounded-xl border border-gray-200 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent text-gray-800 dark:text-gray-100 bg-white dark:bg-gray-700 resize-vertical"
-                        :placeholder="`Enter memo ${memoNum} content with placeholders...`"
-                        x-model="memoNum === 1 ? $store.settings.config.memos.memo1 : memoNum === 2 ? $store.settings.config.memos.memo2 : memoNum === 3 ? $store.settings.config.memos.memo3 : $store.settings.config.memos.memo4"></textarea>
-                    <div :class="$store.settings.getMemoCharacterClass(memoNum)" class="text-xs text-right font-mono">
-                        <span x-text="$store.settings.getMemoCharacterText(memoNum)"></span>
-                    </div>
+            <!-- Memo 1 -->
+            <div class="space-y-2">
+                <label for="memo-1" class="form-label">Memo 1:</label>
+                <textarea 
+                    id="memo-1" 
+                    rows="4"
+                    class="w-full p-3 rounded-xl border border-gray-200 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent text-gray-800 dark:text-gray-100 bg-white dark:bg-gray-700 resize-vertical"
+                    placeholder="Enter memo 1 content with placeholders..."
+                    x-model="$store.settings.config.memos.memo1"></textarea>
+                <div :class="$store.settings.getMemoCharacterClass(1)" class="text-xs text-right font-mono">
+                    <span x-text="$store.settings.getMemoCharacterText(1)"></span>
                 </div>
-            </template>
+            </div>
+
+            <!-- Memo 2 -->
+            <div class="space-y-2">
+                <label for="memo-2" class="form-label">Memo 2:</label>
+                <textarea 
+                    id="memo-2" 
+                    rows="4"
+                    class="w-full p-3 rounded-xl border border-gray-200 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent text-gray-800 dark:text-gray-100 bg-white dark:bg-gray-700 resize-vertical"
+                    placeholder="Enter memo 2 content with placeholders..."
+                    x-model="$store.settings.config.memos.memo2"></textarea>
+                <div :class="$store.settings.getMemoCharacterClass(2)" class="text-xs text-right font-mono">
+                    <span x-text="$store.settings.getMemoCharacterText(2)"></span>
+                </div>
+            </div>
+
+            <!-- Memo 3 -->
+            <div class="space-y-2">
+                <label for="memo-3" class="form-label">Memo 3:</label>
+                <textarea 
+                    id="memo-3" 
+                    rows="4"
+                    class="w-full p-3 rounded-xl border border-gray-200 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent text-gray-800 dark:text-gray-100 bg-white dark:bg-gray-700 resize-vertical"
+                    placeholder="Enter memo 3 content with placeholders..."
+                    x-model="$store.settings.config.memos.memo3"></textarea>
+                <div :class="$store.settings.getMemoCharacterClass(3)" class="text-xs text-right font-mono">
+                    <span x-text="$store.settings.getMemoCharacterText(3)"></span>
+                </div>
+            </div>
+
+            <!-- Memo 4 -->
+            <div class="space-y-2">
+                <label for="memo-4" class="form-label">Memo 4:</label>
+                <textarea 
+                    id="memo-4" 
+                    rows="4"
+                    class="w-full p-3 rounded-xl border border-gray-200 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent text-gray-800 dark:text-gray-100 bg-white dark:bg-gray-700 resize-vertical"
+                    placeholder="Enter memo 4 content with placeholders..."
+                    x-model="$store.settings.config.memos.memo4"></textarea>
+                <div :class="$store.settings.getMemoCharacterClass(4)" class="text-xs text-right font-mono">
+                    <span x-text="$store.settings.getMemoCharacterText(4)"></span>
+                </div>
+            </div>
         </div>
     </div>
 </div>
