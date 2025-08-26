@@ -14,10 +14,6 @@
                 <p x-show="$store.settings.validation.errors['device.owner']"
                     class="text-xs text-red-600 dark:text-red-400"
                     x-text="$store.settings.validation.errors['device.owner']"></p>
-                <p x-show="!$store.settings.validation.errors['device.owner'] && $store.settings.config.device.mdns"
-                    class="text-xs text-gray-500 dark:text-gray-400">
-                    mDNS Hostname: <span x-text="$store.settings.config.device.mdns"></span>
-                </p>
             </div>
             <div class="space-y-2">
                 <label for="timezone" class="form-label">Timezone:</label>

@@ -37,7 +37,7 @@
                         rows="4"
                         class="w-full p-3 rounded-xl border border-gray-200 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent text-gray-800 dark:text-gray-100 bg-white dark:bg-gray-700 resize-vertical"
                         :placeholder="`Enter memo ${memoNum} content with placeholders...`"
-                        :x-model="`$store.settings.config.memos.memo${memoNum}`"></textarea>
+                        x-model="memoNum === 1 ? $store.settings.config.memos.memo1 : memoNum === 2 ? $store.settings.config.memos.memo2 : memoNum === 3 ? $store.settings.config.memos.memo3 : $store.settings.config.memos.memo4"></textarea>
                     <div :class="$store.settings.getMemoCharacterClass(memoNum)" class="text-xs text-right font-mono">
                         <span x-text="$store.settings.getMemoCharacterText(memoNum)"></span>
                     </div>
