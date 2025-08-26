@@ -272,11 +272,11 @@
                                         <select id="printer-tx-pin" class="input-standard" 
                                                 x-model="config.device.printerTxPin"
                                                 x-effect="
-                                                    if (!loading && config.device.printerTxPin !== null && gpioOptions.length > 0) {
+                                                    if (!loading && config.device.printerTxPin !== null && printerGpioOptions.length > 0) {
                                                         $nextTick(() => $el.value = config.device.printerTxPin);
                                                     }
                                                 ">
-                                            <template x-for="gpio in gpioOptions" :key="gpio.pin">
+                                            <template x-for="gpio in printerGpioOptions" :key="gpio.pin">
                                                 <option :value="gpio.pin" 
                                                         :disabled="!gpio.available"
                                                         x-text="`GPIO ${gpio.pin} - ${gpio.description}${!gpio.available ? ' (In Use)' : ''}`">
@@ -301,7 +301,7 @@
                                             <template x-for="gpio in gpioOptions" :key="gpio.pin">
                                                 <option :value="gpio.pin" 
                                                         :disabled="!gpio.available"
-                                                        x-text="`GPIO ${gpio.pin} - ${gpio.description}${!gpio.available ? ' (In Use)' : ''}`">
+                                                        x-text="gpio.pin === -1 ? gpio.description : `GPIO ${gpio.pin} - ${gpio.description}${!gpio.available ? ' (In Use)' : ''}`">
                                                 </option>
                                             </template>
                                         </select>
@@ -329,7 +329,7 @@
                                                     <template x-for="gpio in gpioOptions" :key="gpio.pin">
                                                         <option :value="gpio.pin" 
                                                                 :disabled="!gpio.available"
-                                                                x-text="`GPIO ${gpio.pin} - ${gpio.description}${!gpio.available ? ' (In Use)' : ''}`">
+                                                                x-text="gpio.pin === -1 ? gpio.description : `GPIO ${gpio.pin} - ${gpio.description}${!gpio.available ? ' (In Use)' : ''}`">
                                                         </option>
                                                     </template>
                                                 </select>
