@@ -107,6 +107,242 @@
                             </div>
 
                             <!-- WiFi -->
+                            <div class="space-y-4 mb-8">
+                                <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-100 border-b border-gray-200 dark:border-gray-700 pb-2">
+                                    WiFi
+                                </h3>
+
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <!-- WiFi Network Selection -->
+                                    <div class="space-y-2">
+                                        <label class="form-label">WiFi Network (Signal Strength):</label>
+
+                                        <!-- Network Selection Dropdown -->
+                                        <select id="wifi-network-select" @change="selectNetwork($event.target.value)"
+                                            :disabled="wifiScan.dropdownDisabled" :class="{
+                                        'input-standard': true,
+                                        'opacity-60 cursor-not-allowed': wifiScan.dropdownDisabled,
+                                        'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-700': wifiScan.isScanning
+                                    }" x-model="wifiScan.selectedNetwork"
+                                    x-effect="
+                                        if (wifiScan.selectedNetwork !== null && wifiScan.options.length > 0) {
+                                            $nextTick(() => $el.value = wifiScan.selectedNetwork);
+                                        }
+                                    ">
+
+                                            <template x-for="option in wifiScan.options" :key="option.value">
+                                                <option :value="option.value" :disabled="option.disabled"
+                                                    x-text="option.label">
+                                                </option>
+                                            </template>
+                                        </select>
+
+                                        <!-- Manual SSID Input (reactive display) -->
+                                        <div x-show="wifiScan.showManualEntry" class="mt-2"
+                                            x-transition:enter="transition ease-out duration-200"
+                                            x-transition:enter-start="opacity-0 transform scale-95"
+                                            x-transition:enter-end="opacity-100 transform scale-100">
+                                            <label for="wifi-ssid" class="form-label text-sm">Network Name
+                                                (SSID):</label>
+                                            <input id="wifi-ssid" type="text" placeholder="Enter WiFi network name"
+                                                class="input-standard" x-model="config.device.wifi.ssid">
+                                        </div>
+
+                                        <!-- WiFi Scan Status/Error Messages -->
+                                        <div x-show="wifiScan.isScanning"
+                                            class="text-xs text-blue-600 dark:text-blue-400 flex items-center">
+                                            <div
+                                                class="animate-spin rounded-full h-3 w-3 border-b-2 border-blue-600 mr-2">
+                                            </div>
+                                            Sniffing the Air…
+                                        </div>
+                                        <div x-show="wifiScan.error" class="text-xs text-red-600 dark:text-red-400"
+                                            x-text="wifiScan.error"></div>
+
+                                        <!-- Validation Error Display -->
+                                        <p x-show="validation.errors['wifi.ssid']"
+                                            class="text-xs text-red-600 dark:text-red-400"
+                                            x-text="validation.errors['wifi.ssid']"></p>
+                                    </div>
+                                    <div class="space-y-2">
+                                        <label for="wifi-password" class="form-label">WiFi Password:</label>
+                                        <input type="password" id="wifi-password" class="input-standard"
+                                            x-model="config.device.wifi.password">
+                                    </div>
+                                    <div class="space-y-2">
+                                        <label for="wifi-timeout" class="form-label">Connection Timeout
+                                            (seconds):</label>
+                                        <input type="number" id="wifi-timeout" min="5" max="60" class="input-standard"
+                                            :value="Math.floor(config.device.wifi.connect_timeout / 1000)"
+                                            @input="config.device.wifi.connect_timeout = parseInt($el.value) * 1000">
+                                        <p x-show="validation.errors['wifi.connect_timeout']"
+                                            class="text-xs text-red-600 dark:text-red-400"
+                                            x-text="validation.errors['wifi.connect_timeout']"></p>
+                                        <p x-show="!validation.errors['wifi.connect_timeout']"
+                                            class="text-xs text-gray-500 dark:text-gray-400">
+                                            Time to wait before falling back to AP mode (5-60 seconds)
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <!-- WiFi Warning -->
+                                <div class="warning-box mt-4">
+                                    <div class="flex items-start space-x-3">
+                                        <span class="text-2xl">⚠️</span>
+                                        <div class="flex-1">
+                                            <h4 class="warning-title">WiFi Change Warning</h4>
+                                            <p class="text-sm text-orange-700 dark:text-orange-400 mt-1">
+                                                Changing WiFi settings will cause the device to restart and connect to
+                                                the
+                                                new
+                                                network. If connection fails, the device will create an AP with SSID:
+                                                <span class="font-mono font-bold"
+                                                    x-text="config?.device?.wifi?.fallback_ap_ssid || 'Scribe-setup'"></span>
+                                                and password: <span class="font-mono font-bold"
+                                                    x-text="config?.device?.wifi?.fallback_ap_password || 'scribe123'"></span>
+                                            </p>
+                                            <button @click="printAPDetails()" :disabled="apPrintStatus === 'scribing'"
+                                                class="mt-3 px-2 py-1 text-xs bg-gray-500 hover:bg-gray-600 dark:bg-gray-600 dark:hover:bg-gray-700 text-white rounded transition-colors duration-200 flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed">
+                                                🖨️ <span x-text="apPrintButtonText"></span>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Current WiFi Status (Read-only) -->
+                                <div class="status-info-box">
+                                    <div class="status-info-header">
+                                        <span class="text-2xl mr-2">📊</span>
+                                        <span>Current WiFi Status</span>
+                                    </div>
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div class="space-y-2">
+                                            <div class="text-sm">
+                                                <span class="font-medium text-gray-700 dark:text-gray-300">IP
+                                                    Address:</span>
+                                                <span class="text-gray-800 dark:text-gray-200"
+                                                    x-text="config.device.wifi.status?.ip_address || '-'"></span>
+                                            </div>
+                                            <div class="text-sm">
+                                                <span class="font-medium text-gray-700 dark:text-gray-300">Signal
+                                                    Strength:</span>
+                                                <span class="text-gray-800 dark:text-gray-200"
+                                                    x-text="config.device.wifi.status?.signal_strength || '-'"></span>
+                                            </div>
+                                            <div class="text-sm">
+                                                <span class="font-medium text-gray-700 dark:text-gray-300">MAC
+                                                    Address:</span>
+                                                <span class="text-gray-800 dark:text-gray-200"
+                                                    x-text="config.device.wifi.status?.mac_address || '-'"></span>
+                                            </div>
+                                        </div>
+                                        <div class="space-y-2">
+                                            <div class="text-sm">
+                                                <span
+                                                    class="font-medium text-gray-700 dark:text-gray-300">Gateway:</span>
+                                                <span class="text-gray-800 dark:text-gray-200"
+                                                    x-text="config.device.wifi.status?.gateway || '-'"></span>
+                                            </div>
+                                            <div class="text-sm">
+                                                <span class="font-medium text-gray-700 dark:text-gray-300">DNS:</span>
+                                                <span class="text-gray-800 dark:text-gray-200"
+                                                    x-text="config.device.wifi.status?.dns || '-'"></span>
+                                            </div>
+                                            <div class="text-sm">
+                                                <span class="font-medium text-gray-700 dark:text-gray-300">mDNS
+                                                    Hostname:</span>
+                                                <span class="text-gray-800 dark:text-gray-200"
+                                                    x-text="config.device?.mdns || '-'"></span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- GPIO Configuration -->
+                            <div class="space-y-4 mb-8">
+                                <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-100 border-b border-gray-200 dark:border-gray-700 pb-2">
+                                    GPIO Configuration
+                                </h3>
+                                
+                                <!-- Printer TX GPIO -->
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div class="space-y-2">
+                                        <label for="printer-tx-pin" class="form-label">Printer TX GPIO:</label>
+                                        <select id="printer-tx-pin" class="input-standard" 
+                                                x-model="config.device.printerTxPin"
+                                                x-effect="
+                                                    if (!loading && config.device.printerTxPin !== null && gpioOptions.length > 0) {
+                                                        $nextTick(() => $el.value = config.device.printerTxPin);
+                                                    }
+                                                ">
+                                            <template x-for="gpio in gpioOptions" :key="gpio.pin">
+                                                <option :value="gpio.pin" 
+                                                        :disabled="!gpio.available"
+                                                        x-text="`GPIO ${gpio.pin} - ${gpio.description}${!gpio.available ? ' (In Use)' : ''}`">
+                                                </option>
+                                            </template>
+                                        </select>
+                                        <p class="text-xs text-gray-500 dark:text-gray-400">
+                                            UART communication to thermal printer
+                                        </p>
+                                    </div>
+
+                                    <!-- LED Strip GPIO -->
+                                    <div class="space-y-2">
+                                        <label for="led-strip-pin" class="form-label">LED Strip GPIO:</label>
+                                        <select id="led-strip-pin" class="input-standard" 
+                                                x-model="config.leds.pin"
+                                                x-effect="
+                                                    if (!loading && config.leds.pin !== null && gpioOptions.length > 0) {
+                                                        $nextTick(() => $el.value = config.leds.pin);
+                                                    }
+                                                ">
+                                            <template x-for="gpio in gpioOptions" :key="gpio.pin">
+                                                <option :value="gpio.pin" 
+                                                        :disabled="!gpio.available"
+                                                        x-text="`GPIO ${gpio.pin} - ${gpio.description}${!gpio.available ? ' (In Use)' : ''}`">
+                                                </option>
+                                            </template>
+                                        </select>
+                                        <p class="text-xs text-gray-500 dark:text-gray-400">
+                                            Data pin for addressable LED strip
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <!-- Button GPIO Pins -->
+                                <div class="mt-6">
+                                    <h4 class="text-md font-medium text-gray-700 dark:text-gray-300 mb-3">Button GPIO Pins</h4>
+                                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                                        <template x-for="buttonNum in [1, 2, 3, 4]" :key="buttonNum">
+                                            <div class="space-y-2">
+                                                <label :for="`device-button${buttonNum}-gpio`" class="form-label"
+                                                       x-text="`Button ${buttonNum}:`"></label>
+                                                <select :id="`device-button${buttonNum}-gpio`" class="input-standard"
+                                                        x-model="config.buttons[`button${buttonNum}`].gpio"
+                                                        x-effect="
+                                                            if (!loading && config.buttons[`button${buttonNum}`].gpio !== null && gpioOptions.length > 0) {
+                                                                $nextTick(() => $el.value = config.buttons[`button${buttonNum}`].gpio);
+                                                            }
+                                                        ">
+                                                    <template x-for="gpio in gpioOptions" :key="gpio.pin">
+                                                        <option :value="gpio.pin" 
+                                                                :disabled="!gpio.available"
+                                                                x-text="`GPIO ${gpio.pin} - ${gpio.description}${!gpio.available ? ' (In Use)' : ''}`">
+                                                        </option>
+                                                    </template>
+                                                </select>
+                                            </div>
+                                        </template>
+                                    </div>
+                                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-2">
+                                        GPIO pins for hardware button inputs (pull-up enabled)
+                                    </p>
+                                </div>
+                            </div>
+
+                            <!-- WiFi -->
                             <div class="mb-8">
                                 <h3
                                     class="text-lg font-semibold text-purple-800 dark:text-purple-100 mb-4 flex items-center">
@@ -124,7 +360,12 @@
                                         'input-standard': true,
                                         'opacity-60 cursor-not-allowed': wifiScan.dropdownDisabled,
                                         'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-700': wifiScan.isScanning
-                                    }" x-model="wifiScan.selectedNetwork">
+                                    }" x-model="wifiScan.selectedNetwork"
+                                    x-effect="
+                                        if (wifiScan.selectedNetwork !== null && wifiScan.options.length > 0) {
+                                            $nextTick(() => $el.value = wifiScan.selectedNetwork);
+                                        }
+                                    ">
 
                                             <template x-for="option in wifiScan.options" :key="option.value">
                                                 <option :value="option.value" :disabled="option.disabled"
@@ -610,8 +851,16 @@
                                 <template x-for="buttonNum in [1, 2, 3, 4]" :key="buttonNum">
                                     <div class="p-4 bg-orange-50 dark:bg-orange-900/20 rounded-xl">
                                         <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-4"
-                                            x-text="`Button ${buttonNum} Configuration (GPIO ${config.buttons[`button${buttonNum}`]?.gpio || 'Unknown'})`">
+                                            x-text="`Button ${buttonNum}`">
                                         </h3>
+
+                                        <!-- GPIO Pin Display (Read-only) -->
+                                        <div class="mb-4">
+                                            <span class="text-sm text-gray-600 dark:text-gray-400">Input pin: </span>
+                                            <span class="font-mono font-medium text-gray-800 dark:text-gray-200"
+                                                  x-text="`GPIO ${config.buttons[`button${buttonNum}`]?.gpio || 'Unknown'}`"></span>
+                                            <span class="text-xs text-gray-500 dark:text-gray-400"> (Configure in Settings > Device)</span>
+                                        </div>
 
                                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                             <!-- Short Press Action -->
@@ -771,7 +1020,7 @@
                     </div>
 
                     <!-- LEDs Section -->
-                    <div x-show="activeSection === 'leds'" class="settings-section" x-init="initColorPickers()">
+                    <div x-show="activeSection === 'leds'" class="settings-section">
                         <div
                             class="bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-700 shadow-2xl rounded-3xl p-8">
                             <h2
@@ -788,30 +1037,12 @@
                                     </h3>
                                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         <div class="space-y-2">
-                                            <label for="led-pin"
-                                                class="block text-sm font-medium text-gray-700 dark:text-gray-300">GPIO
-                                                Pin</label>
-                                            <select id="led-pin" class="input-standard" x-model="config.leds.pin"
-                                                    x-effect="
-                                                        if (!loading && config.leds.pin !== null && gpioOptions.length > 0) {
-                                                            $nextTick(() => $el.value = config.leds.pin);
-                                                        }
-                                                    "
-                                                <template x-for="option in allGpioOptions" :key="option.value">
-                                                    <option :value="option.value" :disabled="option.disabled" 
-                                                            :class="{ 'text-red-600': option.disabled, 'text-green-600': option.isSafe }"
-                                                            x-text="option.label">
-                                                    </option>
-                                                </template>
-                                            </select>
-                                            <p class="text-xs text-gray-500 dark:text-gray-400">
-                                                ⚠️ Not all boards expose every pin. On boards like the ESP32-C3
-                                                SuperMini,
-                                                usually ~15–16 of these are available. Pins marked avoid are connected
-                                                to
-                                                flash
-                                                or USB and should not be reassigned.
-                                            </p>
+                                            <div>
+                                                <span class="text-sm text-gray-600 dark:text-gray-400">GPIO Pin: </span>
+                                                <span class="font-mono font-medium text-gray-800 dark:text-gray-200"
+                                                      x-text="`GPIO ${config.leds.pin || 'Unknown'}`"></span>
+                                                <span class="text-xs text-gray-500 dark:text-gray-400"> (Configure in Settings > Device)</span>
+                                            </div>
                                         </div>
                                         <div class="space-y-2">
                                             <label for="led-count"
@@ -986,34 +1217,117 @@
                                         <!-- Color Parameters -->
                                         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                                             <!-- Color 1 -->
-                                            <div class="space-y-2">
-                                                <label for="led-color1"
-                                                    class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                            <div class="space-y-3">
+                                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
                                                     Color
                                                 </label>
-                                                <div x-ref="color1Pickr"
-                                                    class="w-20 h-12 rounded-lg cursor-pointer focus:outline-none focus:ring-2 focus:ring-purple-400">
+                                                <!-- Color Swatches + Custom -->
+                                                <div class="grid grid-cols-7 gap-2">
+                                                    <!-- 6 Preset Colors -->
+                                                    <template x-for="(preset, index) in colorPresets" :key="index">
+                                                        <div class="relative">
+                                                            <div :style="`background-color: ${preset}`"
+                                                                 @click="selectColor('color1', preset, 'preset')"
+                                                                 class="w-10 h-10 rounded-lg cursor-pointer border-2 transition-all hover:scale-105"
+                                                                 :class="{
+                                                                     'border-gray-600 dark:border-gray-300 shadow-lg': effectParams.color1 === preset,
+                                                                     'border-gray-300 dark:border-gray-600': effectParams.color1 !== preset
+                                                                 }">
+                                                            </div>
+                                                            <!-- Selected indicator -->
+                                                            <div x-show="effectParams.color1 === preset" 
+                                                                 class="absolute -top-1 -right-1 w-3 h-3 bg-green-500 rounded-full border border-white"></div>
+                                                        </div>
+                                                    </template>
+                                                    
+                                                    <!-- Custom Color -->
+                                                    <div class="relative">
+                                                        <input type="color" 
+                                                               x-model="effectParams.color1"
+                                                               @change="selectColor('color1', $el.value, 'custom')"
+                                                               class="w-10 h-10 rounded-lg cursor-pointer border-2 transition-all hover:scale-105"
+                                                               :class="{
+                                                                   'border-gray-600 dark:border-gray-300 shadow-lg': color1Type === 'custom',
+                                                                   'border-gray-300 dark:border-gray-600': color1Type !== 'custom'
+                                                               }"
+                                                               title="Custom Color">
+                                                        <!-- Selected indicator for custom -->
+                                                        <div x-show="color1Type === 'custom'" 
+                                                             class="absolute -top-1 -right-1 w-3 h-3 bg-green-500 rounded-full border border-white pointer-events-none"></div>
+                                                    </div>
                                                 </div>
                                             </div>
 
                                             <!-- Additional Colors for Multicolour Chase -->
-                                            <div class="space-y-2" x-show="selectedEffect === 'chase_multi'">
-                                                <label for="led-color2"
-                                                    class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                            <div class="space-y-3" x-show="selectedEffect === 'chase_multi'">
+                                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
                                                     Color 2
                                                 </label>
-                                                <div x-ref="color2Pickr"
-                                                    class="w-20 h-12 rounded-lg cursor-pointer focus:outline-none focus:ring-2 focus:ring-purple-400">
+                                                <div class="grid grid-cols-7 gap-2">
+                                                    <template x-for="(preset, index) in colorPresets" :key="index">
+                                                        <div class="relative">
+                                                            <div :style="`background-color: ${preset}`"
+                                                                 @click="selectColor('color2', preset, 'preset')"
+                                                                 class="w-10 h-10 rounded-lg cursor-pointer border-2 transition-all hover:scale-105"
+                                                                 :class="{
+                                                                     'border-gray-600 dark:border-gray-300 shadow-lg': effectParams.color2 === preset,
+                                                                     'border-gray-300 dark:border-gray-600': effectParams.color2 !== preset
+                                                                 }">
+                                                            </div>
+                                                            <div x-show="effectParams.color2 === preset" 
+                                                                 class="absolute -top-1 -right-1 w-3 h-3 bg-green-500 rounded-full border border-white"></div>
+                                                        </div>
+                                                    </template>
+                                                    
+                                                    <div class="relative">
+                                                        <input type="color" 
+                                                               x-model="effectParams.color2"
+                                                               @change="selectColor('color2', $el.value, 'custom')"
+                                                               class="w-10 h-10 rounded-lg cursor-pointer border-2 transition-all hover:scale-105"
+                                                               :class="{
+                                                                   'border-gray-600 dark:border-gray-300 shadow-lg': color2Type === 'custom',
+                                                                   'border-gray-300 dark:border-gray-600': color2Type !== 'custom'
+                                                               }"
+                                                               title="Custom Color">
+                                                        <div x-show="color2Type === 'custom'" 
+                                                             class="absolute -top-1 -right-1 w-3 h-3 bg-green-500 rounded-full border border-white pointer-events-none"></div>
+                                                    </div>
                                                 </div>
                                             </div>
 
-                                            <div class="space-y-2" x-show="selectedEffect === 'chase_multi'">
-                                                <label for="led-color3"
-                                                    class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                            <div class="space-y-3" x-show="selectedEffect === 'chase_multi'">
+                                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
                                                     Color 3
                                                 </label>
-                                                <div x-ref="color3Pickr"
-                                                    class="w-20 h-12 rounded-lg cursor-pointer focus:outline-none focus:ring-2 focus:ring-purple-400">
+                                                <div class="grid grid-cols-7 gap-2">
+                                                    <template x-for="(preset, index) in colorPresets" :key="index">
+                                                        <div class="relative">
+                                                            <div :style="`background-color: ${preset}`"
+                                                                 @click="selectColor('color3', preset, 'preset')"
+                                                                 class="w-10 h-10 rounded-lg cursor-pointer border-2 transition-all hover:scale-105"
+                                                                 :class="{
+                                                                     'border-gray-600 dark:border-gray-300 shadow-lg': effectParams.color3 === preset,
+                                                                     'border-gray-300 dark:border-gray-600': effectParams.color3 !== preset
+                                                                 }">
+                                                            </div>
+                                                            <div x-show="effectParams.color3 === preset" 
+                                                                 class="absolute -top-1 -right-1 w-3 h-3 bg-green-500 rounded-full border border-white"></div>
+                                                        </div>
+                                                    </template>
+                                                    
+                                                    <div class="relative">
+                                                        <input type="color" 
+                                                               x-model="effectParams.color3"
+                                                               @change="selectColor('color3', $el.value, 'custom')"
+                                                               class="w-10 h-10 rounded-lg cursor-pointer border-2 transition-all hover:scale-105"
+                                                               :class="{
+                                                                   'border-gray-600 dark:border-gray-300 shadow-lg': color3Type === 'custom',
+                                                                   'border-gray-300 dark:border-gray-600': color3Type !== 'custom'
+                                                               }"
+                                                               title="Custom Color">
+                                                        <div x-show="color3Type === 'custom'" 
+                                                             class="absolute -top-1 -right-1 w-3 h-3 bg-green-500 rounded-full border border-white pointer-events-none"></div>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
@@ -1066,7 +1380,6 @@
     </main>
 
     <script src="/js/vendor.min.js" defer></script>
-    <script src="/js/page-settings.min.js" defer></script>
 </body>
 
 </html>
