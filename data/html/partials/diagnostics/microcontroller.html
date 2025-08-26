@@ -1,4 +1,4 @@
-<div class="diag-section orange">
+<div class="diag-section orange" x-init="$store.diagnostics.triggerProgressAnimations()">
     <div class="diag-header">
         <h4 class="diag-title orange">
 <span x-html="window.renderSectionIcon ? window.renderSectionIcon('cpuChip') : '🖥️'"></span>
@@ -39,7 +39,7 @@
         <div class="diag-progress-bar">
             <div :class="getProgressBarClass($store.diagnostics.memoryUsage.flashUsagePercent)"
                 class="h-full rounded-full transition-all duration-1000 ease-out"
-                :style="progressReady ? `width: ${Math.min(Math.max($store.diagnostics.memoryUsage.flashUsagePercent, 0), 100)}%` : 'width: 0%'">
+                :style="$store.diagnostics.progressReady ? `width: ${Math.min(Math.max($store.diagnostics.memoryUsage.flashUsagePercent, 0), 100)}%` : 'width: 0%'">
             </div>
         </div>
 
@@ -50,7 +50,7 @@
         <div class="diag-progress-bar">
             <div :class="getProgressBarClass($store.diagnostics.memoryUsage.heapUsagePercent)"
                 class="h-full rounded-full transition-all duration-1000 ease-out"
-                :style="progressReady ? `width: ${Math.min(Math.max($store.diagnostics.memoryUsage.heapUsagePercent, 0), 100)}%` : 'width: 0%'">
+                :style="$store.diagnostics.progressReady ? `width: ${Math.min(Math.max($store.diagnostics.memoryUsage.heapUsagePercent, 0), 100)}%` : 'width: 0%'">
             </div>
         </div>
     </div>
