@@ -11,7 +11,8 @@
                     <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-4">
                         <span x-text="`Button ${buttonNum}`"></span>
                         <span class="text-sm font-normal text-gray-600 dark:text-gray-400">
-                            (GPIO <span x-text="$store.settings.config.buttons[`button${buttonNum}`]?.gpio || '-1'"></span>)
+                            (GPIO <span
+                                x-text="$store.settings.config.buttons[`button${buttonNum}`]?.gpio || '-1'"></span>)
                         </span>
                     </h3>
 
@@ -44,8 +45,8 @@
                             <label :for="`button${buttonNum}-short-mqtt`" class="form-label">
                                 Short Press MQTT Topic:
                             </label>
-                            <input :id="`button${buttonNum}-short-mqtt`" type="text"
-                                placeholder="Optional MQTT topic" class="input-standard"
+                            <input :id="`button${buttonNum}-short-mqtt`" type="text" placeholder="Optional MQTT topic"
+                                class="input-standard"
                                 x-model="$store.settings.config.buttons[`button${buttonNum}`].shortMqttTopic">
                         </div>
 
@@ -96,9 +97,12 @@
                             <label :for="`button${buttonNum}-long-mqtt`" class="form-label">
                                 Long Press MQTT Topic:
                             </label>
-                            <input :id="`button${buttonNum}-long-mqtt`" type="text"
-                                placeholder="Optional MQTT topic" class="input-standard"
+                            <input :id="`button${buttonNum}-long-mqtt`" type="text" placeholder="Optional MQTT topic"
+                                class="input-standard"
                                 x-model="$store.settings.config.buttons[`button${buttonNum}`].longMqttTopic">
+                            <p class="text-xs text-gray-500 dark:text-gray-400">
+                                Leave MQTT topic blank to print locally.
+                            </p>
                         </div>
 
                         <!-- Long Press LED Effect -->
@@ -175,4 +179,3 @@
         </div>
     </div>
 </div>
-
