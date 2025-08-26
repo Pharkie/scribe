@@ -6,7 +6,7 @@
         <p class="diag-config-warning green mb-3">🔑 Secrets are redacted</p>
         <div class="diag-json-wrapper">
             <pre class="diag-json-content-fullscreen"
-                x-html="highlightJSON(configFileFormatted)"></pre>
+                x-html="$store.diagnostics.highlightJSON($store.diagnostics.configFileFormatted)"></pre>
         </div>
     </div>
 </div>

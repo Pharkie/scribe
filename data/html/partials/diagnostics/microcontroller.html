@@ -5,49 +5,49 @@
     <div class="space-y-2">
         <div class="diag-row">
             <span class="diag-label">Chip Model:</span>
-            <span class="diag-value" x-text="microcontrollerInfo.chipModel"></span>
+            <span class="diag-value" x-text="$store.diagnostics.microcontrollerInfo.chipModel"></span>
         </div>
         <div class="diag-row">
             <span class="diag-label">CPU Frequency:</span>
-            <span class="diag-value" x-text="microcontrollerInfo.cpuFrequency"></span>
+            <span class="diag-value" x-text="$store.diagnostics.microcontrollerInfo.cpuFrequency"></span>
         </div>
         <div class="diag-row">
             <span class="diag-label">Flash Size:</span>
-            <span class="diag-value" x-text="microcontrollerInfo.flashSize"></span>
+            <span class="diag-value" x-text="$store.diagnostics.microcontrollerInfo.flashSize"></span>
         </div>
         <div class="diag-row">
             <span class="diag-label">Firmware Version:</span>
-            <span class="diag-value" x-text="microcontrollerInfo.firmwareVersion"></span>
+            <span class="diag-value" x-text="$store.diagnostics.microcontrollerInfo.firmwareVersion"></span>
         </div>
         <div class="diag-row">
             <span class="diag-label">Uptime:</span>
-            <span class="diag-value" x-text="microcontrollerInfo.uptime"></span>
+            <span class="diag-value" x-text="$store.diagnostics.microcontrollerInfo.uptime"></span>
         </div>
         <div class="diag-row">
             <span class="diag-label">Temperature:</span>
-            <span class="diag-value" x-text="microcontrollerInfo.temperature"></span>
+            <span class="diag-value" x-text="$store.diagnostics.microcontrollerInfo.temperature"></span>
         </div>
 
         <!-- Memory Usage -->
         <div class="diag-row">
             <span class="diag-label">Flash Usage:</span>
-            <span class="diag-value" x-text="memoryUsage.flashUsageText"></span>
+            <span class="diag-value" x-text="$store.diagnostics.memoryUsage.flashUsageText"></span>
         </div>
         <div class="diag-progress-bar">
-            <div :class="getProgressBarClass(memoryUsage.flashUsagePercent)"
+            <div :class="getProgressBarClass($store.diagnostics.memoryUsage.flashUsagePercent)"
                 class="h-full rounded-full transition-all duration-1000 ease-out"
-                :style="progressReady ? `width: ${Math.min(Math.max(memoryUsage.flashUsagePercent, 0), 100)}%` : 'width: 0%'">
+                :style="progressReady ? `width: ${Math.min(Math.max($store.diagnostics.memoryUsage.flashUsagePercent, 0), 100)}%` : 'width: 0%'">
             </div>
         </div>
 
         <div class="diag-row">
             <span class="diag-label">Heap Usage:</span>
-            <span class="diag-value" x-text="memoryUsage.heapUsageText"></span>
+            <span class="diag-value" x-text="$store.diagnostics.memoryUsage.heapUsageText"></span>
         </div>
         <div class="diag-progress-bar">
-            <div :class="getProgressBarClass(memoryUsage.heapUsagePercent)"
+            <div :class="getProgressBarClass($store.diagnostics.memoryUsage.heapUsagePercent)"
                 class="h-full rounded-full transition-all duration-1000 ease-out"
-                :style="progressReady ? `width: ${Math.min(Math.max(memoryUsage.heapUsagePercent, 0), 100)}%` : 'width: 0%'">
+                :style="progressReady ? `width: ${Math.min(Math.max($store.diagnostics.memoryUsage.heapUsagePercent, 0), 100)}%` : 'width: 0%'">
             </div>
         </div>
     </div>

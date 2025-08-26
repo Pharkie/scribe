@@ -15,44 +15,14 @@
     <script src="/js/vendor.min.js" defer></script>
     <script src="/js/app-common.min.js" defer></script>
     <script>
-        // Register all Alpine component functions upfront
+        // Register Alpine stores and components during initialization
         document.addEventListener('alpine:init', () => {
-            // Register all diagnostics partial component functions globally
-            window.microcontrollerPartial = function() {
-                return {
-                    get microcontrollerInfo() { return Alpine.store('diagnostics').microcontrollerInfo; },
-                    get memoryUsage() { return Alpine.store('diagnostics').memoryUsage; },
-                    get progressReady() { return Alpine.store('diagnostics').progressReady; },
-                    getProgressBarClass(percent) { return Alpine.store('diagnostics').getProgressBarClass(percent); }
-                }
-            };
-
-            window.loggingPartial = function() {
-                return {
-                    get loggingInfo() { return Alpine.store('diagnostics').loggingInfo; }
-                }
-            };
-
-            window.pagesEndpointsPartial = function() {
-                return {
-                    get sortedRoutes() { return Alpine.store('diagnostics').sortedRoutes; },
-                    get apiEndpoints() { return Alpine.store('diagnostics').apiEndpoints; }
-                }
-            };
-
-            window.configFilePartial = function() {
-                return {
-                    get configFileFormatted() { return Alpine.store('diagnostics').configFileFormatted; },
-                    highlightJSON(json) { return Alpine.store('diagnostics').highlightJSON(json); }
-                }
-            };
-
-            window.nvsStoragePartial = function() {
-                return {
-                    get nvsDataFormatted() { return Alpine.store('diagnostics').nvsDataFormatted; },
-                    highlightJSON(json) { return Alpine.store('diagnostics').highlightJSON(json); }
-                }
-            };
+            // Create and register diagnostics store immediately, initialize it once
+            const diagnosticsStore = initializeDiagnosticsStore();
+            Alpine.store('diagnostics', diagnosticsStore);
+            
+            // Make store available globally for body x-data
+            window.diagnosticsStoreInstance = diagnosticsStore;
 
             // Alpine.js store for loading diagnostics partials (clean version)
             Alpine.store('diagnosticsPartials', {
@@ -88,7 +58,7 @@
     </script>
 </head>
 
-<body class="page-body" x-data="initializeDiagnosticsStore()" x-init="init()">
+<body class="page-body" x-data="window.diagnosticsStoreInstance || {}" x-init="init()">
     <main class="page-main">
         <header class="page-header">
             <div class="header-spacer">

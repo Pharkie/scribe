@@ -1,4 +1,4 @@
-<div x-data="buttonsPartial()" class="settings-section">
+<div x-data="{}" x-show="$store.settings && !$store.settings.loading" class="settings-section">
     <div class="settings-card settings-card-teal">
         <h2 class="settings-card-header settings-card-header-teal">
             <span class="text-3xl">🎛️</span>
@@ -11,7 +11,7 @@
                     <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-4">
                         <span x-text="`Button ${buttonNum}`"></span>
                         <span class="text-sm font-normal text-gray-600 dark:text-gray-400">
-                            (GPIO <span x-text="config.buttons[`button${buttonNum}`]?.gpio || '-1'"></span>)
+                            (GPIO <span x-text="$store.settings.config.buttons[`button${buttonNum}`]?.gpio || '-1'"></span>)
                         </span>
                     </h3>
 
@@ -23,7 +23,7 @@
                                 Short Press Action:
                             </label>
                             <select :id="`button${buttonNum}-short`" class="input-standard"
-                                x-model="config.buttons[`button${buttonNum}`].shortAction">
+                                x-model="$store.settings.config.buttons[`button${buttonNum}`].shortAction">
                                 <option value="">None</option>
                                 <option value="JOKE">Joke</option>
                                 <option value="RIDDLE">Riddle</option>
@@ -46,7 +46,7 @@
                             </label>
                             <input :id="`button${buttonNum}-short-mqtt`" type="text"
                                 placeholder="Optional MQTT topic" class="input-standard"
-                                x-model="config.buttons[`button${buttonNum}`].shortMqttTopic">
+                                x-model="$store.settings.config.buttons[`button${buttonNum}`].shortMqttTopic">
                         </div>
 
                         <!-- Short Press LED Effect -->
@@ -55,7 +55,7 @@
                                 Short Press LED Effect:
                             </label>
                             <select :id="`button${buttonNum}-short-led`" class="input-standard"
-                                x-model="config.buttons[`button${buttonNum}`].shortLedEffect">
+                                x-model="$store.settings.config.buttons[`button${buttonNum}`].shortLedEffect">
                                 <option value="chase_single">Chase Single (Green)</option>
                                 <option value="chase">Chase (Multiple Colors)</option>
                                 <option value="rainbow">Rainbow</option>
@@ -75,7 +75,7 @@
                                 Long Press Action:
                             </label>
                             <select :id="`button${buttonNum}-long`" class="input-standard"
-                                x-model="config.buttons[`button${buttonNum}`].longAction">
+                                x-model="$store.settings.config.buttons[`button${buttonNum}`].longAction">
                                 <option value="">None</option>
                                 <option value="JOKE">Joke</option>
                                 <option value="RIDDLE">Riddle</option>
@@ -98,7 +98,7 @@
                             </label>
                             <input :id="`button${buttonNum}-long-mqtt`" type="text"
                                 placeholder="Optional MQTT topic" class="input-standard"
-                                x-model="config.buttons[`button${buttonNum}`].longMqttTopic">
+                                x-model="$store.settings.config.buttons[`button${buttonNum}`].longMqttTopic">
                         </div>
 
                         <!-- Long Press LED Effect -->
@@ -107,7 +107,7 @@
                                 Long Press LED Effect:
                             </label>
                             <select :id="`button${buttonNum}-long-led`" class="input-standard"
-                                x-model="config.buttons[`button${buttonNum}`].longLedEffect">
+                                x-model="$store.settings.config.buttons[`button${buttonNum}`].longLedEffect">
                                 <option value="chase_single">Chase Single (Green)</option>
                                 <option value="chase">Chase (Multiple Colors)</option>
                                 <option value="rainbow">Rainbow</option>
@@ -133,13 +133,13 @@
                             <span class="font-medium text-gray-700 dark:text-gray-300">Button
                                 Count:</span>
                             <span class="text-gray-800 dark:text-gray-200"
-                                x-text="config.buttons?.count || '-'"></span>
+                                x-text="$store.settings.config.buttons?.count || '-'"></span>
                         </div>
                         <div>
                             <span class="font-medium text-gray-700 dark:text-gray-300">Debounce
                                 Time:</span>
                             <span class="text-gray-800 dark:text-gray-200"
-                                x-text="(config.buttons?.debounce_time || '-') + (config.buttons?.debounce_time ? ' ms' : '')"></span>
+                                x-text="($store.settings.config.buttons?.debounce_time || '-') + ($store.settings.config.buttons?.debounce_time ? ' ms' : '')"></span>
                         </div>
                     </div>
                     <div class="space-y-2">
@@ -147,13 +147,13 @@
                             <span class="font-medium text-gray-700 dark:text-gray-300">Long Press
                                 Time:</span>
                             <span class="text-gray-800 dark:text-gray-200"
-                                x-text="(config.buttons?.long_press_time || '-') + (config.buttons?.long_press_time ? ' ms' : '')"></span>
+                                x-text="($store.settings.config.buttons?.long_press_time || '-') + ($store.settings.config.buttons?.long_press_time ? ' ms' : '')"></span>
                         </div>
                         <div>
                             <span class="font-medium text-gray-700 dark:text-gray-300">Active
                                 Low:</span>
                             <span class="text-gray-800 dark:text-gray-200"
-                                x-text="config.buttons?.active_low ? 'Yes' : (config.buttons?.active_low === false ? 'No' : '-')"></span>
+                                x-text="$store.settings.config.buttons?.active_low ? 'Yes' : ($store.settings.config.buttons?.active_low === false ? 'No' : '-')"></span>
                         </div>
                     </div>
                     <div class="space-y-2">
@@ -161,13 +161,13 @@
                             <span class="font-medium text-gray-700 dark:text-gray-300">Min
                                 Interval:</span>
                             <span class="text-gray-800 dark:text-gray-200"
-                                x-text="(config.buttons?.min_interval || '-') + (config.buttons?.min_interval ? ' ms' : '')"></span>
+                                x-text="($store.settings.config.buttons?.min_interval || '-') + ($store.settings.config.buttons?.min_interval ? ' ms' : '')"></span>
                         </div>
                         <div>
                             <span class="font-medium text-gray-700 dark:text-gray-300">Max Per
                                 Minute:</span>
                             <span class="text-gray-800 dark:text-gray-200"
-                                x-text="config.buttons?.max_per_minute || '-'"></span>
+                                x-text="$store.settings.config.buttons?.max_per_minute || '-'"></span>
                         </div>
                     </div>
                 </div>

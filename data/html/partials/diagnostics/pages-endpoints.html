@@ -7,7 +7,7 @@
         <div>
             <h5 class="font-medium text-gray-900 dark:text-gray-100 mb-2">Routes</h5>
             <div class="space-y-1">
-                <template x-for="route in sortedRoutes" :key="route.path">
+                <template x-for="route in $store.diagnostics.sortedRoutes" :key="route.path">
                     <div class="diag-row">
                         <!-- Route path - make HTML pages clickable -->
                         <span class="diag-label">
@@ -28,7 +28,7 @@
                         <span class="diag-value" x-text="route.description"></span>
                     </div>
                 </template>
-                <div x-show="sortedRoutes.length === 0" class="diag-row">
+                <div x-show="$store.diagnostics.sortedRoutes.length === 0" class="diag-row">
                     <span class="diag-label">Loading routes...</span>
                     <span class="diag-value">-</span>
                 </div>
@@ -39,7 +39,7 @@
         <div>
             <h5 class="font-medium text-gray-900 dark:text-gray-100 mb-3">API Endpoints</h5>
             <div class="space-y-3">
-                <template x-for="(endpoints, method) in apiEndpoints" :key="method">
+                <template x-for="(endpoints, method) in $store.diagnostics.apiEndpoints" :key="method">
                     <div class="border-l-2 border-teal-300 dark:border-teal-600 pl-3">
                         <h6 class="font-semibold text-sm text-teal-700 dark:text-teal-300 mb-2 uppercase tracking-wide"
                             x-text="`${method} (${endpoints.length})`"></h6>
@@ -54,7 +54,7 @@
                         </div>
                     </div>
                 </template>
-                <div x-show="Object.keys(apiEndpoints).length === 0" class="diag-row">
+                <div x-show="Object.keys($store.diagnostics.apiEndpoints).length === 0" class="diag-row">
                     <span class="diag-label">Loading API endpoints...</span>
                     <span class="diag-value">-</span>
                 </div>

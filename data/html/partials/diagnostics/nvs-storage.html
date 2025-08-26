@@ -10,7 +10,7 @@
         <p class="diag-config-warning cyan mb-3">🔑 Secrets are redacted</p>
         <div class="diag-json-wrapper">
             <pre class="diag-json-content-fullscreen"
-                x-html="highlightJSON(nvsDataFormatted)"></pre>
+                x-html="$store.diagnostics.highlightJSON($store.diagnostics.nvsDataFormatted)"></pre>
         </div>
     </div>
 </div>

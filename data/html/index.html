@@ -15,9 +15,20 @@
     <script src="/js/vendor.min.js" defer></script>
     <script src="/js/app-common.min.js" defer></script>
     <script src="https://cdn.jsdelivr.net/npm/@tsparticles/confetti@3.0.3/tsparticles.confetti.bundle.min.js"></script>
+    <script>
+        // Register Alpine stores during initialization
+        document.addEventListener('alpine:init', () => {
+            // Create and register index store immediately, initialize it once
+            const indexStore = initializeIndexStore();
+            Alpine.store('index', indexStore);
+            
+            // Make store available globally for body x-data and initialize it
+            window.indexStoreInstance = indexStore;
+        });
+    </script>
 </head>
 
-<body class="page-body" x-data="initializeIndexStore()" x-init="init()">
+<body class="page-body" x-data="window.indexStoreInstance || {}" x-init="init()">
     <main class="page-main">
         <!-- Header with title and dark mode toggle -->
         <header class="page-header">
@@ -54,6 +65,7 @@
                 </button>
             </div>
         </header>
+
 
         <!-- Error State -->
         <div x-show="error" x-transition.opacity.duration.300ms class="text-center text-red-600 dark:text-red-400 mb-6">

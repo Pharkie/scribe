@@ -1,4 +1,4 @@
-<div x-data="mqttPartial()" class="settings-section">
+<div x-data="{}" x-show="$store.settings && !$store.settings.loading" class="settings-section">
     <div class="settings-card settings-card-yellow">
         <h2 class="settings-card-header settings-card-header-yellow">
             <span class="text-3xl">📡</span>
@@ -9,7 +9,7 @@
         <div class="space-y-2">
             <label for="mqtt-server" class="form-label">MQTT Server:</label>
             <input id="mqtt-server" type="text" placeholder="Enter MQTT broker address"
-                class="input-standard" x-model="config.mqtt.server">
+                class="input-standard" x-model="$store.settings.config.mqtt.server">
         </div>
 
         <!-- Username, Password, Port - Three columns on desktop -->
@@ -17,17 +17,18 @@
             <div class="space-y-2">
                 <label for="mqtt-username" class="form-label">MQTT Username:</label>
                 <input id="mqtt-username" type="text" placeholder="Optional MQTT username"
-                    class="input-standard" x-model="config.mqtt.username">
+                    class="input-standard" x-model="$store.settings.config.mqtt.username">
             </div>
             <div class="space-y-2">
                 <label for="mqtt-password" class="form-label">MQTT Password:</label>
                 <input type="password" id="mqtt-password" placeholder="Optional MQTT password"
-                    class="input-standard" x-model="config.mqtt.password">
+                    class="input-standard" x-model="$store.settings.$store.settings.config.mqtt.password"
+                    @input="$store.settings.trackMqttPasswordChange($event.target.value)">
             </div>
             <div class="space-y-2">
                 <label for="mqtt-port" class="form-label">MQTT Port:</label>
                 <input type="number" id="mqtt-port" min="1" max="65535" class="input-standard"
-                    x-model.number="config.mqtt.port">
+                    x-model.number="$store.settings.config.mqtt.port">
             </div>
         </div>
 
@@ -42,12 +43,12 @@
                     <div class="text-sm">
                         <span class="font-medium text-gray-700 dark:text-gray-300">Status:</span>
                         <span class="text-gray-800 dark:text-gray-200"
-                            x-text="config.mqtt?.connected ? 'Connected' : 'Disconnected'"></span>
+                            x-text="$store.settings.config.mqtt?.connected ? 'Connected' : 'Disconnected'"></span>
                     </div>
                     <div class="text-sm">
                         <span class="font-medium text-gray-700 dark:text-gray-300">Topic:</span>
                         <span class="text-gray-800 dark:text-gray-200"
-                            x-text="config.device?.mqtt_topic || '-'"></span>
+                            x-text="$store.settings.config.device?.mqtt_topic || '-'"></span>
                     </div>
                 </div>
             </div>

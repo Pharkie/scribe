@@ -95,7 +95,8 @@
                 <div class="space-y-2">
                     <label for="wifi-password" class="form-label">WiFi Password:</label>
                     <input type="password" id="wifi-password" class="input-standard"
-                        x-model="$store.settings.config.device.wifi.password">
+                        x-model="$store.settings.config.device.wifi.password"
+                        @input="$store.settings.trackWifiPasswordChange($event.target.value)">
                 </div>
 
                 <!-- Connection Timeout -->

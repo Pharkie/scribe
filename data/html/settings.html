@@ -16,7 +16,7 @@
     <script src="/js/app-common.min.js" defer></script>
 </head>
 
-<body class="page-body" x-data="initializeSettingsStore()" x-init="init()">
+<body class="page-body" x-data="window.settingsStoreInstance || {}" x-init="init()">
     <main class="page-main">
         <!-- Header with title and back button -->
         <header class="page-header">
@@ -42,6 +42,7 @@
             <!-- Right spacer -->
             <div class="header-spacer"></div>
         </header>
+
 
         <!-- Error State -->
         <div x-show="error" class="settings-card bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800"
@@ -119,9 +120,15 @@
     </main>
     <script src="/js/vendor.min.js" defer></script>
     <script>
-        // Register all Alpine component functions upfront
+        // Register Alpine stores and components during initialization
         document.addEventListener('alpine:init', () => {
-            // Register all partial component functions globally
+            // Create and register settings store immediately, initialize it once
+            const settingsStore = initializeSettingsStore();
+            Alpine.store('settings', settingsStore);
+            
+            // Make store available globally for body x-data
+            window.settingsStoreInstance = settingsStore;
+            // All partials now use direct $store.settings access - no proxy functions needed
 
             window.mqttPartial = function() {
                 return {
@@ -161,117 +168,6 @@
             };
 
 
-            window.ledsPartial = function() {
-                return {
-                    selectedEffect: 'chase_single',
-                    effectParams: {
-                        speed: 50,
-                        intensity: 75,
-                        cycles: 3,
-                        custom1: 50,
-                        custom2: 50,
-                        custom3: 50,
-                        colors: ['#ff0000', '#00ff00', '#0000ff', '#ffff00', '#ff00ff', '#00ffff']
-                    },
-                    testingEffect: false,
-                    
-                    get config() { return Alpine.store('settings').config; },
-                    
-                    initEffectParams() {
-                        this.effectParams = {
-                            speed: 50, intensity: 75, cycles: 3,
-                            custom1: 50, custom2: 50, custom3: 50,
-                            colors: ['#ff0000', '#00ff00', '#0000ff', '#ffff00', '#ff00ff', '#00ffff']
-                        };
-                    },
-                    
-                    getEffectDescription() {
-                        const descriptions = {
-                            chase_single: 'A single color LED chases around the strip',
-                            rainbow: 'A rainbow wave flows across the strip',
-                            twinkle: 'Random LEDs twinkle like stars',
-                            chase_multi: 'Multiple colors chase each other around the strip',
-                            pulse: 'The entire strip pulses with color',
-                            matrix: 'Random green falling dots like the Matrix'
-                        };
-                        return descriptions[this.selectedEffect] || 'Select an effect to see description';
-                    },
-                    
-                    getCustomSlider1Label() {
-                        const labels = { chase_single: 'Chase Length', rainbow: 'Wave Length', twinkle: 'Sparkle Density', chase_multi: 'Gap Size', pulse: 'Fade Speed', matrix: 'Drop Rate' };
-                        return labels[this.selectedEffect] || '';
-                    },
-                    
-                    getCustomSlider2Label() {
-                        const labels = { rainbow: 'Shift Speed', twinkle: 'Fade Time', chase_multi: 'Color Count', pulse: 'Peak Hold', matrix: 'Trail Length' };
-                        return labels[this.selectedEffect] || '';
-                    },
-                    
-                    getCustomSlider3Label() {
-                        const labels = { twinkle: 'Random Factor', matrix: 'Green Variation' };
-                        return labels[this.selectedEffect] || '';
-                    },
-                    
-                    getCustomSlider1Range() {
-                        const ranges = { chase_single: { min: 1, max: 20, step: 1 }, rainbow: { min: 5, max: 50, step: 1 }, twinkle: { min: 1, max: 100, step: 1 }, chase_multi: { min: 1, max: 10, step: 1 }, pulse: { min: 1, max: 100, step: 1 }, matrix: { min: 1, max: 100, step: 1 } };
-                        return ranges[this.selectedEffect] || { min: 1, max: 100, step: 1 };
-                    },
-                    
-                    getCustomSlider2Range() {
-                        const ranges = { rainbow: { min: 1, max: 50, step: 1 }, twinkle: { min: 10, max: 1000, step: 10 }, chase_multi: { min: 2, max: 6, step: 1 }, pulse: { min: 0, max: 100, step: 1 }, matrix: { min: 5, max: 50, step: 1 } };
-                        return ranges[this.selectedEffect] || { min: 1, max: 100, step: 1 };
-                    },
-                    
-                    getCustomSlider3Range() {
-                        const ranges = { twinkle: { min: 0, max: 100, step: 1 }, matrix: { min: 0, max: 100, step: 1 } };
-                        return ranges[this.selectedEffect] || { min: 1, max: 100, step: 1 };
-                    },
-                    
-                    showColorControls() {
-                        return ['chase_single', 'chase_multi', 'pulse'].includes(this.selectedEffect);
-                    },
-                    
-                    getColorNames() {
-                        const names = { chase_single: ['Primary'], chase_multi: ['Color 1', 'Color 2', 'Color 3', 'Color 4'], pulse: ['Primary', 'Secondary'] };
-                        return names[this.selectedEffect] || [];
-                    },
-                    
-                    async testEffect() {
-                        this.testingEffect = true;
-                        try {
-                            const payload = {
-                                effect: this.selectedEffect,
-                                speed: parseInt(this.effectParams.speed),
-                                intensity: parseInt(this.effectParams.intensity),
-                                cycles: parseInt(this.effectParams.cycles),
-                                custom1: parseInt(this.effectParams.custom1),
-                                custom2: parseInt(this.effectParams.custom2),
-                                custom3: parseInt(this.effectParams.custom3),
-                                colors: this.effectParams.colors
-                            };
-                            const response = await fetch('/api/led-effect', {
-                                method: 'POST',
-                                headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify(payload)
-                            });
-                            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-                        } catch (error) {
-                            console.error('Failed to test LED effect:', error);
-                        } finally {
-                            this.testingEffect = false;
-                        }
-                    },
-                    
-                    async stopEffect() {
-                        try {
-                            const response = await fetch('/api/leds-off', { method: 'POST' });
-                            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-                        } catch (error) {
-                            console.error('Failed to stop LED effect:', error);
-                        }
-                    }
-                }
-            };
 
             // Alpine.js store for loading partials (clean version)
             Alpine.store('partials', {
