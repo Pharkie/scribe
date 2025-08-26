@@ -10,14 +10,9 @@
         <div class="space-y-6">
             <!-- Hardware Configuration -->
             <div class="border border-gray-200 dark:border-gray-600 rounded-xl p-4">
-                <h3 class="text-lg font-medium text-gray-800 dark:text-gray-100 mb-4">Hardware Configuration</h3>
+                <h3 class="text-lg font-medium text-gray-800 dark:text-gray-100 mb-4"
+                    x-text="$store.settings.config.leds.pin === -1 ? 'Hardware Configuration (Not connected)' : `Hardware Configuration (GPIO ${$store.settings.config.leds.pin || 'Unknown'})`"></h3>
                 <div class="space-y-4">
-                    <div>
-                        <span class="text-sm text-gray-600 dark:text-gray-400">LEDs on </span>
-                        <span class="font-mono font-medium text-gray-800 dark:text-gray-200"
-                              x-text="$store.settings.config.leds.pin === -1 ? 'Not connected' : `GPIO ${$store.settings.config.leds.pin || 'Unknown'}`"></span>
-                        <span class="text-xs text-gray-500 dark:text-gray-400"> (Configure in Settings > Device)</span>
-                    </div>
                     <div class="space-y-2">
                         <label for="led-count"
                             class="block text-sm font-medium text-gray-700 dark:text-gray-300">LED
@@ -85,26 +80,22 @@
                         </select>
                     </div>
 
-                    <!-- Effect Description -->
-                    <div class="p-3 bg-gray-50 dark:bg-gray-700 rounded-lg mb-4">
-                        <p class="text-sm text-gray-600 dark:text-gray-300"
-                            x-text="$store.settings.getEffectDescription()">
-                        </p>
-                    </div>
-
                     <!-- Generic Parameters -->
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                         <!-- Speed -->
                         <div class="space-y-2">
                             <label for="led-speed"
                                 class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                Speed (1-100)
+                                Speed (10-100)
                             </label>
-                            <input type="range" id="led-speed" min="1" max="100" step="1"
+                            <input type="range" id="led-speed" min="10" max="100" step="10"
                                 class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
                                 x-model="$store.settings.effectParams.speed">
                             <div class="text-xs text-gray-500 text-center"
                                 x-text="$store.settings.effectParams.speed">
+                            </div>
+                            <div class="text-xs text-gray-600 dark:text-gray-400 text-center mt-1"
+                                x-text="$store.settings.getSpeedDescription()">
                             </div>
                         </div>
 
@@ -112,13 +103,16 @@
                         <div class="space-y-2">
                             <label for="led-intensity"
                                 class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                Intensity (1-100)
+                                Intensity (10-100)
                             </label>
-                            <input type="range" id="led-intensity" min="1" max="100" step="1"
+                            <input type="range" id="led-intensity" min="10" max="100" step="10"
                                 class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
                                 x-model="$store.settings.effectParams.intensity">
                             <div class="text-xs text-gray-500 text-center"
                                 x-text="$store.settings.effectParams.intensity">
+                            </div>
+                            <div class="text-xs text-gray-600 dark:text-gray-400 text-center mt-1"
+                                x-text="$store.settings.getIntensityDescription()">
                             </div>
                         </div>
 
@@ -126,13 +120,16 @@
                         <div class="space-y-2">
                             <label for="led-cycles"
                                 class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                Number of Cycles (1-10)
+                                Number of Cycles (1-6)
                             </label>
-                            <input type="range" id="led-cycles" min="1" max="10" step="1"
+                            <input type="range" id="led-cycles" min="1" max="6" step="1"
                                 class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
                                 x-model.number="$store.settings.effectParams.cycles">
                             <div class="text-xs text-gray-500 text-center"
                                 x-text="$store.settings.effectParams.cycles">
+                            </div>
+                            <div class="text-xs text-gray-600 dark:text-gray-400 text-center mt-1"
+                                x-text="$store.settings.getCyclesDescription()">
                             </div>
                         </div>
                     </div>
@@ -191,35 +188,62 @@
                     <!-- Color Controls -->
                     <div x-show="$store.settings.showColorControls()">
                         <h4 class="text-md font-medium text-gray-700 dark:text-gray-300 mb-3">Colors</h4>
-                        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3">
-                            <template x-for="(colorName, index) in $store.settings.getColorNames()" :key="index">
-                                <div class="space-y-2">
-                                    <label :for="`led-color-${index}`"
-                                        class="block text-xs font-medium text-gray-600 dark:text-gray-400 text-center"
-                                        x-text="colorName">
-                                    </label>
-                                    <input type="color" :id="`led-color-${index}`"
-                                        class="w-full h-8 border border-gray-300 rounded cursor-pointer"
-                                        x-model="$store.settings.effectParams.colors[index]">
+                        <template x-for="(colorName, colorIndex) in $store.settings.getColorNames()" :key="colorIndex">
+                            <div class="space-y-3 mb-4">
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300" 
+                                       x-text="colorName"></label>
+                                
+                                <!-- Color Swatch Grid: 6 presets + 1 custom -->
+                                <div class="grid grid-cols-7 gap-2">
+                                    <!-- 6 Preset Color Swatches -->
+                                    <template x-for="(preset, presetIndex) in $store.settings.colorPresets" :key="presetIndex">
+                                        <button type="button" 
+                                                class="w-10 h-10 rounded-lg border-2 transition-all duration-200 hover:scale-110"
+                                                :style="`background-color: ${preset}`"
+                                                :class="$store.settings.effectParams.colors[colorIndex] === preset ? 'border-gray-900 dark:border-gray-100 shadow-lg scale-110' : 'border-gray-300 dark:border-gray-600 hover:border-gray-400'"
+                                                @click="$store.settings.selectColor(colorIndex, preset, 'preset')"
+                                                :title="preset">
+                                        </button>
+                                    </template>
+                                    
+                                    <!-- Custom Color Picker -->
+                                    <div class="text-center">
+                                        <input type="color" 
+                                               :id="`led-color-custom-${colorIndex}`"
+                                               class="w-10 h-10 rounded-lg border-2 cursor-pointer transition-all duration-200 hover:scale-110 mb-1"
+                                               :class="$store.settings.colorTypes[colorIndex] === 'custom' ? 'border-gray-900 dark:border-gray-100 shadow-lg scale-110' : 'border-gray-300 dark:border-gray-600 hover:border-gray-400'"
+                                               :value="$store.settings.effectParams.colors[colorIndex]"
+                                               @input="$store.settings.selectColor(colorIndex, $event.target.value, 'custom')"
+                                               title="Custom color">
+                                        <div class="text-xs text-gray-500 dark:text-gray-400 font-medium">Custom</div>
+                                    </div>
                                 </div>
-                            </template>
-                        </div>
+                            </div>
+                        </template>
                     </div>
 
                     <!-- Control Buttons -->
                     <div class="flex space-x-3 pt-4">
-                        <button type="button" @click="$store.settings.testLedEffect()"
+                        <button type="button" @click="$store.settings.testLedEffect($store.settings.selectedEffect)"
                             :disabled="$store.settings.testingEffect"
                             class="px-6 py-2 bg-purple-600 hover:bg-purple-700 disabled:bg-purple-400 text-white rounded-xl font-medium flex items-center space-x-2 transition-colors">
-                            <span x-show="!$store.settings.testingEffect">Test Effect</span>
+                            <span x-show="!$store.settings.testingEffect" class="flex items-center space-x-2">
+                                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M8 5v14l11-7z"/>
+                                </svg>
+                                <span>Test Effect</span>
+                            </span>
                             <span x-show="$store.settings.testingEffect" class="flex items-center space-x-2">
                                 <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
                                 <span>Testing...</span>
                             </span>
                         </button>
                         <button type="button" @click="$store.settings.turnOffLeds()"
-                            class="px-6 py-2 bg-red-600 hover:bg-red-700 text-white rounded-xl font-medium transition-colors">
-                            Stop
+                            class="px-6 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-xl font-medium flex items-center space-x-2 transition-colors">
+                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                                <rect x="6" y="6" width="12" height="12"/>
+                            </svg>
+                            <span>Stop</span>
                         </button>
                     </div>
                 </div>
