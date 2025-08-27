@@ -208,7 +208,7 @@
                 </div>
 
                 <!-- LED Strip GPIO -->
-                <div class="space-y-2">
+                <div class="space-y-2" x-show="$store.settings.config?.leds?.enabled">
                     <label for="led-strip-pin" class="form-label">LED Strip GPIO:</label>
                     <select id="led-strip-pin" class="input-standard" 
                             x-model="$store.settings.config.leds.pin"

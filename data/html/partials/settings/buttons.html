@@ -51,7 +51,7 @@
                         </div>
 
                         <!-- Short Press LED Effect -->
-                        <div class="space-y-2">
+                        <div class="space-y-2" x-show="$store.settings.config?.leds?.enabled">
                             <label :for="`button${buttonNum}-short-led`" class="form-label">
                                 Short Press LED Effect:
                             </label>
@@ -106,7 +106,7 @@
                         </div>
 
                         <!-- Long Press LED Effect -->
-                        <div class="space-y-2">
+                        <div class="space-y-2" x-show="$store.settings.config?.leds?.enabled">
                             <label :for="`button${buttonNum}-long-led`" class="form-label">
                                 Long Press LED Effect:
                             </label>
