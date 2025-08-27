@@ -47,6 +47,14 @@
         </header>
 
 
+        <!-- Loading State -->
+        <div x-show="loading" class="settings-card text-center" x-transition>
+            <div class="flex flex-col items-center py-8">
+                <div class="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mb-4"></div>
+                <p class="text-gray-600 dark:text-gray-400">Loading settings...</p>
+            </div>
+        </div>
+
         <!-- Error State -->
         <div x-show="error" class="settings-card bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800"
             x-transition>
@@ -58,6 +66,9 @@
                 <p class="text-red-600 dark:text-red-300 mb-4" x-text="error"></p>
                 <p class="text-sm text-red-500 dark:text-red-400">Please check the system and try refreshing the page.
                 </p>
+                <button @click="window.location.reload()" class="mt-4 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors">
+                    Retry
+                </button>
             </div>
         </div>
 
