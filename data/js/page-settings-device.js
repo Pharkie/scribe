@@ -331,7 +331,7 @@
           console.log("Saving device configuration:", cleanConfig);
           const message = await window.SettingsAPI.saveConfiguration(cleanConfig);
           console.log("Alpine Device Store: Configuration saved successfully");
-          window.location.href = "/settings.html?saved=device";
+          window.location.href = "/settings.html";
         } catch (error) {
           console.error("Alpine Device Store: Failed to save configuration:", error);
           this.showErrorMessage("Failed to save device settings: " + error.message);

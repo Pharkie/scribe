@@ -496,7 +496,7 @@
       },
       // Navigation
       goToSettings() {
-        window.location.href = "/settings/device.html";
+        window.location.href = "/settings.html";
       },
       // === Memo Functions ===
       async loadMemosFromAPI() {

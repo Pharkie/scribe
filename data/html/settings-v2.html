@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings - Scribe Evolution</title>
+    
+    <!-- CSS Assets -->
+    <link rel="stylesheet" href="/css/settings.min.css">
+    
+    <!-- Common JS -->
+    <script src="/js/app-common.min.js"></script>
+    
+    <!-- Alpine.js (load last) -->
+    <script defer src="/js/alpine.min.js"></script>
+</head>
+<body class="bg-gray-900 text-white min-h-screen">
+    
+    <!-- Navigation Header -->
+    <div class="bg-gray-800 border-b border-gray-700 mb-6">
+        <div class="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
+            <div class="flex items-center space-x-4">
+                <a href="/" class="flex items-center space-x-2 text-blue-400 hover:text-blue-300 transition-colors">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                    </svg>
+                    <span>Back to Home</span>
+                </a>
+                <span class="text-gray-500">|</span>
+                <h1 class="text-xl font-semibold text-white">Settings</h1>
+            </div>
+            <a href="/" class="text-gray-400 hover:text-white transition-colors">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
+                </svg>
+            </a>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="max-w-4xl mx-auto px-4 pb-8">
+        
+        <!-- Settings Overview -->
+        <div class="mb-6">
+            <h2 class="text-2xl font-bold text-blue-400 mb-2">Configuration Settings</h2>
+            <p class="text-gray-400">Choose a settings section to configure</p>
+        </div>
+
+        <!-- Settings Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            
+            <!-- Device Settings -->
+            <a href="/settings/device.html" class="bg-gray-800 rounded-lg p-6 hover:bg-gray-700 transition-colors group">
+                <div class="flex items-center space-x-4">
+                    <div class="flex-shrink-0">
+                        <svg class="w-8 h-8 text-blue-400 group-hover:text-blue-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                        </svg>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-semibold text-white group-hover:text-blue-300">Device</h3>
+                        <p class="text-sm text-gray-400">Owner, timezone, hardware GPIO pins</p>
+                    </div>
+                </div>
+            </a>
+
+            <!-- WiFi Settings -->
+            <div class="bg-gray-800 rounded-lg p-6 opacity-50 cursor-not-allowed">
+                <div class="flex items-center space-x-4">
+                    <div class="flex-shrink-0">
+                        <svg class="w-8 h-8 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.111 16.404a5.5 5.5 0 017.778 0M12 20h.01m-7.08-7.071c3.904-3.905 10.236-3.905 14.141 0M1.394 9.393c5.857-5.857 15.355-5.857 21.213 0"></path>
+                        </svg>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-semibold text-gray-500">WiFi</h3>
+                        <p class="text-sm text-gray-500">Network configuration (coming soon)</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- MQTT Settings -->
+            <div class="bg-gray-800 rounded-lg p-6 opacity-50 cursor-not-allowed">
+                <div class="flex items-center space-x-4">
+                    <div class="flex-shrink-0">
+                        <svg class="w-8 h-8 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
+                        </svg>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-semibold text-gray-500">MQTT</h3>
+                        <p class="text-sm text-gray-500">Remote messaging (coming soon)</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- LED Settings -->
+            <div class="bg-gray-800 rounded-lg p-6 opacity-50 cursor-not-allowed">
+                <div class="flex items-center space-x-4">
+                    <div class="flex-shrink-0">
+                        <svg class="w-8 h-8 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
+                        </svg>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-semibold text-gray-500">LEDs</h3>
+                        <p class="text-sm text-gray-500">Light effects and colors (coming soon)</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Memos Settings -->
+            <div class="bg-gray-800 rounded-lg p-6 opacity-50 cursor-not-allowed">
+                <div class="flex items-center space-x-4">
+                    <div class="flex-shrink-0">
+                        <svg class="w-8 h-8 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                        </svg>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-semibold text-gray-500">Memos</h3>
+                        <p class="text-sm text-gray-500">Saved content management (coming soon)</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Unbidden Ink Settings -->
+            <div class="bg-gray-800 rounded-lg p-6 opacity-50 cursor-not-allowed">
+                <div class="flex items-center space-x-4">
+                    <div class="flex-shrink-0">
+                        <svg class="w-8 h-8 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                        </svg>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-semibold text-gray-500">Unbidden Ink</h3>
+                        <p class="text-sm text-gray-500">AI content generation (coming soon)</p>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- System Actions -->
+        <div class="mt-8">
+            <h3 class="text-lg font-semibold text-gray-300 mb-4">System Actions</h3>
+            <div class="flex flex-wrap gap-4">
+                <button class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors opacity-50 cursor-not-allowed">
+                    Restart Device
+                </button>
+                <button class="px-4 py-2 bg-yellow-600 text-white rounded-md hover:bg-yellow-700 transition-colors opacity-50 cursor-not-allowed">
+                    Factory Reset
+                </button>
+                <button class="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition-colors opacity-50 cursor-not-allowed">
+                    Clear NVS Storage
+                </button>
+            </div>
+            <p class="text-xs text-gray-500 mt-2">System actions coming soon</p>
+        </div>
+
+    </div>
+
+</body>
+</html>
