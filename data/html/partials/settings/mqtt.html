@@ -80,27 +80,6 @@
             </div>
         </div>
 
-        <!-- Current MQTT Status (Read-only) -->
-        <div class="status-info-box">
-            <div class="status-info-header">
-                <span class="text-2xl mr-2">📊</span>
-                <span>Current MQTT Status</span>
-            </div>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div class="space-y-2">
-                    <div class="text-sm">
-                        <span class="font-medium text-gray-700 dark:text-gray-300">Status:</span>
-                        <span class="text-gray-800 dark:text-gray-200"
-                            x-text="$store.settings.config.mqtt?.connected ? 'Connected' : 'Disconnected'"></span>
-                    </div>
-                    <div class="text-sm">
-                        <span class="font-medium text-gray-700 dark:text-gray-300">Topic:</span>
-                        <span class="text-gray-800 dark:text-gray-200"
-                            x-text="$store.settings.config.device?.mqtt_topic || '-'"></span>
-                    </div>
-                </div>
-            </div>
-        </div>
         
         </div> <!-- End MQTT Configuration -->
     </div>
