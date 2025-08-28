@@ -35,14 +35,6 @@
             </div>
         </header>
 
-        <!-- Loading State -->
-        <div x-show="loading" class="setup-card text-center" x-transition>
-            <div class="flex flex-col items-center py-8">
-                <div class="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mb-4"></div>
-                <p class="text-gray-600 dark:text-gray-400">Loading configuration...</p>
-            </div>
-        </div>
-
         <!-- Error State -->
         <div x-show="error" class="setup-card bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800" x-transition>
             <div class="text-center">
@@ -59,7 +51,20 @@
 
         <!-- Setup Form -->
         <template x-if="!loading && !error">
-            <form @submit.prevent="saveAndRestart" class="space-y-6" x-transition.opacity.duration.300ms>
+            <div x-data="{ 
+                ready: false, 
+                init() {
+                    this.$nextTick(() => {
+                        // Use requestAnimationFrame for smooth animation timing
+                        requestAnimationFrame(() => {
+                            this.ready = true;
+                        });
+                    });
+                }
+            }" x-show="ready" x-transition:enter="transition ease-out duration-600 transform" 
+                x-transition:enter-start="translate-y-4 opacity-0" 
+                x-transition:enter-end="translate-y-0 opacity-100">
+                <form @submit.prevent="saveAndRestart" class="space-y-6">
                 
                 <!-- Device Configuration Card -->
                 <div class="setup-card">
@@ -208,7 +213,8 @@
                         </div>
                     </div>
                 </div>
-            </form>
+                </form>
+            </div>
         </template>
 
         <!-- Full-screen restart overlay -->
