@@ -5,6 +5,25 @@
             <span>MQTT</span>
         </h2>
 
+        <!-- Enable/Disable Toggle -->
+        <div class="flex items-center justify-between p-4 bg-yellow-50 dark:bg-yellow-900/20 rounded-xl">
+            <div class="flex items-center space-x-3">
+                <div>
+                    <p class="text-sm text-gray-600 dark:text-gray-400">
+                        Enable remote printing and device discovery
+                    </p>
+                </div>
+            </div>
+            <label class="relative inline-flex items-center cursor-pointer">
+                <input type="checkbox" class="sr-only peer" x-model="$store.settings.config.mqtt.enabled">
+                <div class="w-14 h-7 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-yellow-300 dark:peer-focus:ring-yellow-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[4px] after:bg-white dark:after:bg-gray-200 after:border-gray-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all dark:border-gray-600 peer-checked:bg-yellow-600 dark:peer-checked:bg-yellow-500">
+                </div>
+            </label>
+        </div>
+
+        <!-- MQTT Configuration (hidden when disabled) -->
+        <div x-show="$store.settings.config.mqtt.enabled" x-transition class="space-y-6">
+            
         <!-- MQTT Server - Full width row -->
         <div class="space-y-2">
             <label for="mqtt-server" class="form-label">MQTT Server:</label>
@@ -32,6 +51,35 @@
             </div>
         </div>
 
+        <!-- Test Connection Button -->
+        <div class="flex justify-center">
+            <button type="button" 
+                    class="btn-secondary"
+                    :disabled="$store.settings.mqttTesting || !$store.settings.config.mqtt.server || !$store.settings.config.mqtt.port"
+                    @click="$store.settings.testMQTTConnection()"
+                    x-text="$store.settings.mqttTesting ? 'Testing...' : 'Test Connection'">
+                Test Connection
+            </button>
+        </div>
+
+        <!-- Test Results -->
+        <div x-show="$store.settings.mqttTestResult" x-transition class="mt-4">
+            <div class="p-4 rounded-lg"
+                 :class="$store.settings.mqttTestResult?.success ? 'bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800' : 'bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800'">
+                <div class="flex items-start space-x-3">
+                    <span class="text-xl" x-text="$store.settings.mqttTestResult?.success ? '✅' : '❌'"></span>
+                    <div>
+                        <h4 class="font-medium" 
+                            :class="$store.settings.mqttTestResult?.success ? 'text-green-800 dark:text-green-200' : 'text-red-800 dark:text-red-200'"
+                            x-text="$store.settings.mqttTestResult?.success ? 'Connection Successful' : 'Connection Failed'"></h4>
+                        <p class="text-sm mt-1" 
+                           :class="$store.settings.mqttTestResult?.success ? 'text-green-600 dark:text-green-300' : 'text-red-600 dark:text-red-300'"
+                           x-text="$store.settings.mqttTestResult?.message"></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- Current MQTT Status (Read-only) -->
         <div class="status-info-box">
             <div class="status-info-header">
@@ -53,6 +101,8 @@
                 </div>
             </div>
         </div>
+        
+        </div> <!-- End MQTT Configuration -->
     </div>
 </div>
 
