@@ -116,71 +116,137 @@
                         Hardware Configuration
                     </h2>
                     
-                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                        <!-- Printer TX Pin -->
-                        <div>
-                            <label class="block text-sm font-medium text-gray-300 mb-2">Printer TX Pin</label>
-                            <select 
-                                x-model="config.device.printerTxPin"
-                                class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                required
-                            >
-                                <option value="">Select GPIO pin...</option>
-                                <template x-for="(option, index) in printerGpioOptions" :key="'printer-' + index">
-                                    <option 
-                                        :value="option.pin"
-                                        :disabled="!option.available"
-                                        x-text="`GPIO ${option.pin} - ${option.description}${!option.available ? ' (Unsafe/In Use)' : ''}`"
-                                    ></option>
-                                </template>
-                            </select>
-                            <p class="text-xs text-gray-400 mt-1">GPIO pin for thermal printer communication</p>
-                        </div>
-
-                        <!-- LED Strip Pin -->
-                        <div>
-                            <label class="block text-sm font-medium text-gray-300 mb-2">LED Strip Pin</label>
-                            <select 
-                                x-model="config.leds.pin"
-                                class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                            >
-                                <option value="-1">Not connected</option>
-                                <template x-for="(option, index) in allGpioOptions" :key="'led-' + index">
-                                    <option 
-                                        :value="option.pin"
-                                        :disabled="!option.available && option.pin !== -1"
-                                        x-text="`GPIO ${option.pin} - ${option.description}${!option.available && option.pin !== -1 ? ' (Unsafe/In Use)' : ''}`"
-                                    ></option>
-                                </template>
-                            </select>
-                            <p class="text-xs text-gray-400 mt-1">GPIO pin for LED strip control (optional)</p>
-                        </div>
-                    </div>
-
-                    <!-- Button GPIO Pins -->
-                    <div class="mt-6">
-                        <h3 class="text-md font-medium text-gray-300 mb-4">Button GPIO Pins</h3>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <template x-for="i in [1, 2, 3, 4]" :key="i">
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-300 mb-2" x-text="`Button ${i} GPIO`"></label>
-                                    <select 
-                                        x-model="config.buttons[`button${i}`].gpio"
-                                        class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                    >
-                                        <option value="-1">Not connected</option>
-                                        <template x-for="(option, index) in allGpioOptions" :key="'button-' + index">
-                                            <option 
-                                                :value="option.pin"
-                                                :disabled="!option.available && option.pin !== -1"
-                                                x-text="`GPIO ${option.pin} - ${option.description}${!option.available && option.pin !== -1 ? ' (Unsafe/In Use)' : ''}`"
-                                            ></option>
+                    <!-- GPIO Assignment Matrix -->
+                    <div class="space-y-6">
+                        <h3 class="text-lg font-medium text-gray-300">GPIO Pin Assignment</h3>
+                        
+                        <!-- Assignment Grid -->
+                        <div class="overflow-x-auto">
+                            <table class="w-full border border-gray-600">
+                                <thead>
+                                    <tr class="bg-gray-700">
+                                        <th class="border border-gray-600 px-3 py-2 text-left text-sm text-gray-300">Device</th>
+                                        <th class="border border-gray-600 px-3 py-2 text-center text-sm text-gray-300">Current Pin</th>
+                                        <th class="border border-gray-600 px-3 py-2 text-center text-sm text-gray-300">Not Connected</th>
+                                        <template x-for="pin in gpio.safePins.sort((a,b) => a-b)" :key="'header-' + pin">
+                                            <th 
+                                                class="border border-gray-600 px-2 py-2 text-center text-xs font-mono text-green-300"
+                                                :title="gpio.pinDescriptions[pin] || 'Unknown'"
+                                            >
+                                                <div x-text="pin"></div>
+                                            </th>
                                         </template>
-                                    </select>
-                                </div>
-                            </template>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- Printer Row -->
+                                    <tr>
+                                        <td class="border border-gray-600 px-3 py-2 font-medium text-white">Printer *</td>
+                                        <td class="border border-gray-600 px-3 py-2 text-center font-mono text-sm" x-text="config.device.printerTxPin || 'None'"></td>
+                                        <td class="border border-gray-600 px-2 py-2 text-center">
+                                            <span class="text-gray-500 text-xs">Required</span>
+                                        </td>
+                                        <template x-for="pin in gpio.safePins.sort((a,b) => a-b)" :key="'printer-' + pin">
+                                            <td class="border border-gray-600 px-1 py-1 text-center">
+                                                <button
+                                                    type="button"
+                                                    @click="config.device.printerTxPin = pin"
+                                                    :disabled="usedGpioPins.has(pin) && config.device.printerTxPin !== pin"
+                                                    :class="{
+                                                        'bg-blue-600 text-white': config.device.printerTxPin === pin,
+                                                        'bg-gray-500 text-white opacity-50 cursor-not-allowed': usedGpioPins.has(pin) && config.device.printerTxPin !== pin,
+                                                        'bg-green-600 text-white hover:bg-green-500': !usedGpioPins.has(pin)
+                                                    }"
+                                                    class="w-8 h-6 text-xs rounded transition-colors"
+                                                >
+                                                    ●
+                                                </button>
+                                            </td>
+                                        </template>
+                                    </tr>
+
+                                    <!-- LED Row -->
+                                    <tr>
+                                        <td class="border border-gray-600 px-3 py-2 font-medium text-white">LED Strip</td>
+                                        <td class="border border-gray-600 px-3 py-2 text-center font-mono text-sm" x-text="config.leds?.pin === -1 ? 'Off' : (config.leds?.pin || 'None')"></td>
+                                        <td class="border border-gray-600 px-1 py-1 text-center">
+                                            <button
+                                                type="button"
+                                                @click="config.leds.pin = -1"
+                                                :class="config.leds?.pin === -1 ? 'bg-blue-600 text-white' : 'bg-green-600 text-white hover:bg-green-500'"
+                                                class="w-8 h-6 text-xs rounded transition-colors"
+                                            >
+                                                ●
+                                            </button>
+                                        </td>
+                                        <template x-for="pin in gpio.safePins.sort((a,b) => a-b)" :key="'led-' + pin">
+                                            <td class="border border-gray-600 px-1 py-1 text-center">
+                                                <button
+                                                    type="button"
+                                                    @click="config.leds.pin = pin"
+                                                    :disabled="usedGpioPins.has(pin) && config.leds?.pin !== pin"
+                                                    :class="{
+                                                        'bg-blue-600 text-white': config.leds?.pin === pin,
+                                                        'bg-gray-500 text-white opacity-50 cursor-not-allowed': usedGpioPins.has(pin) && config.leds?.pin !== pin,
+                                                        'bg-green-600 text-white hover:bg-green-500': !usedGpioPins.has(pin)
+                                                    }"
+                                                    class="w-8 h-6 text-xs rounded transition-colors"
+                                                >
+                                                    ●
+                                                </button>
+                                            </td>
+                                        </template>
+                                    </tr>
+
+                                    <!-- Button Rows -->
+                                    <template x-for="i in [1, 2, 3, 4]" :key="'button-row-' + i">
+                                        <tr>
+                                            <td class="border border-gray-600 px-3 py-2 font-medium text-white" x-text="'Button ' + i"></td>
+                                            <td class="border border-gray-600 px-3 py-2 text-center font-mono text-sm" x-text="config.buttons['button' + i]?.gpio === -1 ? 'Off' : (config.buttons['button' + i]?.gpio || 'None')"></td>
+                                            <td class="border border-gray-600 px-1 py-1 text-center">
+                                                <button
+                                                    type="button"
+                                                    @click="config.buttons['button' + i].gpio = -1"
+                                                    :class="config.buttons['button' + i]?.gpio === -1 ? 'bg-blue-600 text-white' : 'bg-green-600 text-white hover:bg-green-500'"
+                                                    class="w-8 h-6 text-xs rounded transition-colors"
+                                                >
+                                                    ●
+                                                </button>
+                                            </td>
+                                            <template x-for="pin in gpio.safePins.sort((a,b) => a-b)" :key="'button' + i + '-' + pin">
+                                                <td class="border border-gray-600 px-1 py-1 text-center">
+                                                    <button
+                                                        type="button"
+                                                        @click="config.buttons['button' + i].gpio = pin"
+                                                        :disabled="usedGpioPins.has(pin) && config.buttons['button' + i]?.gpio !== pin"
+                                                        :class="{
+                                                            'bg-blue-600 text-white': config.buttons['button' + i]?.gpio === pin,
+                                                            'bg-gray-500 text-white opacity-50 cursor-not-allowed': usedGpioPins.has(pin) && config.buttons['button' + i]?.gpio !== pin,
+                                                            'bg-green-600 text-white hover:bg-green-500': !usedGpioPins.has(pin)
+                                                        }"
+                                                        class="w-8 h-6 text-xs rounded transition-colors"
+                                                    >
+                                                        ●
+                                                    </button>
+                                                </td>
+                                            </template>
+                                        </tr>
+                                    </template>
+                                </tbody>
+                            </table>
                         </div>
-                        <p class="text-xs text-gray-400 mt-2">GPIO pins for physical buttons (optional)</p>
+
+                        <!-- Legend -->
+                        <div class="flex flex-wrap gap-6 text-sm text-gray-400">
+                            <div class="flex items-center"><div class="w-4 h-4 bg-blue-600 rounded mr-2"></div>Currently Assigned</div>
+                            <div class="flex items-center"><div class="w-4 h-4 bg-green-600 rounded mr-2"></div>Available</div>
+                            <div class="flex items-center"><div class="w-4 h-4 bg-gray-500 rounded mr-2"></div>In Use by Another Device</div>
+                        </div>
+                        
+                        <div class="text-xs text-gray-400">
+                            * Printer is required and must be assigned to a GPIO pin.<br>
+                            Only safe GPIO pins are shown - unsafe pins are hidden.
+                        </div>
                     </div>
                 </div>
 

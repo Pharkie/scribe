@@ -343,6 +343,38 @@
         window.location.href = "/";
       },
       // ================== GPIO MANAGEMENT ==================
+      // Get what each GPIO pin is assigned to (reactive getter)
+      getGpioAssignment(pinNumber) {
+        var _a, _b;
+        if (pinNumber === -1 || pinNumber === null) return null;
+        const pin = Number(pinNumber);
+        if (this.config.device.printerTxPin === pin) {
+          return "Assigned to printer";
+        }
+        if (((_a = this.config.leds) == null ? void 0 : _a.pin) === pin) {
+          return "Assigned to LED strip";
+        }
+        for (let i = 1; i <= 4; i++) {
+          if (((_b = this.config.buttons[`button${i}`]) == null ? void 0 : _b.gpio) === pin) {
+            return `Assigned to button ${i}`;
+          }
+        }
+        return null;
+      },
+      // Get formatted text for GPIO option (reactive)
+      getGpioOptionText(option) {
+        var _a, _b, _c, _d, _e, _f, _g, _h, _i;
+        if (option.pin === -1) return "Not connected";
+        let text = `GPIO ${option.pin} - ${option.description}`;
+        if (!option.isSafe) text += " (Unsafe)";
+        if (this.config.device.printerTxPin === option.pin) text += " (Assigned to printer)";
+        else if (((_a = this.config.leds) == null ? void 0 : _a.pin) === option.pin) text += " (Assigned to LED strip)";
+        else if (((_c = (_b = this.config.buttons) == null ? void 0 : _b.button1) == null ? void 0 : _c.gpio) === option.pin) text += " (Assigned to button 1)";
+        else if (((_e = (_d = this.config.buttons) == null ? void 0 : _d.button2) == null ? void 0 : _e.gpio) === option.pin) text += " (Assigned to button 2)";
+        else if (((_g = (_f = this.config.buttons) == null ? void 0 : _f.button3) == null ? void 0 : _g.gpio) === option.pin) text += " (Assigned to button 3)";
+        else if (((_i = (_h = this.config.buttons) == null ? void 0 : _h.button4) == null ? void 0 : _i.gpio) === option.pin) text += " (Assigned to button 4)";
+        return text;
+      },
       // Get used GPIO pins to avoid conflicts
       get usedGpioPins() {
         var _a, _b, _c;
@@ -373,16 +405,73 @@
           }];
         }
         return this.gpio.availablePins.filter((pin) => Number(pin) !== -1).map((pin) => {
+          var _a, _b, _c, _d, _e, _f, _g, _h, _i;
           const pinNumber = Number(pin);
           const isSafe = this.gpio.safePins.includes(pin);
           const description = this.gpio.pinDescriptions[pin] || "Unknown";
           const isUsed = this.usedGpioPins.has(pinNumber);
+          let assignment = null;
+          if (this.config.device.printerTxPin === pinNumber) {
+            assignment = "Assigned to printer";
+          } else if (((_a = this.config.leds) == null ? void 0 : _a.pin) === pinNumber) {
+            assignment = "Assigned to LED strip";
+          } else if (((_c = (_b = this.config.buttons) == null ? void 0 : _b.button1) == null ? void 0 : _c.gpio) === pinNumber) {
+            assignment = "Assigned to button 1";
+          } else if (((_e = (_d = this.config.buttons) == null ? void 0 : _d.button2) == null ? void 0 : _e.gpio) === pinNumber) {
+            assignment = "Assigned to button 2";
+          } else if (((_g = (_f = this.config.buttons) == null ? void 0 : _f.button3) == null ? void 0 : _g.gpio) === pinNumber) {
+            assignment = "Assigned to button 3";
+          } else if (((_i = (_h = this.config.buttons) == null ? void 0 : _h.button4) == null ? void 0 : _i.gpio) === pinNumber) {
+            assignment = "Assigned to button 4";
+          }
           return {
             pin: pinNumber,
             description,
             available: isSafe && !isUsed,
             isSafe,
-            inUse: isUsed
+            inUse: isUsed,
+            assignment
+          };
+        });
+      },
+      // Force reactive rebuild of GPIO options array with text updates
+      get allGpioOptionsReactive() {
+        var _a, _b, _c, _d, _e, _f, _g, _h, _i;
+        const triggerUpdate = this.config.device.printerTxPin + "-" + ((_a = this.config.leds) == null ? void 0 : _a.pin) + "-" + ((_c = (_b = this.config.buttons) == null ? void 0 : _b.button1) == null ? void 0 : _c.gpio) + "-" + ((_e = (_d = this.config.buttons) == null ? void 0 : _d.button2) == null ? void 0 : _e.gpio) + "-" + ((_g = (_f = this.config.buttons) == null ? void 0 : _f.button3) == null ? void 0 : _g.gpio) + "-" + ((_i = (_h = this.config.buttons) == null ? void 0 : _h.button4) == null ? void 0 : _i.gpio);
+        return this.gpio.availablePins.map((pin, index) => {
+          var _a2, _b2, _c2, _d2, _e2, _f2, _g2, _h2, _i2;
+          const pinNumber = Number(pin);
+          const isSafe = this.gpio.safePins.includes(pin);
+          const description = this.gpio.pinDescriptions[pin] || "Unknown";
+          const isUsed = this.usedGpioPins.has(pinNumber);
+          let text;
+          if (pinNumber === -1) {
+            text = "Not connected";
+          } else {
+            text = `GPIO ${pinNumber} - ${description}`;
+            if (pinNumber === this.config.device.printerTxPin) {
+              text += " (Printer)";
+            } else if (pinNumber === ((_a2 = this.config.leds) == null ? void 0 : _a2.pin)) {
+              text += " (LED)";
+            } else if (pinNumber === ((_c2 = (_b2 = this.config.buttons) == null ? void 0 : _b2.button1) == null ? void 0 : _c2.gpio)) {
+              text += " (Button1)";
+            } else if (pinNumber === ((_e2 = (_d2 = this.config.buttons) == null ? void 0 : _d2.button2) == null ? void 0 : _e2.gpio)) {
+              text += " (Button2)";
+            } else if (pinNumber === ((_g2 = (_f2 = this.config.buttons) == null ? void 0 : _f2.button3) == null ? void 0 : _g2.gpio)) {
+              text += " (Button3)";
+            } else if (pinNumber === ((_i2 = (_h2 = this.config.buttons) == null ? void 0 : _h2.button4) == null ? void 0 : _i2.gpio)) {
+              text += " (Button4)";
+            }
+          }
+          return {
+            pin: pinNumber,
+            description,
+            text,
+            available: pinNumber === -1 ? true : isSafe && !isUsed,
+            isSafe,
+            inUse: isUsed,
+            // Add unique key to force Alpine re-render
+            key: `${pinNumber}-${triggerUpdate}-${index}`
           };
         });
       },
@@ -398,17 +487,35 @@
           }];
         }
         return this.gpio.availablePins.map((pin) => {
+          var _a, _b, _c, _d, _e, _f, _g, _h, _i;
           const pinNumber = Number(pin);
           const isSafe = this.gpio.safePins.includes(pin);
           const description = this.gpio.pinDescriptions[pin] || "Unknown";
           const isUsed = this.usedGpioPins.has(pinNumber);
+          let assignment = null;
+          if (pinNumber !== -1 && pinNumber !== null) {
+            if (this.config.device.printerTxPin === pinNumber) {
+              assignment = "Assigned to printer";
+            } else if (((_a = this.config.leds) == null ? void 0 : _a.pin) === pinNumber) {
+              assignment = "Assigned to LED strip";
+            } else if (((_c = (_b = this.config.buttons) == null ? void 0 : _b.button1) == null ? void 0 : _c.gpio) === pinNumber) {
+              assignment = "Assigned to button 1";
+            } else if (((_e = (_d = this.config.buttons) == null ? void 0 : _d.button2) == null ? void 0 : _e.gpio) === pinNumber) {
+              assignment = "Assigned to button 2";
+            } else if (((_g = (_f = this.config.buttons) == null ? void 0 : _f.button3) == null ? void 0 : _g.gpio) === pinNumber) {
+              assignment = "Assigned to button 3";
+            } else if (((_i = (_h = this.config.buttons) == null ? void 0 : _h.button4) == null ? void 0 : _i.gpio) === pinNumber) {
+              assignment = "Assigned to button 4";
+            }
+          }
           return {
             pin: pinNumber,
             description,
             // "Not connected" (-1) is always available, others check safety and usage
             available: pinNumber === -1 ? true : isSafe && !isUsed,
             isSafe,
-            inUse: isUsed
+            inUse: isUsed,
+            assignment
           };
         });
       }
