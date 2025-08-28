@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Device Settings - Scribe Evolution</title>
+    
+    <!-- CSS Assets -->
+    <link rel="stylesheet" href="/css/settings.min.css">
+    
+    <!-- Common JS -->
+    <script src="/js/app-common.min.js"></script>
+    
+    <!-- Device page bundle (includes settings-api) -->
+    <script src="/js/page-settings-device.min.js"></script>
+    
+    <!-- Alpine.js (load last) -->
+    <script defer src="/js/alpine.min.js"></script>
+</head>
+<body class="bg-gray-900 text-white min-h-screen" x-data="$store.settingsDevice">
+    
+    <!-- Navigation Header -->
+    <div class="bg-gray-800 border-b border-gray-700 mb-6">
+        <div class="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
+            <div class="flex items-center space-x-4">
+                <a href="/settings.html" class="flex items-center space-x-2 text-blue-400 hover:text-blue-300 transition-colors">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                    </svg>
+                    <span>Back to Settings</span>
+                </a>
+                <span class="text-gray-500">|</span>
+                <h1 class="text-xl font-semibold text-white">Device Settings</h1>
+            </div>
+            <a href="/" class="text-gray-400 hover:text-white transition-colors">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
+                </svg>
+            </a>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="max-w-4xl mx-auto px-4 pb-8">
+        
+        <!-- Loading State -->
+        <div x-show="loading" class="text-center py-8">
+            <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+            <p class="mt-2 text-gray-400">Loading device settings...</p>
+        </div>
+
+        <!-- Error State -->
+        <div x-show="error" class="bg-red-900/20 border border-red-700 rounded-lg p-4 mb-6">
+            <div class="flex items-center">
+                <svg class="w-5 h-5 text-red-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                <span x-text="error" class="text-red-300"></span>
+            </div>
+        </div>
+
+        <!-- Device Settings Form -->
+        <div x-show="!loading && !error">
+            <form @submit.prevent="saveConfiguration" class="space-y-8">
+                
+                <!-- Device Identity Section -->
+                <div class="bg-gray-800 rounded-lg p-6">
+                    <h2 class="text-lg font-semibold mb-6 text-blue-400 flex items-center">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                        </svg>
+                        Device Identity
+                    </h2>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- Device Owner -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-300 mb-2">Device Owner</label>
+                            <input 
+                                type="text" 
+                                x-model="config.device.owner"
+                                class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                placeholder="Enter device owner name"
+                                required
+                            >
+                        </div>
+
+                        <!-- Timezone -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-300 mb-2">Timezone</label>
+                            <select 
+                                x-model="config.device.timezone"
+                                class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                required
+                            >
+                                <option value="">Select timezone...</option>
+                                <option value="America/New_York">America/New_York</option>
+                                <option value="America/Chicago">America/Chicago</option>
+                                <option value="America/Denver">America/Denver</option>
+                                <option value="America/Los_Angeles">America/Los_Angeles</option>
+                                <option value="Europe/London">Europe/London</option>
+                                <option value="Europe/Paris">Europe/Paris</option>
+                                <option value="Asia/Tokyo">Asia/Tokyo</option>
+                                <option value="Australia/Sydney">Australia/Sydney</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Hardware Configuration Section -->
+                <div class="bg-gray-800 rounded-lg p-6">
+                    <h2 class="text-lg font-semibold mb-6 text-blue-400 flex items-center">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                        </svg>
+                        Hardware Configuration
+                    </h2>
+                    
+                    <!-- Printer TX Pin -->
+                    <div class="mb-6">
+                        <label class="block text-sm font-medium text-gray-300 mb-2">Printer TX Pin</label>
+                        <select 
+                            x-model="config.device.printerTxPin"
+                            class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            required
+                        >
+                            <option value="">Select GPIO pin...</option>
+                            <template x-for="option in printerGpioOptions" :key="option.pin">
+                                <option 
+                                    :value="option.pin"
+                                    :disabled="!option.available"
+                                    x-text="`GPIO ${option.pin} - ${option.description}${!option.available ? ' (Unsafe/In Use)' : ''}`"
+                                ></option>
+                            </template>
+                        </select>
+                        <p class="text-xs text-gray-400 mt-1">GPIO pin for thermal printer communication</p>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="flex flex-col sm:flex-row gap-4 justify-between">
+                    <button 
+                        type="button"
+                        @click="cancelConfiguration"
+                        class="px-6 py-2 border border-gray-600 text-gray-300 rounded-md hover:bg-gray-700 transition-colors"
+                    >
+                        Cancel
+                    </button>
+                    
+                    <button 
+                        type="submit"
+                        :disabled="saving"
+                        class="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    >
+                        <span x-show="!saving">Save Device Settings</span>
+                        <span x-show="saving" class="flex items-center">
+                            <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                            Saving...
+                        </span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+</body>
+</html>

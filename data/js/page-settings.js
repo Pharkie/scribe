@@ -19,6 +19,7 @@
   // multi-entry:multi-entry:src/js/settings-alpine-store.js,src/js/settings-api.js
   function initializeSettingsStore() {
     const store = {
+      // ================== UTILITY FUNCTIONS ==================
       // Simple utility function extracted from repeated showMessage patterns
       // Step 2.2: Extract ONE HTTP utility pattern (internal function)
       showErrorMessage(message) {
@@ -396,6 +397,7 @@
           width: `${Math.abs(endPercent - startPercent)}%`
         };
       },
+      // ================== DEVICE CONFIGURATION API ==================
       // Initialize store with data from server
       async init() {
         if (this.initialized) {
@@ -467,6 +469,7 @@
         this.wifiScan.hasScanned = false;
         this.wifiScan.error = null;
       },
+      // ================== WIFI API ==================
       // WiFi scanning - simplified with reactive updates
       async scanWiFiNetworks() {
         this.wifiScan.isScanning = true;
@@ -605,6 +608,7 @@
         return cleanMemos;
       },
       // Save configuration to server
+      // Save configuration and memos via API
       async saveConfiguration() {
         if (this.config.mqtt.enabled && !this.mqttTestPassed) {
           window.showMessage("Please test MQTT connection before saving", "error");
@@ -642,6 +646,7 @@
       cancelConfiguration() {
         window.location.href = "/";
       },
+      // ================== SYSTEM/PRINTING API ==================
       // Print AP details to thermal printer
       async printAPDetails() {
         var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k, _l;
@@ -1112,6 +1117,7 @@ ${urlLine}`;
         }
         return this.gpioOptions;
       },
+      // ================== LED API ==================
       // LED effect functions (WLED-style unified interface)
       async testLedEffect(effectName) {
         if (this.testingEffect) return;
@@ -1226,6 +1232,7 @@ ${urlLine}`;
       getCyclesDescription() {
         return "Number of times to repeat the effect";
       },
+      // Turn off all LEDs via API
       async turnOffLeds() {
         try {
           const result = await window.SettingsAPI.turnOffLeds();
@@ -1355,6 +1362,7 @@ ${urlLine}`;
           return ["Color 1"];
         }
       },
+      // ================== MQTT API ==================
       // Test MQTT connection
       async testMQTTConnection() {
         this.mqttTesting = true;
