@@ -23,11 +23,11 @@
     <div class="bg-gray-800 border-b border-gray-700 mb-6">
         <div class="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
             <div class="flex items-center space-x-4">
-                <a href="/settings.html" class="flex items-center space-x-2 text-blue-400 hover:text-blue-300 transition-colors">
+                <a href="/" class="flex items-center space-x-2 text-blue-400 hover:text-blue-300 transition-colors">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
                     </svg>
-                    <span>Back to Settings</span>
+                    <span>Back to Home</span>
                 </a>
                 <span class="text-gray-500">|</span>
                 <h1 class="text-xl font-semibold text-white">Device Settings</h1>
@@ -116,24 +116,71 @@
                         Hardware Configuration
                     </h2>
                     
-                    <!-- Printer TX Pin -->
-                    <div class="mb-6">
-                        <label class="block text-sm font-medium text-gray-300 mb-2">Printer TX Pin</label>
-                        <select 
-                            x-model="config.device.printerTxPin"
-                            class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                            required
-                        >
-                            <option value="">Select GPIO pin...</option>
-                            <template x-for="option in printerGpioOptions" :key="option.pin">
-                                <option 
-                                    :value="option.pin"
-                                    :disabled="!option.available"
-                                    x-text="`GPIO ${option.pin} - ${option.description}${!option.available ? ' (Unsafe/In Use)' : ''}`"
-                                ></option>
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <!-- Printer TX Pin -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-300 mb-2">Printer TX Pin</label>
+                            <select 
+                                x-model="config.device.printerTxPin"
+                                class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                required
+                            >
+                                <option value="">Select GPIO pin...</option>
+                                <template x-for="option in printerGpioOptions" :key="option.pin">
+                                    <option 
+                                        :value="option.pin"
+                                        :disabled="!option.available"
+                                        x-text="`GPIO ${option.pin} - ${option.description}${!option.available ? ' (Unsafe/In Use)' : ''}`"
+                                    ></option>
+                                </template>
+                            </select>
+                            <p class="text-xs text-gray-400 mt-1">GPIO pin for thermal printer communication</p>
+                        </div>
+
+                        <!-- LED Strip Pin -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-300 mb-2">LED Strip Pin</label>
+                            <select 
+                                x-model="config.leds.pin"
+                                class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            >
+                                <option value="-1">Not connected</option>
+                                <template x-for="option in allGpioOptions" :key="option.pin">
+                                    <option 
+                                        :value="option.pin"
+                                        :disabled="!option.available && option.pin !== -1"
+                                        x-text="`GPIO ${option.pin} - ${option.description}${!option.available && option.pin !== -1 ? ' (Unsafe/In Use)' : ''}`"
+                                    ></option>
+                                </template>
+                            </select>
+                            <p class="text-xs text-gray-400 mt-1">GPIO pin for LED strip control (optional)</p>
+                        </div>
+                    </div>
+
+                    <!-- Button GPIO Pins -->
+                    <div class="mt-6">
+                        <h3 class="text-md font-medium text-gray-300 mb-4">Button GPIO Pins</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <template x-for="i in [1, 2, 3, 4]" :key="i">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-300 mb-2" x-text="`Button ${i} GPIO`"></label>
+                                    <select 
+                                        x-model="config.buttons[`button${i}`].gpio"
+                                        class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                    >
+                                        <option value="-1">Not connected</option>
+                                        <template x-for="option in allGpioOptions" :key="option.pin">
+                                            <option 
+                                                :value="option.pin"
+                                                :disabled="!option.available && option.pin !== -1"
+                                                x-text="`GPIO ${option.pin} - ${option.description}${!option.available && option.pin !== -1 ? ' (Unsafe/In Use)' : ''}`"
+                                            ></option>
+                                        </template>
+                                    </select>
+                                </div>
                             </template>
-                        </select>
-                        <p class="text-xs text-gray-400 mt-1">GPIO pin for thermal printer communication</p>
+                        </div>
+                        <p class="text-xs text-gray-400 mt-2">GPIO pins for physical buttons (optional)</p>
                     </div>
                 </div>
 

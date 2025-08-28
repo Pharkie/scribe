@@ -231,12 +231,21 @@
         safePins: [],
         pinDescriptions: {}
       },
-      // Configuration data (reactive) - Device section only
+      // Configuration data (reactive) - Device section with hardware GPIO
       config: {
         device: {
           owner: null,
           timezone: null,
           printerTxPin: null
+        },
+        buttons: {
+          button1: { gpio: null },
+          button2: { gpio: null },
+          button3: { gpio: null },
+          button4: { gpio: null }
+        },
+        leds: {
+          pin: null
         }
       },
       // ================== DEVICE CONFIGURATION API ==================
@@ -275,6 +284,21 @@
         } else {
           console.error("\u274C Missing device section in config");
         }
+        if (serverConfig.buttons) {
+          for (let i = 1; i <= 4; i++) {
+            const buttonKey = `button${i}`;
+            if (serverConfig.buttons[buttonKey]) {
+              this.config.buttons[buttonKey].gpio = serverConfig.buttons[buttonKey].gpio || null;
+            }
+          }
+        } else {
+          console.warn("\u26A0\uFE0F Missing buttons section in config");
+        }
+        if (serverConfig.leds) {
+          this.config.leds.pin = Number(serverConfig.leds.pin);
+        } else {
+          console.warn("\u26A0\uFE0F Missing leds section in config");
+        }
         if (serverConfig.gpio) {
           this.gpio.availablePins = serverConfig.gpio.availablePins || [];
           this.gpio.safePins = serverConfig.gpio.safePins || [];
@@ -293,6 +317,15 @@
               owner: this.config.device.owner,
               timezone: this.config.device.timezone,
               printerTxPin: this.config.device.printerTxPin
+            },
+            buttons: {
+              button1: this.config.buttons.button1,
+              button2: this.config.buttons.button2,
+              button3: this.config.buttons.button3,
+              button4: this.config.buttons.button4
+            },
+            leds: {
+              pin: this.config.leds.pin
             }
           };
           console.log("Saving device configuration:", cleanConfig);
@@ -307,14 +340,24 @@
       },
       // Cancel configuration changes
       cancelConfiguration() {
-        window.location.href = "/settings.html";
+        window.location.href = "/";
       },
       // ================== GPIO MANAGEMENT ==================
       // Get used GPIO pins to avoid conflicts
       get usedGpioPins() {
+        var _a, _b, _c;
         const used = /* @__PURE__ */ new Set();
         if (this.config.device.printerTxPin !== null && this.config.device.printerTxPin !== -1) {
           used.add(Number(this.config.device.printerTxPin));
+        }
+        if (((_a = this.config.leds) == null ? void 0 : _a.pin) !== null && ((_b = this.config.leds) == null ? void 0 : _b.pin) !== -1) {
+          used.add(Number(this.config.leds.pin));
+        }
+        for (let i = 1; i <= 4; i++) {
+          const buttonGpio = (_c = this.config.buttons[`button${i}`]) == null ? void 0 : _c.gpio;
+          if (buttonGpio !== null && buttonGpio !== -1) {
+            used.add(Number(buttonGpio));
+          }
         }
         return used;
       },
@@ -338,6 +381,32 @@
             pin: pinNumber,
             description,
             available: isSafe && !isUsed,
+            isSafe,
+            inUse: isUsed
+          };
+        });
+      },
+      // Combined GPIO options that handles loading state properly for Alpine reactivity
+      get allGpioOptions() {
+        if (this.loading || this.gpio.availablePins.length === 0) {
+          return [{
+            pin: null,
+            description: "Loading GPIO options...",
+            available: false,
+            isSafe: false,
+            inUse: false
+          }];
+        }
+        return this.gpio.availablePins.map((pin) => {
+          const pinNumber = Number(pin);
+          const isSafe = this.gpio.safePins.includes(pin);
+          const description = this.gpio.pinDescriptions[pin] || "Unknown";
+          const isUsed = this.usedGpioPins.has(pinNumber);
+          return {
+            pin: pinNumber,
+            description,
+            // "Not connected" (-1) is always available, others check safety and usage
+            available: pinNumber === -1 ? true : isSafe && !isUsed,
             isSafe,
             inUse: isUsed
           };
