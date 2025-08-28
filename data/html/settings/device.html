@@ -32,11 +32,6 @@
                 <span class="text-gray-500">|</span>
                 <h1 class="text-xl font-semibold text-white">Device Settings</h1>
             </div>
-            <a href="/" class="text-gray-400 hover:text-white transition-colors">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
-                </svg>
-            </a>
         </div>
     </div>
 
@@ -87,42 +82,36 @@
 
                         <!-- Timezone -->
                         <div>
-                            <label class="block text-sm font-medium text-gray-300 mb-2">Timezone</label>
-                            <select 
+                            <label class="block text-sm font-medium text-gray-300 mb-2">Timezone (IANA)</label>
+                            <input 
+                                type="text" 
                                 x-model="config.device.timezone"
-                                class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                placeholder="e.g. America/New_York, Europe/London"
                                 required
                             >
-                                <option value="">Select timezone...</option>
-                                <option value="America/New_York">America/New_York</option>
-                                <option value="America/Chicago">America/Chicago</option>
-                                <option value="America/Denver">America/Denver</option>
-                                <option value="America/Los_Angeles">America/Los_Angeles</option>
-                                <option value="Europe/London">Europe/London</option>
-                                <option value="Europe/Paris">Europe/Paris</option>
-                                <option value="Asia/Tokyo">Asia/Tokyo</option>
-                                <option value="Australia/Sydney">Australia/Sydney</option>
-                            </select>
+                            <p class="text-xs text-gray-400 mt-2">Use format: Continent/City (e.g., America/Chicago, Europe/London, Europe/Paris, Asia/Tokyo)</p>
                         </div>
                     </div>
                 </div>
 
-                <!-- Hardware Configuration Section -->
+                <!-- GPIO Pins Section -->
                 <div class="bg-gray-800 rounded-lg p-6">
                     <h2 class="text-lg font-semibold mb-6 text-blue-400 flex items-center">
                         <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
                         </svg>
-                        Hardware Configuration
+                        GPIO Pins
                     </h2>
                     
                     <!-- GPIO Assignment Interface -->
                     <div class="space-y-6">
-                        <h3 class="text-lg font-medium text-gray-300">GPIO Pin Assignment</h3>
                         
                         <!-- Responsive Card Grid: 3 columns on desktop, 1 column on mobile -->
-                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
-                            <!-- Printer Card -->
+                        <div class="space-y-6">
+                            <!-- First Row: Printer, LED Strip, Button 1 -->
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
+                                <!-- Printer Card -->
                                 <div class="bg-gray-800 border border-gray-700 rounded-xl p-5 shadow-lg">
                                     <div class="text-center mb-4">
                                         <h4 class="font-semibold text-white text-lg mb-2">Printer</h4>
@@ -130,7 +119,7 @@
                                     <div class="grid grid-cols-4 gap-3">
                                         <template x-for="pin in gpio.safePins.filter(p => p !== -1).sort((a,b) => a-b)" :key="'printer-' + pin">
                                             <button x-show="!usedGpioPins.has(pin) || config.device.printerTxPin === pin" type="button" @click="config.device.printerTxPin = pin"
-                                                :class="config.device.printerTxPin === pin ? 'bg-blue-600 text-white' : 'bg-green-600 text-white hover:bg-green-500 active:bg-green-700'"
+                                                :class="config.device.printerTxPin === pin ? 'bg-blue-600 text-white' : 'bg-gray-600 text-white hover:bg-gray-500 active:bg-gray-700'"
                                                 class="h-12 rounded-lg font-mono text-sm font-semibold transition-all duration-200 transform active:scale-95 shadow-md">
                                                 <div x-text="pin"></div>
                                             </button>
@@ -144,13 +133,13 @@
                                         <h4 class="font-semibold text-white text-lg mb-2">LED Strip</h4>
                                     </div>
                                     <div class="grid grid-cols-4 gap-3">
-                                        <button type="button" @click="config.leds.pin = -1" :class="config.leds?.pin === -1 ? 'bg-blue-600 text-white' : 'bg-green-600 text-white hover:bg-green-500 active:bg-green-700'"
+                                        <button type="button" @click="config.leds.pin = -1" :class="config.leds?.pin === -1 ? 'bg-blue-600 text-white' : 'bg-gray-600 text-white hover:bg-gray-500 active:bg-gray-700'"
                                             class="h-12 rounded-lg text-sm font-semibold transition-all duration-200 transform active:scale-95 shadow-md">
                                             OFF
                                         </button>
                                         <template x-for="pin in gpio.safePins.filter(p => p !== -1).sort((a,b) => a-b)" :key="'led-' + pin">
                                             <button x-show="!usedGpioPins.has(pin) || config.leds?.pin === pin" type="button" @click="config.leds.pin = pin"
-                                                :class="config.leds?.pin === pin ? 'bg-blue-600 text-white' : 'bg-green-600 text-white hover:bg-green-500 active:bg-green-700'"
+                                                :class="config.leds?.pin === pin ? 'bg-blue-600 text-white' : 'bg-gray-600 text-white hover:bg-gray-500 active:bg-gray-700'"
                                                 class="h-12 rounded-lg font-mono text-sm font-semibold transition-all duration-200 transform active:scale-95 shadow-md">
                                                 <div x-text="pin"></div>
                                             </button>
@@ -164,13 +153,13 @@
                                         <h4 class="font-semibold text-white text-lg mb-2">Button 1</h4>
                                     </div>
                                     <div class="grid grid-cols-4 gap-3">
-                                        <button type="button" @click="config.buttons.button1.gpio = -1" :class="config.buttons.button1?.gpio === -1 ? 'bg-blue-600 text-white' : 'bg-green-600 text-white hover:bg-green-500 active:bg-green-700'"
+                                        <button type="button" @click="config.buttons.button1.gpio = -1" :class="config.buttons.button1?.gpio === -1 ? 'bg-blue-600 text-white' : 'bg-gray-600 text-white hover:bg-gray-500 active:bg-gray-700'"
                                             class="h-12 rounded-lg text-sm font-semibold transition-all duration-200 transform active:scale-95 shadow-md">
                                             OFF
                                         </button>
                                         <template x-for="pin in gpio.safePins.filter(p => p !== -1).sort((a,b) => a-b)" :key="'button1-' + pin">
                                             <button x-show="!usedGpioPins.has(pin) || config.buttons.button1?.gpio === pin" type="button" @click="config.buttons.button1.gpio = pin"
-                                                :class="config.buttons.button1?.gpio === pin ? 'bg-blue-600 text-white' : 'bg-green-600 text-white hover:bg-green-500 active:bg-green-700'"
+                                                :class="config.buttons.button1?.gpio === pin ? 'bg-blue-600 text-white' : 'bg-gray-600 text-white hover:bg-gray-500 active:bg-gray-700'"
                                                 class="h-12 rounded-lg font-mono text-sm font-semibold transition-all duration-200 transform active:scale-95 shadow-md">
                                                 <div x-text="pin"></div>
                                             </button>
@@ -178,20 +167,23 @@
                                     </div>
                                 </div>
                             </div>
+                            </div>
 
-                            <!-- Button 2 Card -->
-                                <div class="bg-gray-800 border border-gray-700 rounded-xl p-5 shadow-lg">
+                            <!-- Second Row: Button 2, Button 3, Button 4 -->
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
+                                <!-- Button 2 Card -->
+                            <div class="bg-gray-800 border border-gray-700 rounded-xl p-5 shadow-lg">
                                     <div class="text-center mb-4">
                                         <h4 class="font-semibold text-white text-lg mb-2">Button 2</h4>
                                     </div>
                                     <div class="grid grid-cols-4 gap-3">
-                                        <button type="button" @click="config.buttons.button2.gpio = -1" :class="config.buttons.button2?.gpio === -1 ? 'bg-blue-600 text-white' : 'bg-green-600 text-white hover:bg-green-500 active:bg-green-700'"
+                                        <button type="button" @click="config.buttons.button2.gpio = -1" :class="config.buttons.button2?.gpio === -1 ? 'bg-blue-600 text-white' : 'bg-gray-600 text-white hover:bg-gray-500 active:bg-gray-700'"
                                             class="h-12 rounded-lg text-sm font-semibold transition-all duration-200 transform active:scale-95 shadow-md">
                                             OFF
                                         </button>
                                         <template x-for="pin in gpio.safePins.filter(p => p !== -1).sort((a,b) => a-b)" :key="'button2-' + pin">
                                             <button x-show="!usedGpioPins.has(pin) || config.buttons.button2?.gpio === pin" type="button" @click="config.buttons.button2.gpio = pin"
-                                                :class="config.buttons.button2?.gpio === pin ? 'bg-blue-600 text-white' : 'bg-green-600 text-white hover:bg-green-500 active:bg-green-700'"
+                                                :class="config.buttons.button2?.gpio === pin ? 'bg-blue-600 text-white' : 'bg-gray-600 text-white hover:bg-gray-500 active:bg-gray-700'"
                                                 class="h-12 rounded-lg font-mono text-sm font-semibold transition-all duration-200 transform active:scale-95 shadow-md">
                                                 <div x-text="pin"></div>
                                             </button>
@@ -200,18 +192,18 @@
                                 </div>
 
                                 <!-- Button 3 Card -->
-                                <div class="bg-gray-800 border border-gray-700 rounded-xl p-5 shadow-lg">
+                            <div class="bg-gray-800 border border-gray-700 rounded-xl p-5 shadow-lg">
                                     <div class="text-center mb-4">
                                         <h4 class="font-semibold text-white text-lg mb-2">Button 3</h4>
                                     </div>
                                     <div class="grid grid-cols-4 gap-3">
-                                        <button type="button" @click="config.buttons.button3.gpio = -1" :class="config.buttons.button3?.gpio === -1 ? 'bg-blue-600 text-white' : 'bg-green-600 text-white hover:bg-green-500 active:bg-green-700'"
+                                        <button type="button" @click="config.buttons.button3.gpio = -1" :class="config.buttons.button3?.gpio === -1 ? 'bg-blue-600 text-white' : 'bg-gray-600 text-white hover:bg-gray-500 active:bg-gray-700'"
                                             class="h-12 rounded-lg text-sm font-semibold transition-all duration-200 transform active:scale-95 shadow-md">
                                             OFF
                                         </button>
                                         <template x-for="pin in gpio.safePins.filter(p => p !== -1).sort((a,b) => a-b)" :key="'button3-' + pin">
                                             <button x-show="!usedGpioPins.has(pin) || config.buttons.button3?.gpio === pin" type="button" @click="config.buttons.button3.gpio = pin"
-                                                :class="config.buttons.button3?.gpio === pin ? 'bg-blue-600 text-white' : 'bg-green-600 text-white hover:bg-green-500 active:bg-green-700'"
+                                                :class="config.buttons.button3?.gpio === pin ? 'bg-blue-600 text-white' : 'bg-gray-600 text-white hover:bg-gray-500 active:bg-gray-700'"
                                                 class="h-12 rounded-lg font-mono text-sm font-semibold transition-all duration-200 transform active:scale-95 shadow-md">
                                                 <div x-text="pin"></div>
                                             </button>
@@ -220,44 +212,37 @@
                                 </div>
 
                                 <!-- Button 4 Card -->
-                                <div class="bg-gray-800 border border-gray-700 rounded-xl p-5 shadow-lg">
+                            <div class="bg-gray-800 border border-gray-700 rounded-xl p-5 shadow-lg">
                                     <div class="text-center mb-4">
                                         <h4 class="font-semibold text-white text-lg mb-2">Button 4</h4>
                                     </div>
                                     <div class="grid grid-cols-4 gap-3">
-                                        <button type="button" @click="config.buttons.button4.gpio = -1" :class="config.buttons.button4?.gpio === -1 ? 'bg-blue-600 text-white' : 'bg-green-600 text-white hover:bg-green-500 active:bg-green-700'"
+                                        <button type="button" @click="config.buttons.button4.gpio = -1" :class="config.buttons.button4?.gpio === -1 ? 'bg-blue-600 text-white' : 'bg-gray-600 text-white hover:bg-gray-500 active:bg-gray-700'"
                                             class="h-12 rounded-lg text-sm font-semibold transition-all duration-200 transform active:scale-95 shadow-md">
                                             OFF
                                         </button>
                                         <template x-for="pin in gpio.safePins.filter(p => p !== -1).sort((a,b) => a-b)" :key="'button4-' + pin">
                                             <button x-show="!usedGpioPins.has(pin) || config.buttons.button4?.gpio === pin" type="button" @click="config.buttons.button4.gpio = pin"
-                                                :class="config.buttons.button4?.gpio === pin ? 'bg-blue-600 text-white' : 'bg-green-600 text-white hover:bg-green-500 active:bg-green-700'"
+                                                :class="config.buttons.button4?.gpio === pin ? 'bg-blue-600 text-white' : 'bg-gray-600 text-white hover:bg-gray-500 active:bg-gray-700'"
                                                 class="h-12 rounded-lg font-mono text-sm font-semibold transition-all duration-200 transform active:scale-95 shadow-md">
                                                 <div x-text="pin"></div>
                                             </button>
                                         </template>
                                     </div>
                                 </div>
+                            </div>
                         </div>
                     </div>
                 </div>
 
                 <!-- Action Buttons -->
-                <div class="flex flex-col sm:flex-row gap-4 justify-between">
-                    <button 
-                        type="button"
-                        @click="cancelConfiguration"
-                        class="px-6 py-2 border border-gray-600 text-gray-300 rounded-md hover:bg-gray-700 transition-colors"
-                    >
-                        Cancel
-                    </button>
-                    
+                <div class="flex flex-col sm:flex-row gap-4 justify-between mt-8">
                     <button 
                         type="submit"
                         :disabled="saving"
-                        class="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                        class="order-1 sm:order-2 px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                     >
-                        <span x-show="!saving">Save Device Settings</span>
+                        <span x-show="!saving">Save</span>
                         <span x-show="saving" class="flex items-center">
                             <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
                                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
@@ -265,6 +250,14 @@
                             </svg>
                             Saving...
                         </span>
+                    </button>
+                    
+                    <button 
+                        type="button"
+                        @click="cancelConfiguration"
+                        class="order-2 sm:order-1 px-6 py-2 border border-gray-600 text-gray-300 rounded-md hover:bg-gray-700 transition-colors"
+                    >
+                        Cancel
                     </button>
                 </div>
             </form>
