@@ -116,76 +116,129 @@
                         Hardware Configuration
                     </h2>
                     
-                    <!-- GPIO Assignment Grid -->
+                    <!-- GPIO Assignment Interface -->
                     <div class="space-y-6">
                         <h3 class="text-lg font-medium text-gray-300">GPIO Pin Assignment</h3>
                         
-                        <div class="overflow-x-auto">
-                            <table class="w-full border border-gray-600">
-                                <thead>
-                                    <tr class="bg-gray-700">
-                                        <th class="border border-gray-600 px-3 py-2 text-left text-sm text-gray-300">Device</th>
-                                        <th class="border border-gray-600 px-3 py-2 text-center text-sm text-gray-300">Current</th>
-                                        <th class="border border-gray-600 px-3 py-2 text-center text-sm text-gray-300">Off</th>
-                                        <template x-for="pin in gpio.safePins.filter(p => p !== -1).sort((a,b) => a-b)" :key="'header-' + pin">
-                                            <th class="border border-gray-600 px-2 py-2 text-center text-xs font-mono text-green-300">
-                                                <div x-text="pin"></div>
-                                            </th>
-                                        </template>
-                                    </tr>
-                                </thead>
-                                <tbody class="text-sm">
-                                    <!-- Printer Row -->
-                                    <tr>
-                                        <td class="border border-gray-600 px-3 py-2 font-medium text-white">Printer *</td>
-                                        <td class="border border-gray-600 px-3 py-2 text-center font-mono" x-text="'GPIO ' + (config.device.printerTxPin || 'None')"></td>
-                                        <td class="border border-gray-600 px-2 py-2 text-center">
-                                            <span class="text-gray-500 text-xs">Required</span>
-                                        </td>
+                        <!-- Responsive Card Grid: 3 columns on desktop, 1 column on mobile -->
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
+                            <!-- Printer Card -->
+                                <div class="bg-gray-800 border border-gray-700 rounded-xl p-5 shadow-lg">
+                                    <div class="text-center mb-4">
+                                        <h4 class="font-semibold text-white text-lg mb-2">Printer</h4>
+                                    </div>
+                                    <div class="grid grid-cols-4 gap-3">
                                         <template x-for="pin in gpio.safePins.filter(p => p !== -1).sort((a,b) => a-b)" :key="'printer-' + pin">
-                                            <td class="border border-gray-600 px-1 py-1 text-center">
-                                                <button x-show="!usedGpioPins.has(pin) || config.device.printerTxPin === pin" type="button" @click="config.device.printerTxPin = pin"
-                                                    :class="config.device.printerTxPin === pin ? 'bg-blue-600 text-white' : 'bg-green-600 hover:bg-green-500'"
-                                                    class="w-8 h-6 text-xs rounded transition-colors text-white">●</button>
-                                            </td>
+                                            <button x-show="!usedGpioPins.has(pin) || config.device.printerTxPin === pin" type="button" @click="config.device.printerTxPin = pin"
+                                                :class="config.device.printerTxPin === pin ? 'bg-blue-600 text-white' : 'bg-green-600 text-white hover:bg-green-500 active:bg-green-700'"
+                                                class="h-12 rounded-lg font-mono text-sm font-semibold transition-all duration-200 transform active:scale-95 shadow-md">
+                                                <div x-text="pin"></div>
+                                            </button>
                                         </template>
-                                    </tr>
-                                    <!-- LED Row -->
-                                    <tr>
-                                        <td class="border border-gray-600 px-3 py-2 font-medium text-white">LED Strip</td>
-                                        <td class="border border-gray-600 px-3 py-2 text-center font-mono" x-text="config.leds?.pin === -1 ? 'Off' : (config.leds?.pin ? 'GPIO ' + config.leds.pin : 'None')"></td>
-                                        <td class="border border-gray-600 px-1 py-1 text-center">
-                                            <button type="button" @click="config.leds.pin = -1" :class="config.leds?.pin === -1 ? 'bg-blue-600 text-white' : 'bg-green-600 text-white hover:bg-green-500'" class="w-8 h-6 text-xs rounded transition-colors">●</button>
-                                        </td>
-                                        <template x-for="pin in gpio.safePins.filter(p => p !== -1).sort((a,b) => a-b)" :key="'led-' + pin">
-                                            <td class="border border-gray-600 px-1 py-1 text-center">
-                                                <button x-show="!usedGpioPins.has(pin) || config.leds?.pin === pin" type="button" @click="config.leds.pin = pin"
-                                                    :class="config.leds?.pin === pin ? 'bg-blue-600 text-white' : 'bg-green-600 hover:bg-green-500'"
-                                                    class="w-8 h-6 text-xs rounded transition-colors text-white">●</button>
-                                            </td>
-                                        </template>
-                                    </tr>
-                                    <!-- Button Rows -->
-                                    <template x-for="i in [1, 2, 3, 4]" :key="'button-row-' + i">
-                                        <tr>
-                                            <td class="border border-gray-600 px-3 py-2 font-medium text-white" x-text="'Button ' + i"></td>
-                                            <td class="border border-gray-600 px-3 py-2 text-center font-mono" x-text="config.buttons['button' + i]?.gpio === -1 ? 'Off' : (config.buttons['button' + i]?.gpio ? 'GPIO ' + config.buttons['button' + i].gpio : 'None')"></td>
-                                            <td class="border border-gray-600 px-1 py-1 text-center">
-                                                <button type="button" @click="config.buttons['button' + i].gpio = -1" :class="config.buttons['button' + i]?.gpio === -1 ? 'bg-blue-600 text-white' : 'bg-green-600 text-white hover:bg-green-500'" class="w-8 h-6 text-xs rounded transition-colors">●</button>
-                                            </td>
-                                            <template x-for="pin in gpio.safePins.filter(p => p !== -1).sort((a,b) => a-b)" :key="'button' + i + '-' + pin">
-                                                <td class="border border-gray-600 px-1 py-1 text-center">
-                                                    <button x-show="!usedGpioPins.has(pin) || config.buttons['button' + i]?.gpio === pin" type="button" @click="config.buttons['button' + i].gpio = pin"
-                                                        :class="config.buttons['button' + i]?.gpio === pin ? 'bg-blue-600 text-white' : 'bg-green-600 hover:bg-green-500'"
-                                                        class="w-8 h-6 text-xs rounded transition-colors text-white">●</button>
-                                                </td>
-                                            </template>
-                                        </tr>
-                                    </template>
-                                </tbody>
-                            </table>
-                        </div>
+                                    </div>
+                                </div>
 
+                                <!-- LED Strip Card -->
+                                <div class="bg-gray-800 border border-gray-700 rounded-xl p-5 shadow-lg">
+                                    <div class="text-center mb-4">
+                                        <h4 class="font-semibold text-white text-lg mb-2">LED Strip</h4>
+                                    </div>
+                                    <div class="grid grid-cols-4 gap-3">
+                                        <button type="button" @click="config.leds.pin = -1" :class="config.leds?.pin === -1 ? 'bg-blue-600 text-white' : 'bg-green-600 text-white hover:bg-green-500 active:bg-green-700'"
+                                            class="h-12 rounded-lg text-sm font-semibold transition-all duration-200 transform active:scale-95 shadow-md">
+                                            OFF
+                                        </button>
+                                        <template x-for="pin in gpio.safePins.filter(p => p !== -1).sort((a,b) => a-b)" :key="'led-' + pin">
+                                            <button x-show="!usedGpioPins.has(pin) || config.leds?.pin === pin" type="button" @click="config.leds.pin = pin"
+                                                :class="config.leds?.pin === pin ? 'bg-blue-600 text-white' : 'bg-green-600 text-white hover:bg-green-500 active:bg-green-700'"
+                                                class="h-12 rounded-lg font-mono text-sm font-semibold transition-all duration-200 transform active:scale-95 shadow-md">
+                                                <div x-text="pin"></div>
+                                            </button>
+                                        </template>
+                                    </div>
+                                </div>
+
+                                <!-- Button 1 Card -->
+                                <div class="bg-gray-800 border border-gray-700 rounded-xl p-5 shadow-lg">
+                                    <div class="text-center mb-4">
+                                        <h4 class="font-semibold text-white text-lg mb-2">Button 1</h4>
+                                    </div>
+                                    <div class="grid grid-cols-4 gap-3">
+                                        <button type="button" @click="config.buttons.button1.gpio = -1" :class="config.buttons.button1?.gpio === -1 ? 'bg-blue-600 text-white' : 'bg-green-600 text-white hover:bg-green-500 active:bg-green-700'"
+                                            class="h-12 rounded-lg text-sm font-semibold transition-all duration-200 transform active:scale-95 shadow-md">
+                                            OFF
+                                        </button>
+                                        <template x-for="pin in gpio.safePins.filter(p => p !== -1).sort((a,b) => a-b)" :key="'button1-' + pin">
+                                            <button x-show="!usedGpioPins.has(pin) || config.buttons.button1?.gpio === pin" type="button" @click="config.buttons.button1.gpio = pin"
+                                                :class="config.buttons.button1?.gpio === pin ? 'bg-blue-600 text-white' : 'bg-green-600 text-white hover:bg-green-500 active:bg-green-700'"
+                                                class="h-12 rounded-lg font-mono text-sm font-semibold transition-all duration-200 transform active:scale-95 shadow-md">
+                                                <div x-text="pin"></div>
+                                            </button>
+                                        </template>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Button 2 Card -->
+                                <div class="bg-gray-800 border border-gray-700 rounded-xl p-5 shadow-lg">
+                                    <div class="text-center mb-4">
+                                        <h4 class="font-semibold text-white text-lg mb-2">Button 2</h4>
+                                    </div>
+                                    <div class="grid grid-cols-4 gap-3">
+                                        <button type="button" @click="config.buttons.button2.gpio = -1" :class="config.buttons.button2?.gpio === -1 ? 'bg-blue-600 text-white' : 'bg-green-600 text-white hover:bg-green-500 active:bg-green-700'"
+                                            class="h-12 rounded-lg text-sm font-semibold transition-all duration-200 transform active:scale-95 shadow-md">
+                                            OFF
+                                        </button>
+                                        <template x-for="pin in gpio.safePins.filter(p => p !== -1).sort((a,b) => a-b)" :key="'button2-' + pin">
+                                            <button x-show="!usedGpioPins.has(pin) || config.buttons.button2?.gpio === pin" type="button" @click="config.buttons.button2.gpio = pin"
+                                                :class="config.buttons.button2?.gpio === pin ? 'bg-blue-600 text-white' : 'bg-green-600 text-white hover:bg-green-500 active:bg-green-700'"
+                                                class="h-12 rounded-lg font-mono text-sm font-semibold transition-all duration-200 transform active:scale-95 shadow-md">
+                                                <div x-text="pin"></div>
+                                            </button>
+                                        </template>
+                                    </div>
+                                </div>
+
+                                <!-- Button 3 Card -->
+                                <div class="bg-gray-800 border border-gray-700 rounded-xl p-5 shadow-lg">
+                                    <div class="text-center mb-4">
+                                        <h4 class="font-semibold text-white text-lg mb-2">Button 3</h4>
+                                    </div>
+                                    <div class="grid grid-cols-4 gap-3">
+                                        <button type="button" @click="config.buttons.button3.gpio = -1" :class="config.buttons.button3?.gpio === -1 ? 'bg-blue-600 text-white' : 'bg-green-600 text-white hover:bg-green-500 active:bg-green-700'"
+                                            class="h-12 rounded-lg text-sm font-semibold transition-all duration-200 transform active:scale-95 shadow-md">
+                                            OFF
+                                        </button>
+                                        <template x-for="pin in gpio.safePins.filter(p => p !== -1).sort((a,b) => a-b)" :key="'button3-' + pin">
+                                            <button x-show="!usedGpioPins.has(pin) || config.buttons.button3?.gpio === pin" type="button" @click="config.buttons.button3.gpio = pin"
+                                                :class="config.buttons.button3?.gpio === pin ? 'bg-blue-600 text-white' : 'bg-green-600 text-white hover:bg-green-500 active:bg-green-700'"
+                                                class="h-12 rounded-lg font-mono text-sm font-semibold transition-all duration-200 transform active:scale-95 shadow-md">
+                                                <div x-text="pin"></div>
+                                            </button>
+                                        </template>
+                                    </div>
+                                </div>
+
+                                <!-- Button 4 Card -->
+                                <div class="bg-gray-800 border border-gray-700 rounded-xl p-5 shadow-lg">
+                                    <div class="text-center mb-4">
+                                        <h4 class="font-semibold text-white text-lg mb-2">Button 4</h4>
+                                    </div>
+                                    <div class="grid grid-cols-4 gap-3">
+                                        <button type="button" @click="config.buttons.button4.gpio = -1" :class="config.buttons.button4?.gpio === -1 ? 'bg-blue-600 text-white' : 'bg-green-600 text-white hover:bg-green-500 active:bg-green-700'"
+                                            class="h-12 rounded-lg text-sm font-semibold transition-all duration-200 transform active:scale-95 shadow-md">
+                                            OFF
+                                        </button>
+                                        <template x-for="pin in gpio.safePins.filter(p => p !== -1).sort((a,b) => a-b)" :key="'button4-' + pin">
+                                            <button x-show="!usedGpioPins.has(pin) || config.buttons.button4?.gpio === pin" type="button" @click="config.buttons.button4.gpio = pin"
+                                                :class="config.buttons.button4?.gpio === pin ? 'bg-blue-600 text-white' : 'bg-green-600 text-white hover:bg-green-500 active:bg-green-700'"
+                                                class="h-12 rounded-lg font-mono text-sm font-semibold transition-all duration-200 transform active:scale-95 shadow-md">
+                                                <div x-text="pin"></div>
+                                            </button>
+                                        </template>
+                                    </div>
+                                </div>
+                        </div>
                     </div>
                 </div>
 
