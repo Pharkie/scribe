@@ -130,7 +130,7 @@
                             <label for="wifi-ssid" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                                 WiFi Network (SSID)
                             </label>
-                            <div class="flex gap-3">
+                            <div class="flex flex-col sm:flex-row gap-3">
                                 <select id="wifi-ssid" required :disabled="scanning"
                                     class="flex-1 p-3 rounded-xl border border-gray-200 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-transparent text-gray-800 dark:text-gray-100 bg-white dark:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
                                     x-model="config.device.wifi.ssid">
@@ -139,13 +139,12 @@
                                         <option :value="network.ssid">
                                             <span x-text="network.ssid"></span>
                                             <span x-text="network.signal_strength ? ` (${network.signal_strength})` : ''"></span>
-                                            <span x-text="network.encryption === 'open' ? ' [Open]' : ' [Secured]'"></span>
                                         </option>
                                     </template>
                                     <option value="__manual__">Enter network name manually...</option>
                                 </select>
                                 <button type="button" @click="scanWiFi" :disabled="scanning"
-                                    class="px-4 py-3 bg-blue-500 hover:bg-blue-600 disabled:bg-gray-400 text-white rounded-xl transition-colors flex items-center text-sm whitespace-nowrap">
+                                    class="px-4 py-3 bg-blue-500 hover:bg-blue-600 disabled:bg-gray-400 text-white rounded-xl transition-colors flex items-center justify-center text-sm whitespace-nowrap">
                                     <svg x-show="!scanning" class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
                                     </svg>
