@@ -312,24 +312,23 @@
       async saveConfiguration() {
         this.saving = true;
         try {
-          const cleanConfig = {
-            device: {
-              owner: this.config.device.owner,
-              timezone: this.config.device.timezone,
-              printerTxPin: this.config.device.printerTxPin
-            },
-            buttons: {
-              button1: this.config.buttons.button1,
-              button2: this.config.buttons.button2,
-              button3: this.config.buttons.button3,
-              button4: this.config.buttons.button4
-            },
-            leds: {
-              pin: this.config.leds.pin
-            }
+          const fullConfig = await window.SettingsAPI.loadConfiguration();
+          fullConfig.device = {
+            owner: this.config.device.owner,
+            timezone: this.config.device.timezone,
+            printerTxPin: this.config.device.printerTxPin
           };
-          console.log("Saving device configuration:", cleanConfig);
-          const message = await window.SettingsAPI.saveConfiguration(cleanConfig);
+          fullConfig.buttons = {
+            button1: this.config.buttons.button1,
+            button2: this.config.buttons.button2,
+            button3: this.config.buttons.button3,
+            button4: this.config.buttons.button4
+          };
+          fullConfig.leds = {
+            pin: this.config.leds.pin
+          };
+          console.log("Saving complete configuration with device updates:", fullConfig);
+          const message = await window.SettingsAPI.saveConfiguration(fullConfig);
           console.log("Alpine Device Store: Configuration saved successfully");
           window.location.href = "/settings.html";
         } catch (error) {
