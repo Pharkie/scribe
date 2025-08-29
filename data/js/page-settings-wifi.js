@@ -237,13 +237,13 @@
         }
         const selectedSSID = this.wifiScan.mode === "manual" ? this.wifiScan.manualSSID : this.wifiScan.selectedNetwork;
         const hasValidSSID = selectedSSID && selectedSSID.trim() !== "";
+        let formValid = false;
         if (this.wifiScan.mode === "scan") {
-          return hasValidSSID && this.wifiScan.selectedNetwork;
+          formValid = hasValidSSID && this.wifiScan.selectedNetwork;
+        } else if (this.wifiScan.mode === "manual") {
+          formValid = hasValidSSID;
         }
-        if (this.wifiScan.mode === "manual") {
-          return hasValidSSID;
-        }
-        return false;
+        return formValid && this.hasChanges();
       },
       // Configuration data (reactive) - WiFi section
       config: {
@@ -459,10 +459,6 @@
         this.updateSSID();
         if (!this.validateConfiguration()) {
           this.showErrorMessage("Please fix the errors before saving");
-          return;
-        }
-        if (!this.hasChanges()) {
-          this.showErrorMessage("No changes to save");
           return;
         }
         this.saving = true;

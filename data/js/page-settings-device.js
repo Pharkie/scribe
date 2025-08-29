@@ -225,6 +225,8 @@
       error: null,
       saving: false,
       initialized: false,
+      // Original configuration for change detection
+      originalConfig: null,
       // GPIO information from backend
       gpio: {
         availablePins: [],
@@ -260,6 +262,7 @@
         this.loading = true;
         try {
           const serverConfig = await window.SettingsAPI.loadConfiguration();
+          this.originalConfig = JSON.parse(JSON.stringify(serverConfig));
           this.mergeDeviceConfig(serverConfig);
           console.log("Alpine Device Store: Configuration loaded successfully");
         } catch (error) {
@@ -310,6 +313,43 @@
         }
         console.log("\u2705 Device config merge complete:", this.config);
       },
+      // Check if configuration has meaningful changes
+      hasChanges() {
+        var _a, _b, _c, _d, _e, _f;
+        if (!this.originalConfig) {
+          return false;
+        }
+        const original = this.originalConfig;
+        if (this.config.device.owner !== (((_a = original.device) == null ? void 0 : _a.owner) || "")) {
+          return true;
+        }
+        if (this.config.device.timezone !== (((_b = original.device) == null ? void 0 : _b.timezone) || "")) {
+          return true;
+        }
+        if (this.config.device.printerTxPin !== ((_c = original.device) == null ? void 0 : _c.printerTxPin)) {
+          return true;
+        }
+        for (const buttonKey of ["button1", "button2", "button3", "button4"]) {
+          const currentGpio = this.config.buttons[buttonKey].gpio;
+          const originalGpio = ((_e = (_d = original.buttons) == null ? void 0 : _d[buttonKey]) == null ? void 0 : _e.gpio) || null;
+          if (currentGpio !== originalGpio) {
+            return true;
+          }
+        }
+        if (this.config.leds.enabled) {
+          if (this.config.leds.pin !== (((_f = original.leds) == null ? void 0 : _f.pin) || null)) {
+            return true;
+          }
+        }
+        return false;
+      },
+      // Computed property to check if save should be enabled
+      get canSave() {
+        if (this.loading || this.saving || this.error) {
+          return false;
+        }
+        return this.hasChanges();
+      },
       // Save device configuration via API
       async saveConfiguration() {
         this.saving = true;
@@ -344,7 +384,7 @@
       },
       // Cancel configuration changes
       cancelConfiguration() {
-        window.location.href = "/";
+        window.location.href = "/settings.html";
       },
       // ================== GPIO MANAGEMENT ==================
       // Get what each GPIO pin is assigned to (reactive getter)
