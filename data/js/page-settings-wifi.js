@@ -243,7 +243,11 @@
         } else if (this.wifiScan.mode === "manual") {
           formValid = hasValidSSID;
         }
-        return formValid && this.hasChanges();
+        if (!formValid) return false;
+        if (this.passwordsModified.wifiPassword && (!this.config.device.wifi.password || this.config.device.wifi.password.trim() === "")) {
+          return false;
+        }
+        return this.hasChanges();
       },
       // Configuration data (reactive) - WiFi section
       config: {
@@ -265,6 +269,10 @@
       },
       originalMaskedValues: {
         wifiPassword: ""
+      },
+      // Store original config to detect changes
+      originalConfig: {
+        connectTimeout: null
       },
       // WiFi network scanning state using Alpine reactive patterns
       wifiScan: {
@@ -356,6 +364,7 @@
       // Initialize password tracking
       initializePasswordTracking() {
         this.originalMaskedValues.wifiPassword = this.config.device.wifi.password || "";
+        this.originalConfig.connectTimeout = this.config.device.wifi.connect_timeout || 15e3;
       },
       // Track password modifications (called from templates)
       trackWifiPasswordChange(newValue) {
@@ -423,6 +432,27 @@
           delete this.validation.errors["wifi.ssid"];
         }
       },
+      // Validate password field specifically (called from UI)
+      validatePassword(value) {
+        if (this.passwordsModified.wifiPassword && (!value || value.trim() === "")) {
+          this.validation.errors["wifi.password"] = "Password cannot be blank";
+        } else {
+          if (this.validation.errors["wifi.password"]) {
+            delete this.validation.errors["wifi.password"];
+          }
+        }
+      },
+      // Validate timeout field specifically (called from UI)
+      validateTimeout(value) {
+        const timeoutSeconds = parseInt(value);
+        if (isNaN(timeoutSeconds) || timeoutSeconds < 5 || timeoutSeconds > 60) {
+          this.validation.errors["wifi.connect_timeout"] = "Timeout must be between 5-60 seconds";
+        } else {
+          if (this.validation.errors["wifi.connect_timeout"]) {
+            delete this.validation.errors["wifi.connect_timeout"];
+          }
+        }
+      },
       // Validate current configuration
       validateConfiguration() {
         const errors = {};
@@ -451,7 +481,14 @@
         if (this.passwordsModified.wifiPassword) {
           return true;
         }
-        const currentTimeoutSeconds = Math.floor(this.config.device.wifi.connect_timeout / 1e3);
+        const currentTimeout = this.config.device.wifi.connect_timeout || 15e3;
+        const originalTimeout = this.originalConfig.connectTimeout || 15e3;
+        if (currentTimeout !== originalTimeout) {
+          const timeoutSeconds = Math.floor(currentTimeout / 1e3);
+          if (timeoutSeconds >= 5 && timeoutSeconds <= 60) {
+            return true;
+          }
+        }
         return false;
       },
       // Save WiFi configuration via API
@@ -464,15 +501,13 @@
         this.saving = true;
         try {
           const partialConfig = {
-            device: {
-              wifi: {
-                ssid: this.config.device.wifi.ssid,
-                connect_timeout: this.config.device.wifi.connect_timeout
-              }
+            wifi: {
+              ssid: this.config.device.wifi.ssid,
+              connect_timeout: this.config.device.wifi.connect_timeout
             }
           };
           if (this.passwordsModified.wifiPassword) {
-            partialConfig.device.wifi.password = this.config.device.wifi.password;
+            partialConfig.wifi.password = this.config.device.wifi.password;
           }
           console.log("Saving partial WiFi configuration:", partialConfig);
           const message = await window.SettingsAPI.saveConfiguration(partialConfig);

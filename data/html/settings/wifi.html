@@ -147,7 +147,7 @@
                                             <template x-for="network in wifiScan.sortedNetworks" :key="network.uniqueKey">
                                                 <label class="flex items-center p-3 border border-gray-200 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer">
                                                     <input type="radio" :value="network.ssid" x-model="wifiScan.selectedNetwork" 
-                                                        @change="config.device.wifi.password = ''; passwordsModified.wifiPassword = false;"
+                                                        @change="config.device.wifi.password = ''; passwordsModified.wifiPassword = true;"
                                                         class="mr-3 text-green-600 focus:ring-green-500">
                                                     <div class="flex-1">
                                                         <div class="flex items-center justify-between">
@@ -192,7 +192,7 @@
                                             placeholder="Enter WiFi network name"
                                             class="w-full p-3 rounded-xl border border-gray-200 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-transparent text-gray-800 dark:text-gray-100 bg-white dark:bg-gray-700" 
                                             x-model="wifiScan.manualSSID"
-                                            @input="config.device.wifi.password = ''; passwordsModified.wifiPassword = false;"
+                                            @input="config.device.wifi.password = ''; passwordsModified.wifiPassword = true;"
                                         >
                                     </div>
                                     <!-- Validation Error Display -->
@@ -212,6 +212,7 @@
                                             class="w-full p-3 pr-10 rounded-xl border border-gray-200 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-transparent text-gray-800 dark:text-gray-100 bg-white dark:bg-gray-700"
                                             x-model="config.device.wifi.password"
                                             @input="trackWifiPasswordChange($event.target.value)"
+                                            @blur="validatePassword($event.target.value)"
                                             placeholder="Enter WiFi password"
                                             data-password-field
                                         >
@@ -228,6 +229,7 @@
                                             </svg>
                                         </button>
                                     </div>
+                                    <p x-show="validation.errors['wifi.password']" class="text-xs text-red-600 dark:text-red-400" x-text="validation.errors['wifi.password']"></p>
                                 </div>
                                 
                                 <!-- Connection Timeout -->
@@ -240,6 +242,7 @@
                                         class="w-full p-3 rounded-xl border border-gray-200 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-transparent text-gray-800 dark:text-gray-100 bg-white dark:bg-gray-700"
                                         :value="Math.floor(config.device.wifi.connect_timeout / 1000)"
                                         @input="config.device.wifi.connect_timeout = parseInt($el.value) * 1000"
+                                        @blur="validateTimeout($el.value)"
                                     >
                                     <p x-show="validation.errors['wifi.connect_timeout']" class="text-xs text-red-600 dark:text-red-400" x-text="validation.errors['wifi.connect_timeout']"></p>
                                     <p x-show="!validation.errors['wifi.connect_timeout']" class="text-xs text-gray-500 dark:text-gray-400">
