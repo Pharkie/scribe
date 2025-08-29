@@ -312,6 +312,16 @@
           }
         }
       },
+      // Validate MQTT password field
+      validatePassword(value) {
+        if (this.config.mqtt.enabled && (!value || value.trim() === "")) {
+          this.validation.errors["mqtt.password"] = "Password cannot be blank when MQTT enabled";
+        } else {
+          if (this.validation.errors["mqtt.password"]) {
+            delete this.validation.errors["mqtt.password"];
+          }
+        }
+      },
       // Validate current MQTT configuration
       validateConfiguration() {
         const errors = {};
@@ -325,6 +335,9 @@
           }
           if (!this.config.mqtt.username || this.config.mqtt.username.trim() === "") {
             errors["mqtt.username"] = "Username cannot be blank when MQTT enabled";
+          }
+          if (!this.config.mqtt.password || this.config.mqtt.password.trim() === "") {
+            errors["mqtt.password"] = "Password cannot be blank when MQTT enabled";
           }
         }
         this.validation.errors = errors;
