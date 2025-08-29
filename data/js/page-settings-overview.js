@@ -6,6 +6,7 @@
       // Success feedback states
       deviceSaved: false,
       wifiSaved: false,
+      mqttSaved: false,
       loading: true,
       error: null,
       // ================== INITIALIZATION ==================
@@ -31,6 +32,13 @@
           this.wifiSaved = true;
           setTimeout(() => {
             this.wifiSaved = false;
+          }, 2e3);
+        } else if (saved === "mqtt") {
+          const cleanUrl = window.location.pathname;
+          window.history.replaceState({}, document.title, cleanUrl);
+          this.mqttSaved = true;
+          setTimeout(() => {
+            this.mqttSaved = false;
           }, 2e3);
         }
       }
