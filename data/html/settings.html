@@ -76,19 +76,35 @@
             </a>
 
             <!-- WiFi Settings -->
-            <div class="bg-gray-800 rounded-lg p-6 opacity-50 cursor-not-allowed">
+            <a href="/settings/wifi.html" class="rounded-lg p-6 transition-all duration-300 group"
+               :class="wifiSaved ? 'bg-green-600 hover:bg-green-500' : 'bg-gray-800 hover:bg-gray-700'">
                 <div class="flex items-center space-x-4">
-                    <div class="flex-shrink-0">
-                        <svg class="w-8 h-8 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <div class="flex-shrink-0 relative">
+                        <!-- Success checkmark icon -->
+                        <svg class="w-8 h-8 text-white absolute inset-0 transition-all duration-300" 
+                             :class="wifiSaved ? 'opacity-100 scale-100' : 'opacity-0 scale-95'" 
+                             fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                        </svg>
+                        <!-- Default WiFi icon -->
+                        <svg class="w-8 h-8 transition-all duration-300" 
+                             :class="wifiSaved ? 'opacity-0 scale-95 text-green-400' : 'opacity-100 scale-100 text-green-400 group-hover:text-green-300'" 
+                             fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.111 16.404a5.5 5.5 0 017.778 0M12 20h.01m-7.08-7.071c3.904-3.905 10.236-3.905 14.141 0M1.394 9.393c5.857-5.857 15.355-5.857 21.213 0"></path>
                         </svg>
                     </div>
                     <div>
-                        <h3 class="text-lg font-semibold text-gray-500">WiFi</h3>
-                        <p class="text-sm text-gray-500">Network configuration (coming soon)</p>
+                        <h3 class="text-lg font-semibold transition-colors duration-300"
+                            :class="wifiSaved ? 'text-white' : 'text-white group-hover:text-green-300'"
+                            x-text="wifiSaved ? 'Settings Saved' : 'WiFi'">
+                        </h3>
+                        <p class="text-sm transition-colors duration-300"
+                           :class="wifiSaved ? 'text-green-100' : 'text-gray-400'">
+                            Network configuration and scanning
+                        </p>
                     </div>
                 </div>
-            </div>
+            </a>
 
             <!-- MQTT Settings -->
             <div class="bg-gray-800 rounded-lg p-6 opacity-50 cursor-not-allowed">
@@ -176,6 +192,7 @@
         function settingsOverview() {
             return {
                 deviceSaved: false,
+                wifiSaved: false,
 
                 // Initialize component
                 init() {
@@ -198,6 +215,18 @@
                         // Fade back to normal after 2 seconds
                         setTimeout(() => {
                             this.deviceSaved = false;
+                        }, 2000);
+                    } else if (saved === 'wifi') {
+                        // Clean URL without reload
+                        const cleanUrl = window.location.pathname;
+                        window.history.replaceState({}, document.title, cleanUrl);
+                        
+                        // Show success feedback
+                        this.wifiSaved = true;
+                        
+                        // Fade back to normal after 2 seconds
+                        setTimeout(() => {
+                            this.wifiSaved = false;
                         }, 2000);
                     }
                 }
