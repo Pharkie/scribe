@@ -17,13 +17,13 @@
     <!-- Alpine.js (load last) -->
     <script defer src="/js/alpine.min.js"></script>
 </head>
-<body class="flex flex-col min-h-screen justify-between py-8 px-4 font-sans bg-gray-50 dark:bg-gray-900 transition-colors duration-200" x-data="$store.settingsOverview">
+<body class="flex flex-col min-h-screen justify-between py-8 px-4 font-sans bg-gray-50 dark:bg-gray-900 transition-colors duration-200" x-data="window.settingsOverviewStoreInstance" x-init="init()">
     <main class="w-full max-w-4xl mx-auto flex-1">
         <!-- Header with title and back button -->
         <header class="w-full max-w-6xl mx-auto flex items-center mb-6 gap-4">
-            <!-- Back button spacer -->
-            <div class="flex-1">
-                <a href="/" class="flex items-center space-x-1 px-2 py-1.5 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-600 rounded-full transition-all duration-200 hover:scale-105 hover:shadow-md">
+            <!-- Back button -->
+            <div class="flex-1 flex justify-start">
+                <a href="/" class="inline-flex items-center space-x-1 px-2 py-1.5 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-600 rounded-full transition-all duration-200 hover:scale-105 hover:shadow-md">
                     <svg class="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
                     </svg>
@@ -47,8 +47,21 @@
         </header>
         
 
-        <!-- Settings Grid -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <!-- Main Content - use x-if to prevent evaluation when loading -->
+        <template x-if="!loading && !error">
+            <div x-data="{ 
+                ready: false, 
+                init() {
+                    this.$nextTick(() => {
+                        // Use requestAnimationFrame for smooth animation timing
+                        requestAnimationFrame(() => {
+                            this.ready = true;
+                        });
+                    });
+                }
+            }" x-show="ready" x-transition:enter="transition ease-out duration-300 transform" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100">
+                <!-- Settings Grid -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             
             <!-- Device Settings -->
             <a href="/settings/device.html" class="rounded-lg p-6 transition-all duration-300 group shadow-lg"
@@ -96,7 +109,7 @@
                         <svg class="w-8 h-8 transition-all duration-300" 
                              :class="wifiSaved ? 'opacity-0 scale-95 text-green-400' : 'opacity-100 scale-100 text-green-500 dark:text-green-400 group-hover:text-green-600 dark:group-hover:text-green-300'" 
                              fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.111 16.404a5.5 5.5 0 0 1 7.778 0M12 20h.01m-7.08-7.071c3.904-3.905 10.236-3.905 14.141 0M1.394 9.393c5.857-5.857 15.355-5.857 21.213 0"></path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.111 16.404a5.5 5.5 0 017.778 0M12 20h.01m-7.08-7.071c3.904-3.905 10.236-3.905 14.141 0M1.394 9.393c5.857-5.857 15.355-5.857 21.213 0"></path>
                         </svg>
                     </div>
                     <div>
@@ -172,24 +185,26 @@
                 </div>
             </div>
 
-        </div>
+                </div>
 
-        <!-- System Actions -->
-        <div class="mt-12 md:mt-10">
-            <h3 class="text-lg font-semibold text-gray-700 dark:text-gray-300 mb-4 text-center">System Actions</h3>
-            <div class="flex flex-wrap justify-center gap-4">
-                <button class="bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-900 dark:text-gray-100 font-medium py-2 px-4 rounded-lg transition-colors duration-200 opacity-50 cursor-not-allowed">
-                    Restart Device
-                </button>
-                <button class="bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-900 dark:text-gray-100 font-medium py-2 px-4 rounded-lg transition-colors duration-200 opacity-50 cursor-not-allowed">
-                    Factory Reset
-                </button>
-                <button class="bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-900 dark:text-gray-100 font-medium py-2 px-4 rounded-lg transition-colors duration-200 opacity-50 cursor-not-allowed">
-                    Clear NVS Storage
-                </button>
+                <!-- System Actions -->
+                <div class="mt-12 md:mt-10">
+                    <h3 class="text-lg font-semibold text-gray-700 dark:text-gray-300 mb-4 text-center">System Actions</h3>
+                    <div class="flex flex-wrap justify-center gap-4">
+                        <button class="bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-900 dark:text-gray-100 font-medium py-2 px-4 rounded-lg transition-colors duration-200 opacity-50 cursor-not-allowed">
+                            Restart Device
+                        </button>
+                        <button class="bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-900 dark:text-gray-100 font-medium py-2 px-4 rounded-lg transition-colors duration-200 opacity-50 cursor-not-allowed">
+                            Factory Reset
+                        </button>
+                        <button class="bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-900 dark:text-gray-100 font-medium py-2 px-4 rounded-lg transition-colors duration-200 opacity-50 cursor-not-allowed">
+                            Clear NVS Storage
+                        </button>
+                    </div>
+                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-3 text-center">System actions coming soon</p>
+                </div>
             </div>
-            <p class="text-xs text-gray-500 dark:text-gray-400 mt-3 text-center">System actions coming soon</p>
-        </div>
+        </template>
 
     </main>
 

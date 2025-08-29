@@ -495,7 +495,18 @@ http://192.168.4.1
 This memo printed from Settings \u2192 WiFi`
             }
           };
-          await window.SettingsAPI.submitPrintRequest(printRequest);
+          const content = `WiFi Fallback AP
+                
+Network: ${fallbackSSID}
+Password: ${fallbackPassword}
+
+Connect to this network if device WiFi fails.
+
+Device will be available at:
+http://192.168.4.1
+
+This memo printed from Settings \u2192 WiFi`;
+          await window.SettingsAPI.printLocalContent(content);
           console.log("AP details print request submitted successfully");
           setTimeout(() => {
             this.apPrintStatus = "normal";
