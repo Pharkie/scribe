@@ -156,18 +156,6 @@
                             </button>
                         </div>
 
-                        <!-- Test failure message only -->
-                        <div x-show="mqttTestResult && !mqttTestResult.success" x-transition class="mt-4">
-                            <div class="p-4 rounded-xl border bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800">
-                                <div class="flex items-start space-x-3">
-                                    <span class="text-xl">❌</span>
-                                    <div>
-                                        <h4 class="font-medium text-red-800 dark:text-red-200">Connection Failed</h4>
-                                        <p class="text-sm mt-1 text-red-600 dark:text-red-300" x-text="mqttTestResult?.message"></p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
                         
                     </div> <!-- End MQTT Configuration -->
                 </div>

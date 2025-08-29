@@ -263,6 +263,8 @@
           return "Testing...";
         } else if (this.mqttTestPassed) {
           return "MQTT Connected";
+        } else if (this.mqttTestResult && !this.mqttTestResult.success) {
+          return "Connection Failed";
         } else {
           return "Test Connection";
         }
