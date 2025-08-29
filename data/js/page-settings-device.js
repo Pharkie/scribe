@@ -251,6 +251,10 @@
           pin: null
         }
       },
+      // Validation state
+      validation: {
+        errors: {}
+      },
       // ================== DEVICE CONFIGURATION API ==================
       // Initialize store with data from server
       async init() {
@@ -313,6 +317,26 @@
         }
         console.log("\u2705 Device config merge complete:", this.config);
       },
+      // Validate device owner field specifically (called from UI)
+      validateDeviceOwner(value) {
+        if (!value || value.trim() === "") {
+          this.validation.errors["device.owner"] = "Device owner cannot be blank";
+        } else {
+          if (this.validation.errors["device.owner"]) {
+            delete this.validation.errors["device.owner"];
+          }
+        }
+      },
+      // Validate timezone field specifically (called from UI)
+      validateTimezone(value) {
+        if (!value || value.trim() === "") {
+          this.validation.errors["device.timezone"] = "Timezone cannot be blank";
+        } else {
+          if (this.validation.errors["device.timezone"]) {
+            delete this.validation.errors["device.timezone"];
+          }
+        }
+      },
       // Check if configuration has meaningful changes
       hasChanges() {
         var _a, _b, _c, _d, _e, _f;
@@ -346,6 +370,12 @@
       // Computed property to check if save should be enabled
       get canSave() {
         if (this.loading || this.saving || this.error) {
+          return false;
+        }
+        if (!this.config.device.owner || this.config.device.owner.trim() === "") {
+          return false;
+        }
+        if (!this.config.device.timezone || this.config.device.timezone.trim() === "") {
           return false;
         }
         return this.hasChanges();
