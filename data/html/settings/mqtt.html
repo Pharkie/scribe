@@ -110,7 +110,10 @@
                             <label for="mqtt-server" class="block text-sm font-medium text-gray-700 dark:text-gray-300">MQTT Server:</label>
                             <input id="mqtt-server" type="text" placeholder="Enter MQTT broker address (e.g., broker.hivemq.com)"
                                 class="block w-full px-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-xl text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-yellow-500 focus:border-transparent transition-all duration-200" 
-                                x-model="config.mqtt.server">
+                                x-model="config.mqtt.server"
+                                @input="resetMqttTestState()"
+                                @blur="validateServer($event.target.value)">
+                            <p x-show="validation.errors['mqtt.server']" class="text-xs text-red-600 dark:text-red-400" x-text="validation.errors['mqtt.server']"></p>
                         </div>
 
                         <!-- Username, Password, Port - Three columns on desktop -->
@@ -119,20 +122,26 @@
                                 <label for="mqtt-username" class="block text-sm font-medium text-gray-700 dark:text-gray-300">MQTT Username:</label>
                                 <input id="mqtt-username" type="text" placeholder="Optional MQTT username"
                                     class="block w-full px-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-xl text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-yellow-500 focus:border-transparent transition-all duration-200" 
-                                    x-model="config.mqtt.username">
+                                    x-model="config.mqtt.username"
+                                    @input="resetMqttTestState()"
+                                    @blur="validateUsername($event.target.value)">
+                                <p x-show="validation.errors['mqtt.username']" class="text-xs text-red-600 dark:text-red-400" x-text="validation.errors['mqtt.username']"></p>
                             </div>
                             <div class="space-y-2">
                                 <label for="mqtt-password" class="block text-sm font-medium text-gray-700 dark:text-gray-300">MQTT Password:</label>
                                 <input type="password" id="mqtt-password" placeholder="Optional MQTT password"
                                     class="block w-full px-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-xl text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-yellow-500 focus:border-transparent transition-all duration-200" 
                                     x-model="config.mqtt.password"
-                                    @input="trackMqttPasswordChange($event.target.value)">
+                                    @input="trackMqttPasswordChange($event.target.value); resetMqttTestState()">
                             </div>
                             <div class="space-y-2">
                                 <label for="mqtt-port" class="block text-sm font-medium text-gray-700 dark:text-gray-300">MQTT Port:</label>
                                 <input type="number" id="mqtt-port" min="1" max="65535" placeholder="1883"
                                     class="block w-full px-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-xl text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-yellow-500 focus:border-transparent transition-all duration-200"
-                                    x-model.number="config.mqtt.port">
+                                    x-model.number="config.mqtt.port"
+                                    @input="resetMqttTestState()"
+                                    @blur="validatePort($event.target.value)">
+                                <p x-show="validation.errors['mqtt.port']" class="text-xs text-red-600 dark:text-red-400" x-text="validation.errors['mqtt.port']"></p>
                             </div>
                         </div>
 
@@ -140,26 +149,21 @@
                         <div class="flex justify-center">
                             <button type="button" 
                                     class="px-6 py-3 bg-yellow-100 hover:bg-yellow-200 dark:bg-yellow-900/30 dark:hover:bg-yellow-900/40 text-yellow-800 dark:text-yellow-200 border border-yellow-300 dark:border-yellow-700 rounded-xl font-medium transition-all duration-200 hover:scale-105 hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
-                                    :disabled="mqttTesting || !config.mqtt.server || !config.mqtt.port"
+                                    :disabled="mqttTesting || !config.mqtt.server || !config.mqtt.port || !hasChanges()"
                                     @click="testMqttConnection()"
-                                    x-text="mqttTesting ? 'Testing...' : 'Test Connection'">
+                                    x-text="testButtonLabel">
                                 Test Connection
                             </button>
                         </div>
 
-                        <!-- Test Results -->
-                        <div x-show="mqttTestResult" x-transition class="mt-4">
-                            <div class="p-4 rounded-xl border"
-                                 :class="mqttTestResult?.success ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800' : 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800'">
+                        <!-- Test failure message only -->
+                        <div x-show="mqttTestResult && !mqttTestResult.success" x-transition class="mt-4">
+                            <div class="p-4 rounded-xl border bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800">
                                 <div class="flex items-start space-x-3">
-                                    <span class="text-xl" x-text="mqttTestResult?.success ? '✅' : '❌'"></span>
+                                    <span class="text-xl">❌</span>
                                     <div>
-                                        <h4 class="font-medium" 
-                                            :class="mqttTestResult?.success ? 'text-green-800 dark:text-green-200' : 'text-red-800 dark:text-red-200'"
-                                            x-text="mqttTestResult?.success ? 'Connection Successful' : 'Connection Failed'"></h4>
-                                        <p class="text-sm mt-1" 
-                                           :class="mqttTestResult?.success ? 'text-green-600 dark:text-green-300' : 'text-red-600 dark:text-red-300'"
-                                           x-text="mqttTestResult?.message"></p>
+                                        <h4 class="font-medium text-red-800 dark:text-red-200">Connection Failed</h4>
+                                        <p class="text-sm mt-1 text-red-600 dark:text-red-300" x-text="mqttTestResult?.message"></p>
                                     </div>
                                 </div>
                             </div>

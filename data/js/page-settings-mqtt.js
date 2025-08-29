@@ -245,29 +245,94 @@
           password: null
         }
       },
+      // Validation state
+      validation: {
+        errors: {}
+      },
       // ================== COMPUTED PROPERTIES ==================
       get canSave() {
         if (this.config.mqtt.enabled) {
-          const hasServer = this.config.mqtt.server && this.config.mqtt.server.trim();
-          const hasPort = this.config.mqtt.port && this.config.mqtt.port > 0;
+          const isValid = this.validateConfiguration();
           const testPassed = this.mqttTestPassed;
-          return hasServer && hasPort && testPassed && this.hasChanges();
+          return isValid && testPassed && this.hasChanges();
         }
         return this.hasChanges();
+      },
+      get testButtonLabel() {
+        if (this.mqttTesting) {
+          return "Testing...";
+        } else if (this.mqttTestPassed) {
+          return "MQTT Connected";
+        } else {
+          return "Test Connection";
+        }
       },
       // ================== CHANGE DETECTION ==================
       hasChanges() {
         if (!this.originalConfig) return false;
         return this.config.mqtt.enabled !== this.originalConfig.mqtt.enabled || this.config.mqtt.server !== this.originalConfig.mqtt.server || this.config.mqtt.port !== this.originalConfig.mqtt.port || this.config.mqtt.username !== this.originalConfig.mqtt.username || this.mqttPasswordModified;
       },
+      // ================== VALIDATION ==================
+      // Validate MQTT server field
+      validateServer(value) {
+        if (this.config.mqtt.enabled && (!value || value.trim() === "")) {
+          this.validation.errors["mqtt.server"] = "MQTT server cannot be blank when enabled";
+        } else {
+          if (this.validation.errors["mqtt.server"]) {
+            delete this.validation.errors["mqtt.server"];
+          }
+        }
+      },
+      // Validate MQTT port field  
+      validatePort(value) {
+        if (this.config.mqtt.enabled) {
+          const port = parseInt(value);
+          if (isNaN(port) || port < 1 || port > 65535) {
+            this.validation.errors["mqtt.port"] = "Port must be between 1-65535";
+          } else {
+            if (this.validation.errors["mqtt.port"]) {
+              delete this.validation.errors["mqtt.port"];
+            }
+          }
+        } else {
+          if (this.validation.errors["mqtt.port"]) {
+            delete this.validation.errors["mqtt.port"];
+          }
+        }
+      },
+      // Validate MQTT username field
+      validateUsername(value) {
+        if (this.config.mqtt.enabled && (!value || value.trim() === "")) {
+          this.validation.errors["mqtt.username"] = "Username cannot be blank when MQTT enabled";
+        } else {
+          if (this.validation.errors["mqtt.username"]) {
+            delete this.validation.errors["mqtt.username"];
+          }
+        }
+      },
+      // Validate current MQTT configuration
+      validateConfiguration() {
+        const errors = {};
+        if (this.config.mqtt.enabled) {
+          if (!this.config.mqtt.server || this.config.mqtt.server.trim() === "") {
+            errors["mqtt.server"] = "MQTT server cannot be blank when enabled";
+          }
+          const port = parseInt(this.config.mqtt.port);
+          if (isNaN(port) || port < 1 || port > 65535) {
+            errors["mqtt.port"] = "Port must be between 1-65535";
+          }
+          if (!this.config.mqtt.username || this.config.mqtt.username.trim() === "") {
+            errors["mqtt.username"] = "Username cannot be blank when MQTT enabled";
+          }
+        }
+        this.validation.errors = errors;
+        return Object.keys(errors).length === 0;
+      },
       // ================== PASSWORD HANDLING ==================
       trackMqttPasswordChange(newValue) {
         const isMasked = newValue && newValue.includes("\u25CF");
         const hasChanged = newValue !== this.originalMaskedPassword;
         this.mqttPasswordModified = hasChanged && !isMasked;
-        if (this.mqttPasswordModified) {
-          this.resetMqttTestState();
-        }
       },
       // ================== MQTT TEST FUNCTIONALITY ==================
       async testMqttConnection() {
@@ -378,7 +443,6 @@
           });
           const result = await response.json();
           if (response.ok) {
-            window.showMessage("MQTT settings saved successfully!", "success");
             window.location.href = "/settings.html?saved=mqtt";
           } else {
             throw new Error(result.error || "Unknown error occurred");
@@ -407,18 +471,9 @@
     window.mqttStoreInstance = mqttStore;
     mqttStore.init();
     Alpine.effect(() => {
-      var _a, _b, _c, _d, _e, _f, _g, _h;
-      if (((_b = (_a = mqttStore.config) == null ? void 0 : _a.mqtt) == null ? void 0 : _b.server) || ((_d = (_c = mqttStore.config) == null ? void 0 : _c.mqtt) == null ? void 0 : _d.port) || ((_f = (_e = mqttStore.config) == null ? void 0 : _e.mqtt) == null ? void 0 : _f.username)) {
-        if (mqttStore.originalConfig) {
-          const hasServerChange = mqttStore.config.mqtt.server !== mqttStore.originalConfig.mqtt.server;
-          const hasPortChange = mqttStore.config.mqtt.port !== mqttStore.originalConfig.mqtt.port;
-          const hasUsernameChange = mqttStore.config.mqtt.username !== mqttStore.originalConfig.mqtt.username;
-          if (hasServerChange || hasPortChange || hasUsernameChange) {
-            mqttStore.resetMqttTestState();
-          }
-        }
-      }
-      if (((_h = (_g = mqttStore.config) == null ? void 0 : _g.mqtt) == null ? void 0 : _h.enabled) === false) {
+      var _a, _b;
+      if (((_b = (_a = mqttStore.config) == null ? void 0 : _a.mqtt) == null ? void 0 : _b.enabled) === false) {
+        mqttStore.validation.errors = {};
         mqttStore.resetMqttTestState();
       }
     });
