@@ -89,24 +89,24 @@
                                 <div class="flex border-b border-gray-200 dark:border-gray-600">
                                     <button type="button" @click="wifiScan.mode = 'scan'" 
                                         :class="{
-                                            'px-6 py-3 text-sm font-medium transition-all duration-200 border-b-2 focus:outline-none focus:ring-2 focus:ring-green-400 focus:ring-offset-2': true,
-                                            'text-green-600 dark:text-green-400 border-green-500 bg-green-50 dark:bg-green-900/10': wifiScan.mode === 'scan',
-                                            'text-gray-500 dark:text-gray-400 border-transparent hover:text-gray-700 dark:hover:text-gray-200 hover:border-gray-300 dark:hover:border-gray-500': wifiScan.mode !== 'scan'
+                                            'px-6 py-3 text-sm font-medium transition-all duration-200 border-b-2 focus:outline-none focus:ring-0 focus:ring-transparent': true,
+                                            'text-green-600 dark:text-green-400 border-green-500 dark:border-green-400 bg-white dark:bg-gray-800': wifiScan.mode === 'scan',
+                                            'text-gray-500 dark:text-gray-400 border-transparent bg-transparent hover:text-gray-700 dark:hover:text-gray-200 hover:border-gray-300 dark:hover:border-gray-500': wifiScan.mode !== 'scan'
                                         }">
                                         Scan Networks
                                     </button>
                                     <button type="button" @click="wifiScan.mode = 'manual'" 
                                         :class="{
-                                            'px-6 py-3 text-sm font-medium transition-all duration-200 border-b-2 focus:outline-none focus:ring-2 focus:ring-green-400 focus:ring-offset-2': true,
-                                            'text-green-600 dark:text-green-400 border-green-500 bg-green-50 dark:bg-green-900/10': wifiScan.mode === 'manual',
-                                            'text-gray-500 dark:text-gray-400 border-transparent hover:text-gray-700 dark:hover:text-gray-200 hover:border-gray-300 dark:hover:border-gray-500': wifiScan.mode !== 'manual'
+                                            'px-6 py-3 text-sm font-medium transition-all duration-200 border-b-2 focus:outline-none focus:ring-0 focus:ring-transparent': true,
+                                            'text-green-600 dark:text-green-400 border-green-500 dark:border-green-400 bg-white dark:bg-gray-800': wifiScan.mode === 'manual',
+                                            'text-gray-500 dark:text-gray-400 border-transparent bg-transparent hover:text-gray-700 dark:hover:text-gray-200 hover:border-gray-300 dark:hover:border-gray-500': wifiScan.mode !== 'manual'
                                         }">
                                         Manual Entry
                                     </button>
                                 </div>
                                 
                                 <!-- Content area with clear tab association -->
-                                <div class="border border-gray-200 dark:border-gray-600 border-t-0 rounded-b-lg bg-gray-50 dark:bg-gray-800/30 p-4">
+                                <div class="border border-gray-200 dark:border-gray-600 border-t-0 rounded-b-lg bg-white dark:bg-gray-800 p-4">
                                     <!-- Tab content: changes by mode -->
                                     <div class="min-h-[120px]">
                                 <!-- Scan mode -->
@@ -304,28 +304,30 @@
                         </div>
                     </div>
 
-                    <!-- WiFi Warning & Fallback Info -->
-                    <div class="bg-white dark:bg-gray-800 shadow-lg hover:shadow-xl rounded-2xl p-6 border-t-3 border-yellow-500 transition-shadow duration-200">
-                        <h2 class="text-2xl font-bold mb-6 text-yellow-600 dark:text-yellow-400">WiFi changes restart device</h2>
-                        
+                    <!-- WiFi Warning Banner -->
+                    <div class="bg-yellow-50 dark:bg-yellow-900/20 border-l-4 border-yellow-400 p-4 mb-6">
                         <div class="flex items-center justify-between">
-                            <div>
-                                <p class="font-medium text-gray-700 dark:text-gray-300 mb-2">Fallback WiFi details (AP):</p>
-                                <div class="text-sm space-x-3">
-                                    <span class="font-mono font-bold text-gray-900 dark:text-gray-200" x-text="config?.device?.wifi?.fallback_ap_ssid || 'Scribe-setup'"></span>
-                                    <span class="text-gray-600 dark:text-gray-400">/</span>
-                                    <span class="font-mono font-bold text-gray-900 dark:text-gray-200" x-text="config?.device?.wifi?.fallback_ap_password || 'scribe123'"></span>
+                            <div class="flex items-center">
+                                <svg class="w-5 h-5 text-yellow-600 dark:text-yellow-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"></path>
+                                </svg>
+                                <div class="text-sm">
+                                    <span class="font-medium text-yellow-800 dark:text-yellow-200">WiFi changes restart device.</span>
+                                    <span class="text-yellow-700 dark:text-yellow-300 ml-2">Fallback AP:</span>
+                                    <span class="font-mono text-yellow-800 dark:text-yellow-200 ml-1" x-text="config?.device?.wifi?.fallback_ap_ssid || 'Scribe-setup'"></span>
+                                    <span class="text-yellow-700 dark:text-yellow-300">/</span>
+                                    <span class="font-mono text-yellow-800 dark:text-yellow-200" x-text="config?.device?.wifi?.fallback_ap_password || 'scribe123'"></span>
                                 </div>
                             </div>
                             <button 
                                 @click="printAPDetails()" 
                                 :disabled="apPrintStatus === 'scribing'"
-                                class="px-4 py-2 bg-yellow-600 hover:bg-yellow-700 dark:bg-yellow-600 dark:hover:bg-yellow-500 text-white rounded-lg transition-colors duration-200 inline-flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
+                                class="px-3 py-1 bg-yellow-600 hover:bg-yellow-700 dark:bg-yellow-600 dark:hover:bg-yellow-500 text-white rounded text-xs font-medium transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
                             >
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path>
                                 </svg>
-                                <span x-text="apPrintStatus === 'scribing' ? 'Scribing' : 'Scribe the Fallback WiFi details'"></span>
+                                <span x-text="apPrintStatus === 'scribing' ? 'Scribing' : 'Print'"></span>
                             </button>
                         </div>
                     </div>
