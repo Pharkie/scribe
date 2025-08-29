@@ -14,39 +14,42 @@
     <!-- Alpine.js (load last) -->
     <script defer src="/js/alpine.min.js"></script>
 </head>
-<body class="bg-gray-900 text-white min-h-screen" x-data="settingsOverview()" x-init="init()">
-    
-    <!-- Navigation Header -->
-    <div class="bg-gray-800 border-b border-gray-700 mb-6">
-        <div class="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
-            <div class="flex items-center space-x-4">
-                <a href="/" class="flex items-center space-x-2 text-blue-400 hover:text-blue-300 transition-colors">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<body class="page-body" x-data="settingsOverview()" x-init="init()">
+    <main class="page-main">
+        <!-- Header with title and back button -->
+        <header class="page-header">
+            <!-- Back button spacer -->
+            <div class="header-spacer">
+                <a href="/" class="back-button">
+                    <svg class="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
                     </svg>
-                    <span>Back to Home</span>
+                    <span class="text-xs sm:text-sm font-medium">Back to Home</span>
                 </a>
-                <span class="text-gray-500">|</span>
-                <h1 class="text-xl font-semibold text-white">Settings</h1>
             </div>
-        </div>
-    </div>
 
-    <!-- Main Content -->
-    <div class="max-w-4xl mx-auto px-4 pb-8">
+            <!-- Centered title -->
+            <div class="header-center">
+                <h1 class="page-title">
+                    <svg class="w-7 h-7 sm:w-8 sm:h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                    </svg>
+                    <span>Settings</span>
+                </h1>
+            </div>
+
+            <!-- Right spacer -->
+            <div class="header-spacer"></div>
+        </header>
         
-        <!-- Settings Overview -->
-        <div class="mb-6">
-            <h2 class="text-2xl font-bold text-blue-400 mb-2">Configuration Settings</h2>
-            <p class="text-gray-400">Choose a settings section to configure</p>
-        </div>
 
         <!-- Settings Grid -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             
             <!-- Device Settings -->
-            <a href="/settings/device.html" class="rounded-lg p-6 transition-all duration-300 group"
-               :class="deviceSaved ? 'bg-green-600 hover:bg-green-500' : 'bg-gray-800 hover:bg-gray-700'">
+            <a href="/settings/device.html" class="settings-card rounded-lg p-6 transition-all duration-300 group shadow-lg"
+               :class="deviceSaved ? 'bg-green-600 hover:bg-green-500' : 'bg-white dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 border border-gray-200 dark:border-gray-600'">
                 <div class="flex items-center space-x-4">
                     <div class="flex-shrink-0 relative">
                         <!-- Success checkmark icon -->
@@ -57,18 +60,18 @@
                         </svg>
                         <!-- Default CPU icon -->
                         <svg class="w-8 h-8 transition-all duration-300" 
-                             :class="deviceSaved ? 'opacity-0 scale-95 text-blue-400' : 'opacity-100 scale-100 text-blue-400 group-hover:text-blue-300'" 
+                             :class="deviceSaved ? 'opacity-0 scale-95 text-blue-400' : 'opacity-100 scale-100 text-blue-500 dark:text-blue-400 group-hover:text-blue-600 dark:group-hover:text-blue-300'" 
                              fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.25 3v1.5M4.5 8.25H3m18 0h-1.5M4.5 12H3m18 0h-1.5m-16.5 3.75H3m18 0h-1.5M8.25 19.5V21M12 3v1.5m0 15V21m3.75-18v1.5m0 15V21m-9-1.5h10.5a2.25 2.25 0 002.25-2.25V6.75a2.25 2.25 0 00-2.25-2.25H6.75A2.25 2.25 0 004.5 6.75v10.5a2.25 2.25 0 002.25 2.25z"></path>
                         </svg>
                     </div>
                     <div>
                         <h3 class="text-lg font-semibold transition-colors duration-300"
-                            :class="deviceSaved ? 'text-white' : 'text-white group-hover:text-blue-300'"
+                            :class="deviceSaved ? 'text-white' : 'text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-300'"
                             x-text="deviceSaved ? 'Settings Saved' : 'Device'">
                         </h3>
                         <p class="text-sm transition-colors duration-300"
-                           :class="deviceSaved ? 'text-green-100' : 'text-gray-400'">
+                           :class="deviceSaved ? 'text-green-100' : 'text-gray-600 dark:text-gray-400'">
                             Owner, timezone, hardware GPIO pins
                         </p>
                     </div>
@@ -76,8 +79,8 @@
             </a>
 
             <!-- WiFi Settings -->
-            <a href="/settings/wifi.html" class="rounded-lg p-6 transition-all duration-300 group"
-               :class="wifiSaved ? 'bg-green-600 hover:bg-green-500' : 'bg-gray-800 hover:bg-gray-700'">
+            <a href="/settings/wifi.html" class="settings-card rounded-lg p-6 transition-all duration-300 group shadow-lg"
+               :class="wifiSaved ? 'bg-green-600 hover:bg-green-500' : 'bg-white dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 border border-gray-200 dark:border-gray-600'">
                 <div class="flex items-center space-x-4">
                     <div class="flex-shrink-0 relative">
                         <!-- Success checkmark icon -->
@@ -88,18 +91,18 @@
                         </svg>
                         <!-- Default WiFi icon -->
                         <svg class="w-8 h-8 transition-all duration-300" 
-                             :class="wifiSaved ? 'opacity-0 scale-95 text-green-400' : 'opacity-100 scale-100 text-green-400 group-hover:text-green-300'" 
+                             :class="wifiSaved ? 'opacity-0 scale-95 text-green-400' : 'opacity-100 scale-100 text-green-500 dark:text-green-400 group-hover:text-green-600 dark:group-hover:text-green-300'" 
                              fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.111 16.404a5.5 5.5 0 017.778 0M12 20h.01m-7.08-7.071c3.904-3.905 10.236-3.905 14.141 0M1.394 9.393c5.857-5.857 15.355-5.857 21.213 0"></path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.111 16.404a5.5 5.5 0 0 1 7.778 0M12 20h.01m-7.08-7.071c3.904-3.905 10.236-3.905 14.141 0M1.394 9.393c5.857-5.857 15.355-5.857 21.213 0"></path>
                         </svg>
                     </div>
                     <div>
                         <h3 class="text-lg font-semibold transition-colors duration-300"
-                            :class="wifiSaved ? 'text-white' : 'text-white group-hover:text-green-300'"
+                            :class="wifiSaved ? 'text-white' : 'text-gray-900 dark:text-white group-hover:text-green-600 dark:group-hover:text-green-300'"
                             x-text="wifiSaved ? 'Settings Saved' : 'WiFi'">
                         </h3>
                         <p class="text-sm transition-colors duration-300"
-                           :class="wifiSaved ? 'text-green-100' : 'text-gray-400'">
+                           :class="wifiSaved ? 'text-green-100' : 'text-gray-600 dark:text-gray-400'">
                             Network configuration and scanning
                         </p>
                     </div>
@@ -107,61 +110,61 @@
             </a>
 
             <!-- MQTT Settings -->
-            <div class="bg-gray-800 rounded-lg p-6 opacity-50 cursor-not-allowed">
+            <div class="settings-card rounded-lg p-6 shadow-lg opacity-50 cursor-not-allowed bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-600">
                 <div class="flex items-center space-x-4">
                     <div class="flex-shrink-0">
-                        <svg class="w-8 h-8 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg class="w-8 h-8 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
                         </svg>
                     </div>
                     <div>
-                        <h3 class="text-lg font-semibold text-gray-500">MQTT</h3>
-                        <p class="text-sm text-gray-500">Remote messaging (coming soon)</p>
+                        <h3 class="text-lg font-semibold text-gray-400 dark:text-gray-500">MQTT</h3>
+                        <p class="text-sm text-gray-400 dark:text-gray-500">Remote messaging (coming soon)</p>
                     </div>
                 </div>
             </div>
 
             <!-- LED Settings -->
-            <div class="bg-gray-800 rounded-lg p-6 opacity-50 cursor-not-allowed">
+            <div class="settings-card rounded-lg p-6 shadow-lg opacity-50 cursor-not-allowed bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-600">
                 <div class="flex items-center space-x-4">
                     <div class="flex-shrink-0">
-                        <svg class="w-8 h-8 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg class="w-8 h-8 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
                         </svg>
                     </div>
                     <div>
-                        <h3 class="text-lg font-semibold text-gray-500">LEDs</h3>
-                        <p class="text-sm text-gray-500">Light effects and colors (coming soon)</p>
+                        <h3 class="text-lg font-semibold text-gray-400 dark:text-gray-500">LEDs</h3>
+                        <p class="text-sm text-gray-400 dark:text-gray-500">Light effects and colors (coming soon)</p>
                     </div>
                 </div>
             </div>
 
             <!-- Memos Settings -->
-            <div class="bg-gray-800 rounded-lg p-6 opacity-50 cursor-not-allowed">
+            <div class="settings-card rounded-lg p-6 shadow-lg opacity-50 cursor-not-allowed bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-600">
                 <div class="flex items-center space-x-4">
                     <div class="flex-shrink-0">
-                        <svg class="w-8 h-8 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg class="w-8 h-8 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
                         </svg>
                     </div>
                     <div>
-                        <h3 class="text-lg font-semibold text-gray-500">Memos</h3>
-                        <p class="text-sm text-gray-500">Saved content management (coming soon)</p>
+                        <h3 class="text-lg font-semibold text-gray-400 dark:text-gray-500">Memos</h3>
+                        <p class="text-sm text-gray-400 dark:text-gray-500">Saved content management (coming soon)</p>
                     </div>
                 </div>
             </div>
 
             <!-- Unbidden Ink Settings -->
-            <div class="bg-gray-800 rounded-lg p-6 opacity-50 cursor-not-allowed">
+            <div class="settings-card rounded-lg p-6 shadow-lg opacity-50 cursor-not-allowed bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-600">
                 <div class="flex items-center space-x-4">
                     <div class="flex-shrink-0">
-                        <svg class="w-8 h-8 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg class="w-8 h-8 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
                         </svg>
                     </div>
                     <div>
-                        <h3 class="text-lg font-semibold text-gray-500">Unbidden Ink</h3>
-                        <p class="text-sm text-gray-500">AI content generation (coming soon)</p>
+                        <h3 class="text-lg font-semibold text-gray-400 dark:text-gray-500">Unbidden Ink</h3>
+                        <p class="text-sm text-gray-400 dark:text-gray-500">AI content generation (coming soon)</p>
                     </div>
                 </div>
             </div>
@@ -169,23 +172,23 @@
         </div>
 
         <!-- System Actions -->
-        <div class="mt-8">
-            <h3 class="text-lg font-semibold text-gray-300 mb-4">System Actions</h3>
-            <div class="flex flex-wrap gap-4">
-                <button class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors opacity-50 cursor-not-allowed">
+        <div class="mt-16 md:mt-12">
+            <h3 class="text-lg font-semibold text-gray-700 dark:text-gray-300 mb-4 text-center">System Actions</h3>
+            <div class="flex flex-wrap justify-center gap-4">
+                <button class="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300 rounded-md cursor-not-allowed opacity-50 transition-colors border border-gray-300 dark:border-gray-600">
                     Restart Device
                 </button>
-                <button class="px-4 py-2 bg-yellow-600 text-white rounded-md hover:bg-yellow-700 transition-colors opacity-50 cursor-not-allowed">
+                <button class="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300 rounded-md cursor-not-allowed opacity-50 transition-colors border border-gray-300 dark:border-gray-600">
                     Factory Reset
                 </button>
-                <button class="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition-colors opacity-50 cursor-not-allowed">
+                <button class="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300 rounded-md cursor-not-allowed opacity-50 transition-colors border border-gray-300 dark:border-gray-600">
                     Clear NVS Storage
                 </button>
             </div>
-            <p class="text-xs text-gray-500 mt-2">System actions coming soon</p>
+            <p class="text-xs text-gray-500 dark:text-gray-400 mt-3 text-center">System actions coming soon</p>
         </div>
 
-    </div>
+    </main>
 
     <script>
         // Alpine.js component for settings overview page
