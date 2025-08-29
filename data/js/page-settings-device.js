@@ -245,6 +245,7 @@
           button4: { gpio: null }
         },
         leds: {
+          enabled: false,
           pin: null
         }
       },
@@ -295,6 +296,7 @@
           console.warn("\u26A0\uFE0F Missing buttons section in config");
         }
         if (serverConfig.leds) {
+          this.config.leds.enabled = serverConfig.leds.enabled || false;
           this.config.leds.pin = Number(serverConfig.leds.pin);
         } else {
           console.warn("\u26A0\uFE0F Missing leds section in config");
@@ -325,6 +327,7 @@
               button4: this.config.buttons.button4
             },
             leds: {
+              enabled: this.config.leds.enabled,
               pin: this.config.leds.pin
             }
           };
