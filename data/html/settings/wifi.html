@@ -17,13 +17,13 @@
     <!-- Alpine.js (load last) -->
     <script defer src="/js/alpine.min.js"></script>
 </head>
-<body class="page-body" x-data="$store.settingsWifi">
-    <main class="page-main">
+<body class="flex flex-col min-h-screen justify-between py-8 px-4 font-sans bg-gray-50 dark:bg-gray-900 transition-colors duration-200" x-data="$store.settingsWifi">
+    <main class="w-full max-w-4xl mx-auto flex-1">
         <!-- Header with title and back button -->
-        <header class="page-header">
+        <header class="w-full max-w-6xl mx-auto flex items-center mb-6 gap-4">
             <!-- Back button spacer -->
-            <div class="header-spacer">
-                <a href="/settings.html" class="back-button">
+            <div class="flex-1">
+                <a href="/settings.html" class="flex items-center space-x-1 px-2 py-1.5 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-600 rounded-full transition-all duration-200 hover:scale-105 hover:shadow-md">
                     <svg class="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
                     </svg>
@@ -32,8 +32,8 @@
             </div>
 
             <!-- Centered title with WiFi icon -->
-            <div class="header-center">
-                <h1 class="page-title">
+            <div class="flex-1 flex justify-center">
+                <h1 class="text-3xl sm:text-4xl font-bold text-gray-800 dark:text-gray-100 flex items-center space-x-1 sm:space-x-2">
                     <svg class="w-7 h-7 sm:w-8 sm:h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.111 16.404a5.5 5.5 0 717.778 0M12 20h.01m-7.08-7.071c3.904-3.905 10.236-3.905 14.141 0M1.394 9.393c5.857-5.857 15.355-5.857 21.213 0"></path>
                     </svg>
@@ -42,17 +42,17 @@
             </div>
 
             <!-- Right spacer -->
-            <div class="header-spacer"></div>
+            <div class="flex-1"></div>
         </header>
         
         <!-- Loading State -->
         <div x-show="loading" class="text-center py-8">
-            <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+            <div class="animate-spin rounded-full border-b-2 inline-block h-8 w-8 border-blue-500"></div>
             <p class="mt-2 text-gray-600 dark:text-gray-400">Loading WiFi settings...</p>
         </div>
 
         <!-- Error State -->
-        <div x-show="error" class="settings-card bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800" x-transition>
+        <div x-show="error" class="shadow-2xl rounded-3xl p-8 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800" x-transition>
             <div class="text-center">
                 <svg class="w-10 h-10 mb-4 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"></path>
@@ -60,7 +60,7 @@
                 <h3 class="text-lg font-semibold text-red-800 dark:text-red-200 mb-2">Configuration Loading Error</h3>
                 <p class="text-red-600 dark:text-red-300 mb-4" x-text="error"></p>
                 <p class="text-sm text-red-500 dark:text-red-400">Please check the system and try refreshing the page.</p>
-                <button @click="window.location.reload()" class="mt-4 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors">
+                <button @click="window.location.reload()" class="bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200">
                     Retry
                 </button>
             </div>
@@ -72,20 +72,20 @@
                 <form @submit.prevent="saveConfiguration" class="space-y-8">
                     
                     <!-- WiFi Network Configuration Section -->
-                    <div class="settings-card settings-card-green">
-                        <h2 class="settings-card-header settings-card-header-green">WiFi Network Configuration</h2>
+                    <div class="shadow-2xl rounded-3xl p-8 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-700">
+                        <h2 class="text-2xl font-bold mb-6 flex items-center space-x-2 text-green-800 dark:text-green-100">WiFi Network Configuration</h2>
                         
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                             <!-- WiFi Network Selection -->
                             <div class="space-y-2">
-                                <label class="form-label">WiFi Network (Signal Strength):</label>
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">WiFi Network (Signal Strength):</label>
 
                                 <!-- Network Selection Dropdown -->
                                 <select 
                                     @change="selectNetwork($event.target.value)"
                                     :disabled="wifiScan.dropdownDisabled" 
                                     :class="{
-                                        'input-standard': true,
+                                        'w-full p-3 rounded-xl border border-gray-200 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent text-gray-800 dark:text-gray-100 bg-white dark:bg-gray-700': true,
                                         'opacity-60 cursor-not-allowed': wifiScan.dropdownDisabled,
                                         'bg-green-50 dark:bg-green-900/20 border-green-300 dark:border-green-700': wifiScan.isScanning
                                     }" 
@@ -106,18 +106,18 @@
                                     x-transition:enter="transition ease-out duration-200"
                                     x-transition:enter-start="opacity-0 transform scale-95"
                                     x-transition:enter-end="opacity-100 transform scale-100">
-                                    <label class="form-label">Network Name (SSID):</label>
+                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Network Name (SSID):</label>
                                     <input 
                                         type="text" 
                                         placeholder="Enter WiFi network name"
-                                        class="input-standard" 
+                                        class="w-full p-3 rounded-xl border border-gray-200 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent text-gray-800 dark:text-gray-100 bg-white dark:bg-gray-700" 
                                         x-model="config.device.wifi.ssid"
                                     >
                                 </div>
 
                                 <!-- WiFi Scan Status/Error Messages -->
                                 <div x-show="wifiScan.isScanning" class="text-xs text-green-600 dark:text-green-400 flex items-center">
-                                    <div class="animate-spin rounded-full h-3 w-3 border-b-2 border-green-500 mr-2"></div>
+                                    <div class="animate-spin rounded-full border-b-2 h-3 w-3 border-green-500 mr-2"></div>
                                     Scanning networks...
                                 </div>
                                 <div x-show="!wifiScan.isScanning && wifiScan.hasScanned && !wifiScan.error" class="text-xs text-green-600 dark:text-green-400">
@@ -131,10 +131,10 @@
                             
                             <!-- WiFi Password -->
                             <div class="space-y-2">
-                                <label class="form-label">WiFi Password:</label>
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">WiFi Password:</label>
                                 <input 
                                     type="password" 
-                                    class="input-standard"
+                                    class="w-full p-3 rounded-xl border border-gray-200 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent text-gray-800 dark:text-gray-100 bg-white dark:bg-gray-700"
                                     x-model="config.device.wifi.password"
                                     @input="trackWifiPasswordChange($event.target.value)"
                                     placeholder="Enter WiFi password"
@@ -143,12 +143,12 @@
 
                             <!-- Connection Timeout -->
                             <div class="space-y-2">
-                                <label class="form-label">Connection Timeout (seconds):</label>
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Connection Timeout (seconds):</label>
                                 <input 
                                     type="number" 
                                     min="5" 
                                     max="60" 
-                                    class="input-standard"
+                                    class="w-full p-3 rounded-xl border border-gray-200 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent text-gray-800 dark:text-gray-100 bg-white dark:bg-gray-700"
                                     :value="Math.floor(config.device.wifi.connect_timeout / 1000)"
                                     @input="config.device.wifi.connect_timeout = parseInt($el.value) * 1000"
                                 >
@@ -161,8 +161,8 @@
                     </div>
 
                     <!-- Current WiFi Status Section -->
-                    <div class="settings-card settings-card-green">
-                        <h2 class="settings-card-header settings-card-header-green">
+                    <div class="shadow-2xl rounded-3xl p-8 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-700">
+                        <h2 class="text-2xl font-bold mb-6 flex items-center space-x-2 text-green-800 dark:text-green-100">
                             <span x-text="config.device?.wifi?.status?.ap_mode ? 'AP Setup Mode' : 'Current WiFi Status'"></span>
                         </h2>
                         
@@ -249,7 +249,7 @@
                             class="px-6 py-3 bg-gray-500 hover:bg-gray-600 text-white font-medium rounded-xl transition-colors duration-200">
                             Cancel
                         </button>
-                        <button type="submit" :disabled="saving" class="btn-primary"
+                        <button type="submit" :disabled="saving" class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200"
                             :class="{ 'opacity-50 cursor-not-allowed': saving }">
                             <span x-show="!saving" class="flex items-center">
                                 <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -260,7 +260,7 @@
                             <span x-show="saving">
                                 <div class="flex items-center space-x-2">
                                     <div
-                                        class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin">
+                                        class="animate-spin rounded-full border-2 border-white border-t-transparent w-4 h-4">
                                     </div>
                                     <span>Saving...</span>
                                 </div>
