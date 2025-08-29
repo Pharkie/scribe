@@ -331,9 +331,7 @@
           console.log("Saving partial device configuration:", partialConfig);
           const message = await window.SettingsAPI.saveConfiguration(partialConfig);
           console.log("Alpine Device Store: Configuration saved successfully");
-          const redirectUrl = "/settings.html?saved=device";
-          console.log("Redirecting to:", redirectUrl);
-          window.location.href = redirectUrl;
+          window.location.href = "/settings.html?saved=device";
         } catch (error) {
           console.error("Alpine Device Store: Failed to save configuration:", error);
           this.showErrorMessage("Failed to save device settings: " + error.message);
