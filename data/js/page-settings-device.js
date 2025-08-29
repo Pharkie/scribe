@@ -47,9 +47,9 @@
         console.error("API: Server error response:", errorText);
         throw new Error(`Server error: ${response.status} - ${errorText}`);
       }
-      const result = await response.text();
+      const result = await response.json();
       console.log("API: Server response:", result);
-      return result;
+      return result.message || "Configuration saved";
     } catch (error) {
       console.error("API: Failed to save configuration:", error);
       throw error;
@@ -331,7 +331,9 @@
           console.log("Saving partial device configuration:", partialConfig);
           const message = await window.SettingsAPI.saveConfiguration(partialConfig);
           console.log("Alpine Device Store: Configuration saved successfully");
-          window.location.href = "/settings.html";
+          const redirectUrl = "/settings.html?saved=device";
+          console.log("Redirecting to:", redirectUrl);
+          window.location.href = redirectUrl;
         } catch (error) {
           console.error("Alpine Device Store: Failed to save configuration:", error);
           this.showErrorMessage("Failed to save device settings: " + error.message);
