@@ -1,1 +1,540 @@
-(()=>{var E=Object.defineProperty;var x=Object.getOwnPropertySymbols;var O=Object.prototype.hasOwnProperty,F=Object.prototype.propertyIsEnumerable;var D=(e,i,t)=>i in e?E(e,i,{enumerable:!0,configurable:!0,writable:!0,value:t}):e[i]=t,$=(e,i)=>{for(var t in i||(i={}))O.call(i,t)&&D(e,t,i[t]);if(x)for(var t of x(i))F.call(i,t)&&D(e,t,i[t]);return e};async function j(){try{console.log("API: Loading configuration from server...");let e=await fetch("/api/config");if(!e.ok)throw new Error(`Config API returned ${e.status}: ${e.statusText}`);let i=await e.json();return console.log("API: Configuration loaded successfully"),i}catch(e){throw console.error("API: Failed to load configuration:",e),e}}async function G(e){try{console.log("API: Sending config to server...");let i=await fetch("/api/config",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(e)});if(!i.ok){let n=await i.text();throw console.error("API: Server error response:",n),new Error(`Server error: ${i.status} - ${n}`)}let t=await i.json();return console.log("API: Server response:",t),t.message||"Configuration saved"}catch(i){throw console.error("API: Failed to save configuration:",i),i}}async function L(e){try{let i=await fetch("/api/unbidden-ink",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({prompt:e})});if(!i.ok){let n=(await i.json().catch(()=>({}))).error||`HTTP ${i.status}: ${i.statusText}`;throw i.status===500&&n.includes("Failed to generate")&&(n="Failed to generate content. Please check that your ChatGPT API Token is valid and you have sufficient API credits. You can check your account at https://platform.openai.com/account"),new Error(n)}return await i.json()}catch(i){throw console.error("API: Failed to test Unbidden Ink:",i),i}}async function M(e){try{let i=await fetch("/api/print-local",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({message:e})});if(!i.ok){let t=await i.json().catch(()=>({}));throw new Error(t.error||`Print failed: HTTP ${i.status}`)}}catch(i){throw console.error("API: Failed to print content:",i),i}}async function U(e,i=1e4,t=null){try{let n;typeof e=="object"&&e.effect?n=e:typeof e=="string"&&typeof i=="object"?n=$({effect:e},i):(n={effect:e,duration:i},t&&Object.keys(t).length>0&&(n.settings=t));let r=await fetch("/api/led-effect",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(n)});if(!r.ok)throw new Error(`HTTP error! status: ${r.status}`);return await r.json()}catch(n){throw console.error("API: Failed to trigger LED effect:",n),n}}async function z(){try{let e=await fetch("/api/leds-off",{method:"POST",headers:{"Content-Type":"application/json"}});if(!e.ok)throw new Error(`HTTP error! status: ${e.status}`);return await e.json()}catch(e){throw console.error("API: Failed to turn off LEDs:",e),e}}async function N(){try{console.log("API: Scanning for WiFi networks...");let e=await fetch("/api/wifi-scan");if(!e.ok)throw new Error(`WiFi scan failed: ${e.status} - ${e.statusText}`);let i=await e.json();if(console.log("API: WiFi scan completed:",i),!i.networks||!Array.isArray(i.networks))throw new Error("WiFi scan failed - no networks array in response");return i.networks}catch(e){throw console.error("API: Failed to scan WiFi networks:",e),e}}async function C(){try{console.log("API: Loading memos from server...");let e=await fetch("/api/memos");if(!e.ok)throw new Error(`Memos API returned ${e.status}: ${e.statusText}`);let i=await e.json();return console.log("API: Memos loaded successfully"),i}catch(e){throw console.error("API: Failed to load memos:",e),e}}async function W(e){try{console.log("API: Sending memos to server...");let i=await fetch("/api/memos",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(e)});if(!i.ok){let n=await i.text();throw console.error("API: Server error response:",n),new Error(`Server error: ${i.status} - ${n}`)}let t=await i.text();return console.log("API: Server response:",t),t}catch(i){throw console.error("API: Failed to save memos:",i),i}}window.SettingsAPI={loadConfiguration:j,saveConfiguration:G,testUnbiddenInkGeneration:L,printLocalContent:M,triggerLedEffect:U,turnOffLeds:z,scanWiFiNetworks:N,loadMemos:C,saveMemos:W};function J(){return{showErrorMessage(i){window.showMessage(i,"error")},loading:!0,error:null,saving:!1,initialized:!1,gpio:{availablePins:[],safePins:[],pinDescriptions:{}},config:{device:{owner:null,timezone:null,printerTxPin:null},buttons:{button1:{gpio:null},button2:{gpio:null},button3:{gpio:null},button4:{gpio:null}},leds:{enabled:!1,pin:null}},async init(){if(this.initialized){console.log("\u2699\uFE0F Device Settings: Already initialized, skipping");return}this.initialized=!0,this.loading=!0;try{let i=await window.SettingsAPI.loadConfiguration();this.mergeDeviceConfig(i),console.log("Alpine Device Store: Configuration loaded successfully")}catch(i){console.error("Alpine Device Store: Failed to load configuration:",i),this.error=i.message}finally{this.loading=!1}},mergeDeviceConfig(i){if(console.log("\u{1F527} Merging device config from server:",i),i.device?(this.config.device.owner=i.device.owner||"",this.config.device.timezone=i.device.timezone||"",this.config.device.printerTxPin=i.device.printerTxPin,i.device.owner||console.warn("\u26A0\uFE0F Missing device.owner in config"),i.device.timezone||console.warn("\u26A0\uFE0F Missing device.timezone in config")):console.error("\u274C Missing device section in config"),i.buttons)for(let t=1;t<=4;t++){let n=`button${t}`;i.buttons[n]&&(this.config.buttons[n].gpio=i.buttons[n].gpio||null)}else console.warn("\u26A0\uFE0F Missing buttons section in config");i.leds?(this.config.leds.enabled=i.leds.enabled||!1,this.config.leds.pin=Number(i.leds.pin)):console.warn("\u26A0\uFE0F Missing leds section in config"),i.gpio?(this.gpio.availablePins=i.gpio.availablePins||[],this.gpio.safePins=i.gpio.safePins||[],this.gpio.pinDescriptions=i.gpio.pinDescriptions||{}):console.warn("\u26A0\uFE0F Missing gpio section in config"),console.log("\u2705 Device config merge complete:",this.config)},async saveConfiguration(){this.saving=!0;try{let i={device:{owner:this.config.device.owner,timezone:this.config.device.timezone,printerTxPin:this.config.device.printerTxPin},buttons:{button1:this.config.buttons.button1,button2:this.config.buttons.button2,button3:this.config.buttons.button3,button4:this.config.buttons.button4}};this.config.leds.enabled&&(i.leds={pin:this.config.leds.pin}),console.log("Saving partial device configuration:",i);let t=await window.SettingsAPI.saveConfiguration(i);console.log("Alpine Device Store: Configuration saved successfully"),window.location.href="/settings.html?saved=device"}catch(i){console.error("Alpine Device Store: Failed to save configuration:",i),this.showErrorMessage("Failed to save device settings: "+i.message),this.saving=!1}},cancelConfiguration(){window.location.href="/"},getGpioAssignment(i){var n,r;if(i===-1||i===null)return null;let t=Number(i);if(this.config.device.printerTxPin===t)return"Assigned to printer";if(((n=this.config.leds)==null?void 0:n.pin)===t)return"Assigned to LED strip";for(let s=1;s<=4;s++)if(((r=this.config.buttons[`button${s}`])==null?void 0:r.gpio)===t)return`Assigned to button ${s}`;return null},getGpioOptionText(i){var n,r,s,o,l,g,u,f,c;if(i.pin===-1)return"Not connected";let t=`GPIO ${i.pin} - ${i.description}`;return i.isSafe||(t+=" (Unsafe)"),this.config.device.printerTxPin===i.pin?t+=" (Assigned to printer)":((n=this.config.leds)==null?void 0:n.pin)===i.pin?t+=" (Assigned to LED strip)":((s=(r=this.config.buttons)==null?void 0:r.button1)==null?void 0:s.gpio)===i.pin?t+=" (Assigned to button 1)":((l=(o=this.config.buttons)==null?void 0:o.button2)==null?void 0:l.gpio)===i.pin?t+=" (Assigned to button 2)":((u=(g=this.config.buttons)==null?void 0:g.button3)==null?void 0:u.gpio)===i.pin?t+=" (Assigned to button 3)":((c=(f=this.config.buttons)==null?void 0:f.button4)==null?void 0:c.gpio)===i.pin&&(t+=" (Assigned to button 4)"),t},get usedGpioPins(){var t,n,r;let i=new Set;this.config.device.printerTxPin!==null&&this.config.device.printerTxPin!==-1&&i.add(Number(this.config.device.printerTxPin)),((t=this.config.leds)==null?void 0:t.pin)!==null&&((n=this.config.leds)==null?void 0:n.pin)!==-1&&i.add(Number(this.config.leds.pin));for(let s=1;s<=4;s++){let o=(r=this.config.buttons[`button${s}`])==null?void 0:r.gpio;o!==null&&o!==-1&&i.add(Number(o))}return i},get printerGpioOptions(){return this.loading||this.gpio.availablePins.length===0?[{pin:null,description:"Loading GPIO options...",available:!1,isSafe:!1,inUse:!1}]:this.gpio.availablePins.filter(i=>Number(i)!==-1).map(i=>{var l,g,u,f,c,b,a,p,h;let t=Number(i),n=this.gpio.safePins.includes(i),r=this.gpio.pinDescriptions[i]||"Unknown",s=this.usedGpioPins.has(t),o=null;return this.config.device.printerTxPin===t?o="Assigned to printer":((l=this.config.leds)==null?void 0:l.pin)===t?o="Assigned to LED strip":((u=(g=this.config.buttons)==null?void 0:g.button1)==null?void 0:u.gpio)===t?o="Assigned to button 1":((c=(f=this.config.buttons)==null?void 0:f.button2)==null?void 0:c.gpio)===t?o="Assigned to button 2":((a=(b=this.config.buttons)==null?void 0:b.button3)==null?void 0:a.gpio)===t?o="Assigned to button 3":((h=(p=this.config.buttons)==null?void 0:p.button4)==null?void 0:h.gpio)===t&&(o="Assigned to button 4"),{pin:t,description:r,available:n&&!s,isSafe:n,inUse:s,assignment:o}})},get allGpioOptionsReactive(){var t,n,r,s,o,l,g,u,f;let i=this.config.device.printerTxPin+"-"+((t=this.config.leds)==null?void 0:t.pin)+"-"+((r=(n=this.config.buttons)==null?void 0:n.button1)==null?void 0:r.gpio)+"-"+((o=(s=this.config.buttons)==null?void 0:s.button2)==null?void 0:o.gpio)+"-"+((g=(l=this.config.buttons)==null?void 0:l.button3)==null?void 0:g.gpio)+"-"+((f=(u=this.config.buttons)==null?void 0:u.button4)==null?void 0:f.gpio);return this.gpio.availablePins.map((c,b)=>{var P,v,m,y,A,S,T,I,k;let a=Number(c),p=this.gpio.safePins.includes(c),h=this.gpio.pinDescriptions[c]||"Unknown",w=this.usedGpioPins.has(a),d;return a===-1?d="Not connected":(d=`GPIO ${a} - ${h}`,a===this.config.device.printerTxPin?d+=" (Printer)":a===((P=this.config.leds)==null?void 0:P.pin)?d+=" (LED)":a===((m=(v=this.config.buttons)==null?void 0:v.button1)==null?void 0:m.gpio)?d+=" (Button1)":a===((A=(y=this.config.buttons)==null?void 0:y.button2)==null?void 0:A.gpio)?d+=" (Button2)":a===((T=(S=this.config.buttons)==null?void 0:S.button3)==null?void 0:T.gpio)?d+=" (Button3)":a===((k=(I=this.config.buttons)==null?void 0:I.button4)==null?void 0:k.gpio)&&(d+=" (Button4)")),{pin:a,description:h,text:d,available:a===-1?!0:p&&!w,isSafe:p,inUse:w,key:`${a}-${i}-${b}`}})},get allGpioOptions(){return this.loading||this.gpio.availablePins.length===0?[{pin:null,description:"Loading GPIO options...",available:!1,isSafe:!1,inUse:!1}]:this.gpio.availablePins.map(i=>{var l,g,u,f,c,b,a,p,h;let t=Number(i),n=this.gpio.safePins.includes(i),r=this.gpio.pinDescriptions[i]||"Unknown",s=this.usedGpioPins.has(t),o=null;return t!==-1&&t!==null&&(this.config.device.printerTxPin===t?o="Assigned to printer":((l=this.config.leds)==null?void 0:l.pin)===t?o="Assigned to LED strip":((u=(g=this.config.buttons)==null?void 0:g.button1)==null?void 0:u.gpio)===t?o="Assigned to button 1":((c=(f=this.config.buttons)==null?void 0:f.button2)==null?void 0:c.gpio)===t?o="Assigned to button 2":((a=(b=this.config.buttons)==null?void 0:b.button3)==null?void 0:a.gpio)===t?o="Assigned to button 3":((h=(p=this.config.buttons)==null?void 0:p.button4)==null?void 0:h.gpio)===t&&(o="Assigned to button 4")),{pin:t,description:r,available:t===-1?!0:n&&!s,isSafe:n,inUse:s,assignment:o}})}}}document.addEventListener("alpine:init",()=>{if(window.deviceStoreInstance){console.log("\u2699\uFE0F Device Settings: Store already exists, skipping alpine:init");return}let e=J();Alpine.store("settingsDevice",e),window.deviceStoreInstance=e,e.init(),console.log("\u2705 Device Settings Store registered and initialized")});})();
+(() => {
+  var __defProp = Object.defineProperty;
+  var __getOwnPropSymbols = Object.getOwnPropertySymbols;
+  var __hasOwnProp = Object.prototype.hasOwnProperty;
+  var __propIsEnum = Object.prototype.propertyIsEnumerable;
+  var __defNormalProp = (obj, key, value) => key in obj ? __defProp(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
+  var __spreadValues = (a, b) => {
+    for (var prop in b || (b = {}))
+      if (__hasOwnProp.call(b, prop))
+        __defNormalProp(a, prop, b[prop]);
+    if (__getOwnPropSymbols)
+      for (var prop of __getOwnPropSymbols(b)) {
+        if (__propIsEnum.call(b, prop))
+          __defNormalProp(a, prop, b[prop]);
+      }
+    return a;
+  };
+
+  // multi-entry:multi-entry:src/js/settings-api.js,src/js/page-settings-device.js
+  async function loadConfiguration() {
+    try {
+      console.log("API: Loading configuration from server...");
+      const response = await fetch("/api/config");
+      if (!response.ok) {
+        throw new Error(`Config API returned ${response.status}: ${response.statusText}`);
+      }
+      const config = await response.json();
+      console.log("API: Configuration loaded successfully");
+      return config;
+    } catch (error) {
+      console.error("API: Failed to load configuration:", error);
+      throw error;
+    }
+  }
+  async function saveConfiguration(configData) {
+    try {
+      console.log("API: Sending config to server...");
+      const response = await fetch("/api/config", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(configData)
+      });
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error("API: Server error response:", errorText);
+        throw new Error(`Server error: ${response.status} - ${errorText}`);
+      }
+      const result = await response.json();
+      console.log("API: Server response:", result);
+      return result.message || "Configuration saved";
+    } catch (error) {
+      console.error("API: Failed to save configuration:", error);
+      throw error;
+    }
+  }
+  async function testUnbiddenInkGeneration(prompt) {
+    try {
+      const response = await fetch("/api/unbidden-ink", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ prompt })
+      });
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        let errorMessage = errorData.error || `HTTP ${response.status}: ${response.statusText}`;
+        if (response.status === 500 && errorMessage.includes("Failed to generate")) {
+          errorMessage = "Failed to generate content. Please check that your ChatGPT API Token is valid and you have sufficient API credits. You can check your account at https://platform.openai.com/account";
+        }
+        throw new Error(errorMessage);
+      }
+      return await response.json();
+    } catch (error) {
+      console.error("API: Failed to test Unbidden Ink:", error);
+      throw error;
+    }
+  }
+  async function printLocalContent(content) {
+    try {
+      const response = await fetch("/api/print-local", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ message: content })
+      });
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || `Print failed: HTTP ${response.status}`);
+      }
+    } catch (error) {
+      console.error("API: Failed to print content:", error);
+      throw error;
+    }
+  }
+  async function triggerLedEffect(effectName, duration = 1e4, settings = null) {
+    try {
+      let payload;
+      if (typeof effectName === "object" && effectName.effect) {
+        payload = effectName;
+      } else if (typeof effectName === "string" && typeof duration === "object") {
+        payload = __spreadValues({ effect: effectName }, duration);
+      } else {
+        payload = {
+          effect: effectName,
+          duration
+        };
+        if (settings && Object.keys(settings).length > 0) {
+          payload.settings = settings;
+        }
+      }
+      const response = await fetch("/api/led-effect", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(payload)
+      });
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      return await response.json();
+    } catch (error) {
+      console.error("API: Failed to trigger LED effect:", error);
+      throw error;
+    }
+  }
+  async function turnOffLeds() {
+    try {
+      const response = await fetch("/api/leds-off", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        }
+      });
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      return await response.json();
+    } catch (error) {
+      console.error("API: Failed to turn off LEDs:", error);
+      throw error;
+    }
+  }
+  async function scanWiFiNetworks() {
+    try {
+      console.log("API: Scanning for WiFi networks...");
+      const response = await fetch("/api/wifi-scan");
+      if (!response.ok) {
+        throw new Error(`WiFi scan failed: ${response.status} - ${response.statusText}`);
+      }
+      const result = await response.json();
+      console.log("API: WiFi scan completed:", result);
+      if (!result.networks || !Array.isArray(result.networks)) {
+        throw new Error("WiFi scan failed - no networks array in response");
+      }
+      return result.networks;
+    } catch (error) {
+      console.error("API: Failed to scan WiFi networks:", error);
+      throw error;
+    }
+  }
+  async function loadMemos() {
+    try {
+      console.log("API: Loading memos from server...");
+      const response = await fetch("/api/memos");
+      if (!response.ok) {
+        throw new Error(`Memos API returned ${response.status}: ${response.statusText}`);
+      }
+      const memos = await response.json();
+      console.log("API: Memos loaded successfully");
+      return memos;
+    } catch (error) {
+      console.error("API: Failed to load memos:", error);
+      throw error;
+    }
+  }
+  async function saveMemos(memosData) {
+    try {
+      console.log("API: Sending memos to server...");
+      const response = await fetch("/api/memos", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(memosData)
+      });
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error("API: Server error response:", errorText);
+        throw new Error(`Server error: ${response.status} - ${errorText}`);
+      }
+      const result = await response.text();
+      console.log("API: Server response:", result);
+      return result;
+    } catch (error) {
+      console.error("API: Failed to save memos:", error);
+      throw error;
+    }
+  }
+  window.SettingsAPI = {
+    loadConfiguration,
+    saveConfiguration,
+    testUnbiddenInkGeneration,
+    printLocalContent,
+    triggerLedEffect,
+    turnOffLeds,
+    scanWiFiNetworks,
+    loadMemos,
+    saveMemos
+  };
+  function initializeDeviceSettingsStore() {
+    const store = {
+      // ================== UTILITY FUNCTIONS ==================
+      // Simple utility function extracted from repeated showMessage patterns
+      showErrorMessage(message) {
+        window.showMessage(message, "error");
+      },
+      // ================== STATE MANAGEMENT ==================
+      // Core state management
+      loading: true,
+      error: null,
+      saving: false,
+      initialized: false,
+      // GPIO information from backend
+      gpio: {
+        availablePins: [],
+        safePins: [],
+        pinDescriptions: {}
+      },
+      // Configuration data (reactive) - Device section with hardware GPIO
+      config: {
+        device: {
+          owner: null,
+          timezone: null,
+          printerTxPin: null
+        },
+        buttons: {
+          button1: { gpio: null },
+          button2: { gpio: null },
+          button3: { gpio: null },
+          button4: { gpio: null }
+        },
+        leds: {
+          enabled: false,
+          pin: null
+        }
+      },
+      // ================== DEVICE CONFIGURATION API ==================
+      // Initialize store with data from server
+      async init() {
+        if (this.initialized) {
+          console.log("\u2699\uFE0F Device Settings: Already initialized, skipping");
+          return;
+        }
+        this.initialized = true;
+        this.loading = true;
+        try {
+          const serverConfig = await window.SettingsAPI.loadConfiguration();
+          this.mergeDeviceConfig(serverConfig);
+          console.log("Alpine Device Store: Configuration loaded successfully");
+        } catch (error) {
+          console.error("Alpine Device Store: Failed to load configuration:", error);
+          this.error = error.message;
+        } finally {
+          this.loading = false;
+        }
+      },
+      // Merge server config into reactive state (device section only)
+      mergeDeviceConfig(serverConfig) {
+        console.log("\u{1F527} Merging device config from server:", serverConfig);
+        if (serverConfig.device) {
+          this.config.device.owner = serverConfig.device.owner || "";
+          this.config.device.timezone = serverConfig.device.timezone || "";
+          this.config.device.printerTxPin = serverConfig.device.printerTxPin;
+          if (!serverConfig.device.owner) {
+            console.warn("\u26A0\uFE0F Missing device.owner in config");
+          }
+          if (!serverConfig.device.timezone) {
+            console.warn("\u26A0\uFE0F Missing device.timezone in config");
+          }
+        } else {
+          console.error("\u274C Missing device section in config");
+        }
+        if (serverConfig.buttons) {
+          for (let i = 1; i <= 4; i++) {
+            const buttonKey = `button${i}`;
+            if (serverConfig.buttons[buttonKey]) {
+              this.config.buttons[buttonKey].gpio = serverConfig.buttons[buttonKey].gpio || null;
+            }
+          }
+        } else {
+          console.warn("\u26A0\uFE0F Missing buttons section in config");
+        }
+        if (serverConfig.leds) {
+          this.config.leds.enabled = serverConfig.leds.enabled || false;
+          this.config.leds.pin = Number(serverConfig.leds.pin);
+        } else {
+          console.warn("\u26A0\uFE0F Missing leds section in config");
+        }
+        if (serverConfig.gpio) {
+          this.gpio.availablePins = serverConfig.gpio.availablePins || [];
+          this.gpio.safePins = serverConfig.gpio.safePins || [];
+          this.gpio.pinDescriptions = serverConfig.gpio.pinDescriptions || {};
+        } else {
+          console.warn("\u26A0\uFE0F Missing gpio section in config");
+        }
+        console.log("\u2705 Device config merge complete:", this.config);
+      },
+      // Save device configuration via API
+      async saveConfiguration() {
+        this.saving = true;
+        try {
+          const partialConfig = {
+            device: {
+              owner: this.config.device.owner,
+              timezone: this.config.device.timezone,
+              printerTxPin: this.config.device.printerTxPin
+            },
+            buttons: {
+              button1: this.config.buttons.button1,
+              button2: this.config.buttons.button2,
+              button3: this.config.buttons.button3,
+              button4: this.config.buttons.button4
+            }
+          };
+          if (this.config.leds.enabled) {
+            partialConfig.leds = {
+              pin: this.config.leds.pin
+            };
+          }
+          console.log("Saving partial device configuration:", partialConfig);
+          const message = await window.SettingsAPI.saveConfiguration(partialConfig);
+          console.log("Alpine Device Store: Configuration saved successfully");
+          window.location.href = "/settings.html?saved=device";
+        } catch (error) {
+          console.error("Alpine Device Store: Failed to save configuration:", error);
+          this.showErrorMessage("Failed to save device settings: " + error.message);
+          this.saving = false;
+        }
+      },
+      // Cancel configuration changes
+      cancelConfiguration() {
+        window.location.href = "/";
+      },
+      // ================== GPIO MANAGEMENT ==================
+      // Get what each GPIO pin is assigned to (reactive getter)
+      getGpioAssignment(pinNumber) {
+        var _a, _b;
+        if (pinNumber === -1 || pinNumber === null) return null;
+        const pin = Number(pinNumber);
+        if (this.config.device.printerTxPin === pin) {
+          return "Assigned to printer";
+        }
+        if (((_a = this.config.leds) == null ? void 0 : _a.pin) === pin) {
+          return "Assigned to LED strip";
+        }
+        for (let i = 1; i <= 4; i++) {
+          if (((_b = this.config.buttons[`button${i}`]) == null ? void 0 : _b.gpio) === pin) {
+            return `Assigned to button ${i}`;
+          }
+        }
+        return null;
+      },
+      // Get formatted text for GPIO option (reactive)
+      getGpioOptionText(option) {
+        var _a, _b, _c, _d, _e, _f, _g, _h, _i;
+        if (option.pin === -1) return "Not connected";
+        let text = `GPIO ${option.pin} - ${option.description}`;
+        if (!option.isSafe) text += " (Unsafe)";
+        if (this.config.device.printerTxPin === option.pin) text += " (Assigned to printer)";
+        else if (((_a = this.config.leds) == null ? void 0 : _a.pin) === option.pin) text += " (Assigned to LED strip)";
+        else if (((_c = (_b = this.config.buttons) == null ? void 0 : _b.button1) == null ? void 0 : _c.gpio) === option.pin) text += " (Assigned to button 1)";
+        else if (((_e = (_d = this.config.buttons) == null ? void 0 : _d.button2) == null ? void 0 : _e.gpio) === option.pin) text += " (Assigned to button 2)";
+        else if (((_g = (_f = this.config.buttons) == null ? void 0 : _f.button3) == null ? void 0 : _g.gpio) === option.pin) text += " (Assigned to button 3)";
+        else if (((_i = (_h = this.config.buttons) == null ? void 0 : _h.button4) == null ? void 0 : _i.gpio) === option.pin) text += " (Assigned to button 4)";
+        return text;
+      },
+      // Get used GPIO pins to avoid conflicts
+      get usedGpioPins() {
+        var _a, _b, _c;
+        const used = /* @__PURE__ */ new Set();
+        if (this.config.device.printerTxPin !== null && this.config.device.printerTxPin !== -1) {
+          used.add(Number(this.config.device.printerTxPin));
+        }
+        if (((_a = this.config.leds) == null ? void 0 : _a.pin) !== null && ((_b = this.config.leds) == null ? void 0 : _b.pin) !== -1) {
+          used.add(Number(this.config.leds.pin));
+        }
+        for (let i = 1; i <= 4; i++) {
+          const buttonGpio = (_c = this.config.buttons[`button${i}`]) == null ? void 0 : _c.gpio;
+          if (buttonGpio !== null && buttonGpio !== -1) {
+            used.add(Number(buttonGpio));
+          }
+        }
+        return used;
+      },
+      // GPIO options specifically for printer TX (excludes "Not connected" option)
+      get printerGpioOptions() {
+        if (this.loading || this.gpio.availablePins.length === 0) {
+          return [{
+            pin: null,
+            description: "Loading GPIO options...",
+            available: false,
+            isSafe: false,
+            inUse: false
+          }];
+        }
+        return this.gpio.availablePins.filter((pin) => Number(pin) !== -1).map((pin) => {
+          var _a, _b, _c, _d, _e, _f, _g, _h, _i;
+          const pinNumber = Number(pin);
+          const isSafe = this.gpio.safePins.includes(pin);
+          const description = this.gpio.pinDescriptions[pin] || "Unknown";
+          const isUsed = this.usedGpioPins.has(pinNumber);
+          let assignment = null;
+          if (this.config.device.printerTxPin === pinNumber) {
+            assignment = "Assigned to printer";
+          } else if (((_a = this.config.leds) == null ? void 0 : _a.pin) === pinNumber) {
+            assignment = "Assigned to LED strip";
+          } else if (((_c = (_b = this.config.buttons) == null ? void 0 : _b.button1) == null ? void 0 : _c.gpio) === pinNumber) {
+            assignment = "Assigned to button 1";
+          } else if (((_e = (_d = this.config.buttons) == null ? void 0 : _d.button2) == null ? void 0 : _e.gpio) === pinNumber) {
+            assignment = "Assigned to button 2";
+          } else if (((_g = (_f = this.config.buttons) == null ? void 0 : _f.button3) == null ? void 0 : _g.gpio) === pinNumber) {
+            assignment = "Assigned to button 3";
+          } else if (((_i = (_h = this.config.buttons) == null ? void 0 : _h.button4) == null ? void 0 : _i.gpio) === pinNumber) {
+            assignment = "Assigned to button 4";
+          }
+          return {
+            pin: pinNumber,
+            description,
+            available: isSafe && !isUsed,
+            isSafe,
+            inUse: isUsed,
+            assignment
+          };
+        });
+      },
+      // Force reactive rebuild of GPIO options array with text updates
+      get allGpioOptionsReactive() {
+        var _a, _b, _c, _d, _e, _f, _g, _h, _i;
+        const triggerUpdate = this.config.device.printerTxPin + "-" + ((_a = this.config.leds) == null ? void 0 : _a.pin) + "-" + ((_c = (_b = this.config.buttons) == null ? void 0 : _b.button1) == null ? void 0 : _c.gpio) + "-" + ((_e = (_d = this.config.buttons) == null ? void 0 : _d.button2) == null ? void 0 : _e.gpio) + "-" + ((_g = (_f = this.config.buttons) == null ? void 0 : _f.button3) == null ? void 0 : _g.gpio) + "-" + ((_i = (_h = this.config.buttons) == null ? void 0 : _h.button4) == null ? void 0 : _i.gpio);
+        return this.gpio.availablePins.map((pin, index) => {
+          var _a2, _b2, _c2, _d2, _e2, _f2, _g2, _h2, _i2;
+          const pinNumber = Number(pin);
+          const isSafe = this.gpio.safePins.includes(pin);
+          const description = this.gpio.pinDescriptions[pin] || "Unknown";
+          const isUsed = this.usedGpioPins.has(pinNumber);
+          let text;
+          if (pinNumber === -1) {
+            text = "Not connected";
+          } else {
+            text = `GPIO ${pinNumber} - ${description}`;
+            if (pinNumber === this.config.device.printerTxPin) {
+              text += " (Printer)";
+            } else if (pinNumber === ((_a2 = this.config.leds) == null ? void 0 : _a2.pin)) {
+              text += " (LED)";
+            } else if (pinNumber === ((_c2 = (_b2 = this.config.buttons) == null ? void 0 : _b2.button1) == null ? void 0 : _c2.gpio)) {
+              text += " (Button1)";
+            } else if (pinNumber === ((_e2 = (_d2 = this.config.buttons) == null ? void 0 : _d2.button2) == null ? void 0 : _e2.gpio)) {
+              text += " (Button2)";
+            } else if (pinNumber === ((_g2 = (_f2 = this.config.buttons) == null ? void 0 : _f2.button3) == null ? void 0 : _g2.gpio)) {
+              text += " (Button3)";
+            } else if (pinNumber === ((_i2 = (_h2 = this.config.buttons) == null ? void 0 : _h2.button4) == null ? void 0 : _i2.gpio)) {
+              text += " (Button4)";
+            }
+          }
+          return {
+            pin: pinNumber,
+            description,
+            text,
+            available: pinNumber === -1 ? true : isSafe && !isUsed,
+            isSafe,
+            inUse: isUsed,
+            // Add unique key to force Alpine re-render
+            key: `${pinNumber}-${triggerUpdate}-${index}`
+          };
+        });
+      },
+      // Combined GPIO options that handles loading state properly for Alpine reactivity
+      get allGpioOptions() {
+        if (this.loading || this.gpio.availablePins.length === 0) {
+          return [{
+            pin: null,
+            description: "Loading GPIO options...",
+            available: false,
+            isSafe: false,
+            inUse: false
+          }];
+        }
+        return this.gpio.availablePins.map((pin) => {
+          var _a, _b, _c, _d, _e, _f, _g, _h, _i;
+          const pinNumber = Number(pin);
+          const isSafe = this.gpio.safePins.includes(pin);
+          const description = this.gpio.pinDescriptions[pin] || "Unknown";
+          const isUsed = this.usedGpioPins.has(pinNumber);
+          let assignment = null;
+          if (pinNumber !== -1 && pinNumber !== null) {
+            if (this.config.device.printerTxPin === pinNumber) {
+              assignment = "Assigned to printer";
+            } else if (((_a = this.config.leds) == null ? void 0 : _a.pin) === pinNumber) {
+              assignment = "Assigned to LED strip";
+            } else if (((_c = (_b = this.config.buttons) == null ? void 0 : _b.button1) == null ? void 0 : _c.gpio) === pinNumber) {
+              assignment = "Assigned to button 1";
+            } else if (((_e = (_d = this.config.buttons) == null ? void 0 : _d.button2) == null ? void 0 : _e.gpio) === pinNumber) {
+              assignment = "Assigned to button 2";
+            } else if (((_g = (_f = this.config.buttons) == null ? void 0 : _f.button3) == null ? void 0 : _g.gpio) === pinNumber) {
+              assignment = "Assigned to button 3";
+            } else if (((_i = (_h = this.config.buttons) == null ? void 0 : _h.button4) == null ? void 0 : _i.gpio) === pinNumber) {
+              assignment = "Assigned to button 4";
+            }
+          }
+          return {
+            pin: pinNumber,
+            description,
+            // "Not connected" (-1) is always available, others check safety and usage
+            available: pinNumber === -1 ? true : isSafe && !isUsed,
+            isSafe,
+            inUse: isUsed,
+            assignment
+          };
+        });
+      }
+    };
+    return store;
+  }
+  document.addEventListener("alpine:init", () => {
+    if (window.deviceStoreInstance) {
+      console.log("\u2699\uFE0F Device Settings: Store already exists, skipping alpine:init");
+      return;
+    }
+    const deviceStore = initializeDeviceSettingsStore();
+    Alpine.store("settingsDevice", deviceStore);
+    window.deviceStoreInstance = deviceStore;
+    deviceStore.init();
+    console.log("\u2705 Device Settings Store registered and initialized");
+  });
+})();

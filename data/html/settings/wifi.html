@@ -70,8 +70,8 @@
                 <form @submit.prevent="saveConfiguration" class="space-y-8">
                     
                     <!-- WiFi Network Configuration Section -->
-                    <div class="shadow-2xl rounded-3xl p-8 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-700">
-                        <h2 class="text-2xl font-bold mb-6 flex items-center space-x-2 text-green-800 dark:text-green-100">WiFi Network Configuration</h2>
+                    <div class="bg-white dark:bg-gray-800 shadow-lg hover:shadow-xl rounded-2xl p-6 border-t-3 border-green-600 transition-shadow duration-200">
+                        <h2 class="text-2xl font-bold mb-6 flex items-center space-x-2 text-green-600 dark:text-green-400">WiFi Network Configuration</h2>
                         
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                             <!-- WiFi Network Selection -->
@@ -159,8 +159,8 @@
                     </div>
 
                     <!-- Current WiFi Status Section -->
-                    <div class="shadow-2xl rounded-3xl p-8 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-700">
-                        <h2 class="text-2xl font-bold mb-6 flex items-center space-x-2 text-green-800 dark:text-green-100">
+                    <div class="bg-white dark:bg-gray-800 shadow-lg hover:shadow-xl rounded-2xl p-6 border-t-3 border-green-600 transition-shadow duration-200">
+                        <h2 class="text-2xl font-bold mb-6 flex items-center space-x-2 text-green-600 dark:text-green-400">
                             <span x-text="config.device?.wifi?.status?.ap_mode ? 'AP Setup Mode' : 'Current WiFi Status'"></span>
                         </h2>
                         

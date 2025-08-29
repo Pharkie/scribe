@@ -66,8 +66,8 @@
                 <form @submit.prevent="saveConfiguration" class="space-y-8">
                     
                     <!-- Device Identity Section -->
-                    <div class="shadow-2xl rounded-3xl p-8 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700">
-                        <h2 class="text-2xl font-bold mb-6 flex items-center space-x-2 text-blue-800 dark:text-blue-100">Device Identity</h2>
+                    <div class="bg-white dark:bg-gray-800 shadow-lg hover:shadow-xl rounded-2xl p-6 border-t-3 border-blue-600 transition-shadow duration-200">
+                        <h2 class="text-2xl font-bold mb-6 flex items-center space-x-2 text-blue-600 dark:text-blue-400">Device Identity</h2>
                     
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <!-- Device Owner -->
@@ -98,8 +98,8 @@
                     </div>
 
                     <!-- GPIO Pins Section -->
-                    <div class="shadow-2xl rounded-3xl p-8 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700">
-                        <h2 class="text-2xl font-bold mb-4 flex items-center space-x-2 text-blue-800 dark:text-blue-100">GPIO Pins</h2>
+                    <div class="bg-white dark:bg-gray-800 shadow-lg hover:shadow-xl rounded-2xl p-6 border-t-3 border-blue-600 transition-shadow duration-200">
+                        <h2 class="text-2xl font-bold mb-4 flex items-center space-x-2 text-blue-600 dark:text-blue-400">GPIO Pins</h2>
                         <p class="text-sm text-gray-600 dark:text-gray-400 mb-6">Select GPIO pin for your hardware. Each GPIO can only be assigned once.</p>
                     
                     <!-- GPIO Assignment Interface -->
@@ -110,7 +110,7 @@
                             <!-- First Row: Printer and LED Strip (conditional) -->
                             <div class="grid grid-cols-1 gap-6" :class="config.leds?.enabled ? 'sm:grid-cols-2' : 'sm:grid-cols-1'">
                                 <!-- Printer Card -->
-                                <div class="bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-xl p-5 shadow-lg">
+                                <div class="bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-xl p-5 shadow-lg">
                                     <div class="text-center mb-4">
                                         <h4 class="font-semibold text-gray-900 dark:text-white text-lg mb-2">Printer</h4>
                                     </div>
@@ -156,9 +156,9 @@
                                 </div>
 
                                 <!-- LED Strip Card (only show if LEDs enabled) -->
-                                <div x-show="config.leds?.enabled" class="bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-xl p-5 shadow-lg">
+                                <div x-show="config.leds?.enabled" class="bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-xl p-5 shadow-lg border-l-4 border-l-violet-600">
                                     <div class="text-center mb-4">
-                                        <h4 class="font-semibold text-gray-900 dark:text-white text-lg mb-2">LED Strip</h4>
+                                        <h4 class="font-semibold text-violet-600 dark:text-violet-400 text-lg mb-2">LED Strip</h4>
                                     </div>
                                     <div class="space-y-1">
                                         <!-- Available GPIO pins in grid -->
@@ -175,7 +175,6 @@
                                                            class="sr-only">
                                                     <div class="w-4 h-4 border-2 rounded-full mr-2 transition-all duration-200"
                                                          :class="config.leds?.pin === pin ? 'border-blue-600 bg-blue-600' : (usedGpioPins.has(pin) && config.leds?.pin !== pin ? 'border-gray-300' : 'border-gray-400')">
-                                                        <div x-show="config.leds?.pin === pin" class="w-1.5 h-1.5 bg-white rounded-full m-0.5"></div>
                                                     </div>
                                                     <span class="font-mono text-sm" 
                                                           :class="[
@@ -214,7 +213,7 @@
                             <!-- Second Row: Button 1 and Button 2 -->
                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
                                 <!-- Button 1 Card -->
-                                <div class="bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-xl p-5 shadow-lg">
+                                <div class="bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-xl p-5 shadow-lg">
                                     <div class="text-center mb-4">
                                         <h4 class="font-semibold text-gray-900 dark:text-white text-lg mb-2">Button 1</h4>
                                     </div>
@@ -267,7 +266,7 @@
                                 </div>
 
                                 <!-- Button 2 Card -->
-                                <div class="bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-xl p-5 shadow-lg">
+                                <div class="bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-xl p-5 shadow-lg">
                                     <div class="text-center mb-4">
                                         <h4 class="font-semibold text-gray-900 dark:text-white text-lg mb-2">Button 2</h4>
                                     </div>
@@ -323,7 +322,7 @@
                             <!-- Third Row: Button 3 and Button 4 -->
                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
                                 <!-- Button 3 Card -->
-                                <div class="bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-xl p-5 shadow-lg">
+                                <div class="bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-xl p-5 shadow-lg">
                                     <div class="text-center mb-4">
                                         <h4 class="font-semibold text-gray-900 dark:text-white text-lg mb-2">Button 3</h4>
                                     </div>
@@ -376,7 +375,7 @@
                                 </div>
 
                                 <!-- Button 4 Card -->
-                                <div class="bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-xl p-5 shadow-lg">
+                                <div class="bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-xl p-5 shadow-lg">
                                     <div class="text-center mb-4">
                                         <h4 class="font-semibold text-gray-900 dark:text-white text-lg mb-2">Button 4</h4>
                                     </div>

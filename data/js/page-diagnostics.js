@@ -1,1 +1,548 @@
-(()=>{var p=Object.defineProperty,m=Object.defineProperties;var y=Object.getOwnPropertyDescriptors;var u=Object.getOwnPropertySymbols;var R=Object.prototype.hasOwnProperty,D=Object.prototype.propertyIsEnumerable;var h=(e,s,t)=>s in e?p(e,s,{enumerable:!0,configurable:!0,writable:!0,value:t}):e[s]=t,d=(e,s)=>{for(var t in s||(s={}))R.call(s,t)&&h(e,t,s[t]);if(u)for(var t of u(s))D.call(s,t)&&h(e,t,s[t]);return e},g=(e,s)=>m(e,y(s));function v(){return{loading:!0,error:null,initialized:!1,diagnosticsData:{},configData:{},nvsData:{},currentSection:"microcontroller-section",progressReady:!1,sections:[{id:"microcontroller-section",name:"Microcontroller",icon:"cpuChip",color:"orange"},{id:"logging-section",name:"Logging",icon:"clipboardDocumentList",color:"indigo"},{id:"pages-endpoints-section",name:"Pages & Endpoints",icon:"link",color:"teal"},{id:"config-file-section",name:"Runtime Configuration",icon:"cog6Tooth",color:"green"},{id:"nvs-storage-section",name:"NVS",icon:"saveFloppyDisk",color:"cyan"}],async init(){if(this.initialized){console.log("\u{1F6E0}\uFE0F Diagnostics: Already initialized, skipping");return}this.initialized=!0,console.log("\u{1F6E0}\uFE0F Diagnostics: Starting initialization..."),await this.loadDiagnostics(),console.log("\u{1F6E0}\uFE0F Diagnostics: Initialization complete, loading:",this.loading,"error:",this.error)},async loadDiagnostics(){this.loading=!0,this.error=null,console.log("\u{1F6E0}\uFE0F Diagnostics: Loading data from APIs...");try{console.log("\u{1F6E0}\uFE0F Diagnostics: Making parallel API calls...");let[s,t,i]=await Promise.allSettled([window.DiagnosticsAPI.loadDiagnostics(),window.DiagnosticsAPI.loadConfiguration(),window.DiagnosticsAPI.loadNVSDump()]);if(console.log("\u{1F6E0}\uFE0F Diagnostics: API responses received:",{diagnostics:s.status==="fulfilled",config:t.status==="fulfilled",nvs:i.status==="fulfilled"}),!(s.status==="fulfilled"||t.status==="fulfilled"||i.status==="fulfilled")){this.error="All diagnostic APIs are unavailable. Please check the system.",this.loading=!1;return}s.status==="fulfilled"?(this.diagnosticsData=s.value,console.log("\u2705 Diagnostics API data loaded:",Object.keys(this.diagnosticsData))):(console.error("\u274C Diagnostics API failed - diagnostics data will be incomplete:",s.reason),this.diagnosticsData={}),t.status==="fulfilled"?(this.configData=t.value,console.log("\u2705 Config API data loaded:",Object.keys(this.configData))):(console.error("\u274C Config API failed - configuration data will be incomplete:",t.reason),this.configData={}),i.status==="fulfilled"?(this.nvsData=i.value,console.log("\u2705 NVS API data loaded:",Object.keys(this.nvsData))):(console.error("\u274C NVS API failed - NVS storage data will be incomplete:",i.reason),this.nvsData={}),console.log("\u2705 Diagnostics loading complete:",{diagnosticsKeys:Object.keys(this.diagnosticsData).length,configKeys:Object.keys(this.configData).length,nvsKeys:this.nvsData.keys?Object.keys(this.nvsData.keys).length:0}),this.error=null,this.loading=!1}catch(s){console.error("\u{1F6E0}\uFE0F Diagnostics: Unexpected error loading diagnostics:",s),this.error=`Unexpected error loading diagnostics: ${s.message}`,this.loading=!1}},showSection(s){this.currentSection=s},triggerProgressAnimations(){requestAnimationFrame(()=>{requestAnimationFrame(()=>{this.progressReady=!0})})},getSectionClass(s){let t=this.sections.find(o=>o.id===s),i="section-nav-btn",n=`section-nav-btn-${(t==null?void 0:t.color)||"purple"}`,a=this.currentSection===s?"active":"";return`${i} ${n} ${a}`.trim()},get microcontrollerInfo(){var t;let s=this.diagnosticsData.microcontroller;return s?{chipModel:s.chip_model||"ERROR: Missing chip_model",cpuFrequency:s.cpu_frequency_mhz?`${s.cpu_frequency_mhz} MHz`:"ERROR: Missing frequency",flashSize:this.formatBytes((t=s.flash)==null?void 0:t.total_chip_size)||"ERROR: Missing flash size",firmwareVersion:s.sdk_version||"ERROR: Missing SDK version",uptime:s.uptime_ms?this.formatUptime(s.uptime_ms/1e3):"ERROR: Missing uptime",temperature:this.formatTemperature(s.temperature)||"ERROR: Missing temperature"}:(console.error("\u274C Missing microcontroller data from diagnostics API"),{chipModel:"ERROR: Missing Data",cpuFrequency:"ERROR: Missing Data",flashSize:"ERROR: Missing Data",firmwareVersion:"ERROR: Missing Data",uptime:"ERROR: Missing Data",temperature:"ERROR: Missing Data"})},get memoryUsage(){var o;let s=this.diagnosticsData.microcontroller;if(!s)return console.error("\u274C Missing microcontroller data for memory usage"),{flashUsageText:"ERROR: Missing Data",heapUsageText:"ERROR: Missing Data",flashUsagePercent:0,heapUsagePercent:0};let t=(o=s.flash)==null?void 0:o.app_partition,i=s.memory;t||console.error("\u274C Missing flash data in microcontroller diagnostics"),i||console.error("\u274C Missing memory data in microcontroller diagnostics");let n=t!=null&&t.total?(t.used||0)/t.total*100:0,a=i!=null&&i.total_heap?(i.used_heap||0)/i.total_heap*100:0;return{flashUsageText:t?`${this.formatBytes(t.used||0)} / ${this.formatBytes(t.total||0)} (${n.toFixed(0)}%)`:"ERROR: Missing flash data",heapUsageText:i?`${this.formatBytes(i.used_heap||0)} / ${this.formatBytes(i.total_heap||0)} (${a.toFixed(0)}%)`:"ERROR: Missing memory data",flashUsagePercent:n,heapUsagePercent:a}},get loggingInfo(){let s=this.diagnosticsData.logging;return s?{level:s.level_name||"ERROR: Missing level_name",serialLogging:s.serial_enabled!==void 0?s.serial_enabled?"Enabled":"Disabled":"ERROR: Missing serial_enabled",webLogging:s.betterstack_enabled!==void 0?s.betterstack_enabled?"Enabled":"Disabled":"ERROR: Missing betterstack_enabled",fileLogging:s.file_enabled!==void 0?s.file_enabled?"Enabled":"Disabled":"ERROR: Missing file_enabled",mqttLogging:s.mqtt_enabled!==void 0?s.mqtt_enabled?"Enabled":"Disabled":"ERROR: Missing mqtt_enabled"}:(console.error("\u274C Missing logging data from diagnostics API"),{level:"ERROR: Missing Data",serialLogging:"ERROR: Missing Data",webLogging:"ERROR: Missing Data",fileLogging:"ERROR: Missing Data",mqttLogging:"ERROR: Missing Data"})},get sortedRoutes(){var n;let s=(n=this.diagnosticsData.pages_and_endpoints)==null?void 0:n.web_pages;if(!s)return console.error("\u274C Missing pages_and_endpoints.web_pages data from diagnostics API"),[{path:"ERROR: Missing Data",description:"Web pages data not available from diagnostics API",isError:!0}];let t=[],i=[];return s.forEach(a=>{a.path.endsWith(".html")||a.path==="/"?t.push(g(d({},a),{isHtmlPage:!0,linkPath:a.path==="/"?"/":a.path})):a.path==="(unmatched routes)"?i.push(g(d({},a),{isUnmatched:!0,linkPath:"/404",path:"*",description:"404 handler"})):i.push(g(d({},a),{isHtmlPage:!1}))}),t.sort((a,o)=>a.path==="/"?-1:o.path==="/"?1:a.path.localeCompare(o.path)),i.sort((a,o)=>a.isUnmatched?1:o.isUnmatched?-1:a.path.localeCompare(o.path)),[...t,...i]},get apiEndpoints(){var i;let s=(i=this.diagnosticsData.pages_and_endpoints)==null?void 0:i.api_endpoints;if(!s)return console.error("\u274C Missing pages_and_endpoints.api_endpoints data from diagnostics API"),{ERROR:[{path:"ERROR: Missing Data",description:"API endpoints data not available from diagnostics API"}]};let t={};return s.forEach(n=>{t[n.method]||(t[n.method]=[]),t[n.method].push(n)}),Object.keys(t).forEach(n=>{t[n].sort((a,o)=>a.path.localeCompare(o.path))}),t},get configFileFormatted(){if(!this.configData||Object.keys(this.configData).length===0)return"Configuration not available";let s=this.redactSecrets(this.configData);return JSON.stringify(s,null,2)},get nvsDataFormatted(){var i,n,a,o;if(!this.nvsData||Object.keys(this.nvsData).length===0)return console.error("\u274C Missing NVS data from nvs-dump API"),"ERROR: NVS data not available - API failed or returned empty data";let s=[];this.nvsData.namespace||s.push("namespace"),this.nvsData.timestamp||s.push("timestamp"),this.nvsData.summary||s.push("summary"),this.nvsData.summary&&this.nvsData.summary.totalKeys===void 0&&s.push("summary.totalKeys"),this.nvsData.summary&&this.nvsData.summary.validKeys===void 0&&s.push("summary.validKeys"),this.nvsData.summary&&this.nvsData.summary.correctedKeys===void 0&&s.push("summary.correctedKeys"),this.nvsData.summary&&this.nvsData.summary.invalidKeys===void 0&&s.push("summary.invalidKeys"),s.length>0&&console.warn("\u26A0\uFE0F Missing optional NVS fields:",s);let t={namespace:this.nvsData.namespace||"ERROR: Missing namespace",timestamp:this.nvsData.timestamp||"ERROR: Missing timestamp",summary:{totalKeys:((i=this.nvsData.summary)==null?void 0:i.totalKeys)!==void 0?this.nvsData.summary.totalKeys:"ERROR: Missing totalKeys",validKeys:((n=this.nvsData.summary)==null?void 0:n.validKeys)!==void 0?this.nvsData.summary.validKeys:"ERROR: Missing validKeys",correctedKeys:((a=this.nvsData.summary)==null?void 0:a.correctedKeys)!==void 0?this.nvsData.summary.correctedKeys:"ERROR: Missing correctedKeys",invalidKeys:((o=this.nvsData.summary)==null?void 0:o.invalidKeys)!==void 0?this.nvsData.summary.invalidKeys:"ERROR: Missing invalidKeys"},keys:{}};return this.nvsData.keys&&Object.keys(this.nvsData.keys).sort().forEach(c=>{let r=this.nvsData.keys[c];t.keys[c]={type:r.type,description:r.description,exists:r.exists,value:r.value,validation:r.validation,status:r.status},r.originalValue!==void 0&&(t.keys[c].originalValue=r.originalValue),r.note&&(t.keys[c].note=r.note),r.length!==void 0&&(t.keys[c].length=r.length)}),JSON.stringify(t,null,2)},async handleQuickAction(s){try{let t=await window.DiagnosticsAPI.executeQuickAction(s);if(!t.content){console.error("No content received from server");return}await window.DiagnosticsAPI.printLocalContent(t.content),console.log(`${s} sent to printer successfully!`)}catch(t){console.error("Error sending quick action:",t)}},formatBytes(s){if(s===0)return"0 B";let t=1024,i=["B","KB","MB","GB"],n=Math.floor(Math.log(s)/Math.log(t));return parseFloat((s/Math.pow(t,n)).toFixed(0))+" "+i[n]},formatUptime(s){let t=Math.floor(s/86400),i=Math.floor(s%86400/3600),n=Math.floor(s%3600/60);return t>0?`${t}d ${i}h ${n}m`:i>0?`${i}h ${n}m`:`${n}m`},formatTemperature(s){if(!s||isNaN(s))return"-";let t,i;return s<35?(t="Cool",i="#3b82f6"):s<50?(t="Normal",i="#10b981"):s<65?(t="Warm",i="#f59e0b"):s<80?(t="Hot",i="#ef4444"):(t="Critical",i="#dc2626"),`${s.toFixed(1)}\xB0C (${t})`},getProgressBarClass(s){return s>90?"bg-red-500":s>75?"bg-orange-600":"bg-orange-500"},redactSecrets(s){let t=JSON.parse(JSON.stringify(s)),i=["password","pass","secret","token","key","apikey","api_key","auth","credential","cert","private","bearer","oauth"];function n(a){if(typeof a!="object"||a===null)return a;for(let[o,l]of Object.entries(a)){let c=o.toLowerCase();i.some(f=>c.includes(f))&&typeof l=="string"&&l.length>0?a[o]=l.length>8?l.substring(0,2)+"\u25CF\u25CF\u25CF\u25CF\u25CF\u25CF\u25CF\u25CF"+l.substring(l.length-2):"\u25CF\u25CF\u25CF\u25CF\u25CF\u25CF\u25CF\u25CF":typeof l=="object"&&l!==null&&n(l)}}return n(t),t},highlightJSON(s){return!s||s==="Configuration not available"||s.startsWith("ERROR:")?`<span class="text-gray-400">${s}</span>`:s.replace(/"([^"]+)"(\s*:)/g,'<span class="json-key">"$1"</span><span class="json-punctuation">$2</span>').replace(/:\s*"([^"]*)"/g,': <span class="json-string">"$1"</span>').replace(/:\s*(-?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?)/g,': <span class="json-number">$1</span>').replace(/:\s*(true|false)/g,': <span class="json-boolean">$1</span>').replace(/:\s*(null)/g,': <span class="json-null">$1</span>').replace(/([{}[\],])/g,'<span class="json-punctuation">$1</span>').replace(/<span class="json-punctuation">(<span class="json-punctuation">)/g,"$1").replace(/(<\/span>)<\/span>/g,"$1")},goBack(){window.goBack()}}}document.addEventListener("alpine:init",()=>{if(window.diagnosticsStoreInstance){console.log("\u{1F6E0}\uFE0F Diagnostics: Store already exists, skipping alpine:init");return}let e=v();Alpine.store("diagnostics",e),window.diagnosticsStoreInstance=e,e.init(),Alpine.store("diagnosticsPartials",{cache:{},loading:{},load(s){return this.cache[s]?this.cache[s]:(this.loading[s]||(this.loading[s]=!0,fetch(`/html/partials/diagnostics/${s}.html`).then(t=>{if(!t.ok)throw new Error(`Failed to load partial: ${s}`);return t.text()}).then(t=>{this.loading[s]=!1,this.cache[s]=t,Alpine.store("diagnosticsPartials",d({},this))}).catch(t=>{console.error("Error loading partial:",t),this.cache[s]=`<div class="p-4 text-center text-red-500">Error loading ${s}</div>`,this.loading[s]=!1,Alpine.store("diagnosticsPartials",d({},this))})),'<div class="p-4 text-center text-gray-500">Loading...</div>')}})});async function w(){try{console.log("API: Loading diagnostics from server...");let e=await fetch("/api/diagnostics");if(!e.ok)throw new Error(`Diagnostics API returned ${e.status}: ${e.statusText}`);let s=await e.json();return console.log("API: Diagnostics loaded successfully"),s}catch(e){throw console.error("API: Failed to load diagnostics:",e),e}}async function P(){try{console.log("API: Loading configuration from server...");let e=await fetch("/api/config");if(!e.ok)throw new Error(`Config API returned ${e.status}: ${e.statusText}`);let s=await e.json();return console.log("API: Configuration loaded successfully"),s}catch(e){throw console.error("API: Failed to load configuration:",e),e}}async function E(){try{console.log("API: Loading NVS dump from server...");let e=await fetch("/api/nvs-dump");if(!e.ok)throw new Error(`NVS dump API returned ${e.status}: ${e.statusText}`);let s=await e.json();return console.log("API: NVS dump loaded successfully"),s}catch(e){throw console.error("API: Failed to load NVS dump:",e),e}}async function b(e){try{console.log(`API: Executing quick action: ${e}`);let s=await fetch(`/api/${e}`,{method:"POST",headers:{"Content-Type":"application/json"}});if(!s.ok){let i=await s.text();throw new Error(`Quick action '${e}' failed: ${s.status} - ${i}`)}let t=await s.json();return console.log(`API: Quick action '${e}' completed successfully`),t}catch(s){throw console.error(`API: Failed to execute quick action '${e}':`,s),s}}async function A(e){try{console.log("API: Sending content to local printer...");let s=await fetch("/api/print-local",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({message:e})});if(!s.ok){let t=await s.json().catch(()=>({}));throw new Error(t.error||`Print failed: HTTP ${s.status}`)}console.log("API: Content sent to printer successfully")}catch(s){throw console.error("API: Failed to print content:",s),s}}window.DiagnosticsAPI={loadDiagnostics:w,loadConfiguration:P,loadNVSDump:E,executeQuickAction:b,printLocalContent:A};})();
+(() => {
+  var __defProp = Object.defineProperty;
+  var __defProps = Object.defineProperties;
+  var __getOwnPropDescs = Object.getOwnPropertyDescriptors;
+  var __getOwnPropSymbols = Object.getOwnPropertySymbols;
+  var __hasOwnProp = Object.prototype.hasOwnProperty;
+  var __propIsEnum = Object.prototype.propertyIsEnumerable;
+  var __defNormalProp = (obj, key, value) => key in obj ? __defProp(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
+  var __spreadValues = (a, b) => {
+    for (var prop in b || (b = {}))
+      if (__hasOwnProp.call(b, prop))
+        __defNormalProp(a, prop, b[prop]);
+    if (__getOwnPropSymbols)
+      for (var prop of __getOwnPropSymbols(b)) {
+        if (__propIsEnum.call(b, prop))
+          __defNormalProp(a, prop, b[prop]);
+      }
+    return a;
+  };
+  var __spreadProps = (a, b) => __defProps(a, __getOwnPropDescs(b));
+
+  // multi-entry:multi-entry:src/js/diagnostics-alpine-store.js,src/js/diagnostics-api.js
+  function initializeDiagnosticsStore() {
+    const store = {
+      // Core state
+      loading: true,
+      error: null,
+      initialized: false,
+      // Flag to prevent duplicate initialization
+      diagnosticsData: {},
+      configData: {},
+      nvsData: {},
+      // UI state
+      currentSection: "microcontroller-section",
+      progressReady: false,
+      // Section definitions
+      sections: [
+        { id: "microcontroller-section", name: "Microcontroller", icon: "cpuChip", color: "orange" },
+        { id: "logging-section", name: "Logging", icon: "clipboardDocumentList", color: "indigo" },
+        { id: "pages-endpoints-section", name: "Pages & Endpoints", icon: "link", color: "teal" },
+        { id: "config-file-section", name: "Runtime Configuration", icon: "cog6Tooth", color: "green" },
+        { id: "nvs-storage-section", name: "NVS", icon: "saveFloppyDisk", color: "cyan" }
+      ],
+      // Initialize store
+      async init() {
+        if (this.initialized) {
+          console.log("\u{1F6E0}\uFE0F Diagnostics: Already initialized, skipping");
+          return;
+        }
+        this.initialized = true;
+        console.log("\u{1F6E0}\uFE0F Diagnostics: Starting initialization...");
+        await this.loadDiagnostics();
+        console.log("\u{1F6E0}\uFE0F Diagnostics: Initialization complete, loading:", this.loading, "error:", this.error);
+      },
+      // Load all diagnostics data with proper error logging instead of silent fallbacks
+      async loadDiagnostics() {
+        this.loading = true;
+        this.error = null;
+        console.log("\u{1F6E0}\uFE0F Diagnostics: Loading data from APIs...");
+        try {
+          console.log("\u{1F6E0}\uFE0F Diagnostics: Making parallel API calls...");
+          const [diagnosticsResponse, configResponse, nvsResponse] = await Promise.allSettled([
+            window.DiagnosticsAPI.loadDiagnostics(),
+            window.DiagnosticsAPI.loadConfiguration(),
+            window.DiagnosticsAPI.loadNVSDump()
+          ]);
+          console.log("\u{1F6E0}\uFE0F Diagnostics: API responses received:", {
+            diagnostics: diagnosticsResponse.status === "fulfilled",
+            config: configResponse.status === "fulfilled",
+            nvs: nvsResponse.status === "fulfilled"
+          });
+          const anyApiSuccess = diagnosticsResponse.status === "fulfilled" || configResponse.status === "fulfilled" || nvsResponse.status === "fulfilled";
+          if (!anyApiSuccess) {
+            this.error = "All diagnostic APIs are unavailable. Please check the system.";
+            this.loading = false;
+            return;
+          }
+          if (diagnosticsResponse.status === "fulfilled") {
+            this.diagnosticsData = diagnosticsResponse.value;
+            console.log("\u2705 Diagnostics API data loaded:", Object.keys(this.diagnosticsData));
+          } else {
+            console.error("\u274C Diagnostics API failed - diagnostics data will be incomplete:", diagnosticsResponse.reason);
+            this.diagnosticsData = {};
+          }
+          if (configResponse.status === "fulfilled") {
+            this.configData = configResponse.value;
+            console.log("\u2705 Config API data loaded:", Object.keys(this.configData));
+          } else {
+            console.error("\u274C Config API failed - configuration data will be incomplete:", configResponse.reason);
+            this.configData = {};
+          }
+          if (nvsResponse.status === "fulfilled") {
+            this.nvsData = nvsResponse.value;
+            console.log("\u2705 NVS API data loaded:", Object.keys(this.nvsData));
+          } else {
+            console.error("\u274C NVS API failed - NVS storage data will be incomplete:", nvsResponse.reason);
+            this.nvsData = {};
+          }
+          console.log("\u2705 Diagnostics loading complete:", {
+            diagnosticsKeys: Object.keys(this.diagnosticsData).length,
+            configKeys: Object.keys(this.configData).length,
+            nvsKeys: this.nvsData.keys ? Object.keys(this.nvsData.keys).length : 0
+          });
+          this.error = null;
+          this.loading = false;
+        } catch (error) {
+          console.error("\u{1F6E0}\uFE0F Diagnostics: Unexpected error loading diagnostics:", error);
+          this.error = `Unexpected error loading diagnostics: ${error.message}`;
+          this.loading = false;
+        }
+      },
+      // Section management
+      showSection(sectionId) {
+        this.currentSection = sectionId;
+      },
+      // Trigger progress bar animations when content is ready
+      triggerProgressAnimations() {
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            this.progressReady = true;
+          });
+        });
+      },
+      getSectionClass(sectionId) {
+        const section = this.sections.find((s) => s.id === sectionId);
+        const baseClass = "section-nav-btn";
+        const colorClass = `section-nav-btn-${(section == null ? void 0 : section.color) || "purple"}`;
+        const activeClass = this.currentSection === sectionId ? "active" : "";
+        return `${baseClass} ${colorClass} ${activeClass}`.trim();
+      },
+      // Microcontroller computed properties - show errors instead of silent fallbacks
+      get microcontrollerInfo() {
+        var _a;
+        const microcontroller = this.diagnosticsData.microcontroller;
+        if (!microcontroller) {
+          console.error("\u274C Missing microcontroller data from diagnostics API");
+          return {
+            chipModel: "ERROR: Missing Data",
+            cpuFrequency: "ERROR: Missing Data",
+            flashSize: "ERROR: Missing Data",
+            firmwareVersion: "ERROR: Missing Data",
+            uptime: "ERROR: Missing Data",
+            temperature: "ERROR: Missing Data"
+          };
+        }
+        return {
+          chipModel: microcontroller.chip_model || "ERROR: Missing chip_model",
+          cpuFrequency: microcontroller.cpu_frequency_mhz ? `${microcontroller.cpu_frequency_mhz} MHz` : "ERROR: Missing frequency",
+          flashSize: this.formatBytes((_a = microcontroller.flash) == null ? void 0 : _a.total_chip_size) || "ERROR: Missing flash size",
+          firmwareVersion: microcontroller.sdk_version || "ERROR: Missing SDK version",
+          uptime: microcontroller.uptime_ms ? this.formatUptime(microcontroller.uptime_ms / 1e3) : "ERROR: Missing uptime",
+          temperature: this.formatTemperature(microcontroller.temperature) || "ERROR: Missing temperature"
+        };
+      },
+      // Memory usage computed properties - show errors instead of silent fallbacks
+      get memoryUsage() {
+        var _a;
+        const microcontroller = this.diagnosticsData.microcontroller;
+        if (!microcontroller) {
+          console.error("\u274C Missing microcontroller data for memory usage");
+          return {
+            flashUsageText: "ERROR: Missing Data",
+            heapUsageText: "ERROR: Missing Data",
+            flashUsagePercent: 0,
+            heapUsagePercent: 0
+          };
+        }
+        const flash = (_a = microcontroller.flash) == null ? void 0 : _a.app_partition;
+        const memory = microcontroller.memory;
+        if (!flash) {
+          console.error("\u274C Missing flash data in microcontroller diagnostics");
+        }
+        if (!memory) {
+          console.error("\u274C Missing memory data in microcontroller diagnostics");
+        }
+        const flashUsed = (flash == null ? void 0 : flash.total) ? (flash.used || 0) / flash.total * 100 : 0;
+        const heapUsed = (memory == null ? void 0 : memory.total_heap) ? (memory.used_heap || 0) / memory.total_heap * 100 : 0;
+        return {
+          flashUsageText: flash ? `${this.formatBytes(flash.used || 0)} / ${this.formatBytes(flash.total || 0)} (${flashUsed.toFixed(0)}%)` : "ERROR: Missing flash data",
+          heapUsageText: memory ? `${this.formatBytes(memory.used_heap || 0)} / ${this.formatBytes(memory.total_heap || 0)} (${heapUsed.toFixed(0)}%)` : "ERROR: Missing memory data",
+          flashUsagePercent: flashUsed,
+          heapUsagePercent: heapUsed
+        };
+      },
+      // Logging computed properties - show errors instead of silent fallbacks
+      get loggingInfo() {
+        const logging = this.diagnosticsData.logging;
+        if (!logging) {
+          console.error("\u274C Missing logging data from diagnostics API");
+          return {
+            level: "ERROR: Missing Data",
+            serialLogging: "ERROR: Missing Data",
+            webLogging: "ERROR: Missing Data",
+            fileLogging: "ERROR: Missing Data",
+            mqttLogging: "ERROR: Missing Data"
+          };
+        }
+        return {
+          level: logging.level_name || "ERROR: Missing level_name",
+          serialLogging: logging.serial_enabled !== void 0 ? logging.serial_enabled ? "Enabled" : "Disabled" : "ERROR: Missing serial_enabled",
+          webLogging: logging.betterstack_enabled !== void 0 ? logging.betterstack_enabled ? "Enabled" : "Disabled" : "ERROR: Missing betterstack_enabled",
+          fileLogging: logging.file_enabled !== void 0 ? logging.file_enabled ? "Enabled" : "Disabled" : "ERROR: Missing file_enabled",
+          mqttLogging: logging.mqtt_enabled !== void 0 ? logging.mqtt_enabled ? "Enabled" : "Disabled" : "ERROR: Missing mqtt_enabled"
+        };
+      },
+      // Web pages computed properties - show errors instead of silent fallbacks
+      get sortedRoutes() {
+        var _a;
+        const routes = (_a = this.diagnosticsData.pages_and_endpoints) == null ? void 0 : _a.web_pages;
+        if (!routes) {
+          console.error("\u274C Missing pages_and_endpoints.web_pages data from diagnostics API");
+          return [{
+            path: "ERROR: Missing Data",
+            description: "Web pages data not available from diagnostics API",
+            isError: true
+          }];
+        }
+        const htmlPages = [];
+        const otherRoutes = [];
+        routes.forEach((route) => {
+          if (route.path.endsWith(".html") || route.path === "/") {
+            htmlPages.push(__spreadProps(__spreadValues({}, route), {
+              isHtmlPage: true,
+              linkPath: route.path === "/" ? "/" : route.path
+            }));
+          } else if (route.path === "(unmatched routes)") {
+            otherRoutes.push(__spreadProps(__spreadValues({}, route), {
+              isUnmatched: true,
+              linkPath: "/404",
+              path: "*",
+              description: "404 handler"
+            }));
+          } else {
+            otherRoutes.push(__spreadProps(__spreadValues({}, route), {
+              isHtmlPage: false
+            }));
+          }
+        });
+        htmlPages.sort((a, b) => {
+          if (a.path === "/") return -1;
+          if (b.path === "/") return 1;
+          return a.path.localeCompare(b.path);
+        });
+        otherRoutes.sort((a, b) => {
+          if (a.isUnmatched) return 1;
+          if (b.isUnmatched) return -1;
+          return a.path.localeCompare(b.path);
+        });
+        return [...htmlPages, ...otherRoutes];
+      },
+      // API endpoints computed properties - show errors instead of silent fallbacks
+      get apiEndpoints() {
+        var _a;
+        const endpoints = (_a = this.diagnosticsData.pages_and_endpoints) == null ? void 0 : _a.api_endpoints;
+        if (!endpoints) {
+          console.error("\u274C Missing pages_and_endpoints.api_endpoints data from diagnostics API");
+          return {
+            ERROR: [{
+              path: "ERROR: Missing Data",
+              description: "API endpoints data not available from diagnostics API"
+            }]
+          };
+        }
+        const grouped = {};
+        endpoints.forEach((endpoint) => {
+          if (!grouped[endpoint.method]) {
+            grouped[endpoint.method] = [];
+          }
+          grouped[endpoint.method].push(endpoint);
+        });
+        Object.keys(grouped).forEach((method) => {
+          grouped[method].sort((a, b) => a.path.localeCompare(b.path));
+        });
+        return grouped;
+      },
+      // Config file formatted
+      get configFileFormatted() {
+        if (!this.configData || Object.keys(this.configData).length === 0) {
+          return "Configuration not available";
+        }
+        const redacted = this.redactSecrets(this.configData);
+        return JSON.stringify(redacted, null, 2);
+      },
+      // NVS data formatted
+      get nvsDataFormatted() {
+        var _a, _b, _c, _d;
+        if (!this.nvsData || Object.keys(this.nvsData).length === 0) {
+          console.error("\u274C Missing NVS data from nvs-dump API");
+          return "ERROR: NVS data not available - API failed or returned empty data";
+        }
+        const missingFields = [];
+        if (!this.nvsData.namespace) missingFields.push("namespace");
+        if (!this.nvsData.timestamp) missingFields.push("timestamp");
+        if (!this.nvsData.summary) missingFields.push("summary");
+        if (this.nvsData.summary && this.nvsData.summary.totalKeys === void 0) missingFields.push("summary.totalKeys");
+        if (this.nvsData.summary && this.nvsData.summary.validKeys === void 0) missingFields.push("summary.validKeys");
+        if (this.nvsData.summary && this.nvsData.summary.correctedKeys === void 0) missingFields.push("summary.correctedKeys");
+        if (this.nvsData.summary && this.nvsData.summary.invalidKeys === void 0) missingFields.push("summary.invalidKeys");
+        if (missingFields.length > 0) {
+          console.warn("\u26A0\uFE0F Missing optional NVS fields:", missingFields);
+        }
+        const formattedData = {
+          namespace: this.nvsData.namespace || "ERROR: Missing namespace",
+          timestamp: this.nvsData.timestamp || "ERROR: Missing timestamp",
+          summary: {
+            totalKeys: ((_a = this.nvsData.summary) == null ? void 0 : _a.totalKeys) !== void 0 ? this.nvsData.summary.totalKeys : "ERROR: Missing totalKeys",
+            validKeys: ((_b = this.nvsData.summary) == null ? void 0 : _b.validKeys) !== void 0 ? this.nvsData.summary.validKeys : "ERROR: Missing validKeys",
+            correctedKeys: ((_c = this.nvsData.summary) == null ? void 0 : _c.correctedKeys) !== void 0 ? this.nvsData.summary.correctedKeys : "ERROR: Missing correctedKeys",
+            invalidKeys: ((_d = this.nvsData.summary) == null ? void 0 : _d.invalidKeys) !== void 0 ? this.nvsData.summary.invalidKeys : "ERROR: Missing invalidKeys"
+          },
+          keys: {}
+        };
+        if (this.nvsData.keys) {
+          const sortedKeys = Object.keys(this.nvsData.keys).sort();
+          sortedKeys.forEach((key) => {
+            const keyData = this.nvsData.keys[key];
+            formattedData.keys[key] = {
+              type: keyData.type,
+              description: keyData.description,
+              exists: keyData.exists,
+              value: keyData.value,
+              validation: keyData.validation,
+              status: keyData.status
+            };
+            if (keyData.originalValue !== void 0) {
+              formattedData.keys[key].originalValue = keyData.originalValue;
+            }
+            if (keyData.note) {
+              formattedData.keys[key].note = keyData.note;
+            }
+            if (keyData.length !== void 0) {
+              formattedData.keys[key].length = keyData.length;
+            }
+          });
+        }
+        return JSON.stringify(formattedData, null, 2);
+      },
+      // Quick actions
+      async handleQuickAction(action) {
+        try {
+          const contentResult = await window.DiagnosticsAPI.executeQuickAction(action);
+          if (!contentResult.content) {
+            console.error("No content received from server");
+            return;
+          }
+          await window.DiagnosticsAPI.printLocalContent(contentResult.content);
+          console.log(`${action} sent to printer successfully!`);
+        } catch (error) {
+          console.error("Error sending quick action:", error);
+        }
+      },
+      // Utility functions
+      formatBytes(bytes) {
+        if (bytes === 0) return "0 B";
+        const k = 1024;
+        const sizes = ["B", "KB", "MB", "GB"];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(0)) + " " + sizes[i];
+      },
+      formatUptime(seconds) {
+        const days = Math.floor(seconds / 86400);
+        const hours = Math.floor(seconds % 86400 / 3600);
+        const minutes = Math.floor(seconds % 3600 / 60);
+        if (days > 0) return `${days}d ${hours}h ${minutes}m`;
+        if (hours > 0) return `${hours}h ${minutes}m`;
+        return `${minutes}m`;
+      },
+      formatTemperature(tempC) {
+        if (!tempC || isNaN(tempC)) return "-";
+        let status, color;
+        if (tempC < 35) {
+          status = "Cool";
+          color = "#3b82f6";
+        } else if (tempC < 50) {
+          status = "Normal";
+          color = "#10b981";
+        } else if (tempC < 65) {
+          status = "Warm";
+          color = "#f59e0b";
+        } else if (tempC < 80) {
+          status = "Hot";
+          color = "#ef4444";
+        } else {
+          status = "Critical";
+          color = "#dc2626";
+        }
+        return `${tempC.toFixed(1)}\xB0C (${status})`;
+      },
+      getProgressBarClass(percentage) {
+        if (percentage > 90) return "bg-red-500";
+        if (percentage > 75) return "bg-orange-600";
+        return "bg-orange-500";
+      },
+      redactSecrets(configData) {
+        const redacted = JSON.parse(JSON.stringify(configData));
+        const secretKeys = ["password", "pass", "secret", "token", "key", "apikey", "api_key", "auth", "credential", "cert", "private", "bearer", "oauth"];
+        function redactObject(obj) {
+          if (typeof obj !== "object" || obj === null) return obj;
+          for (const [key, value] of Object.entries(obj)) {
+            const lowerKey = key.toLowerCase();
+            const shouldRedact = secretKeys.some((secretKey) => lowerKey.includes(secretKey));
+            if (shouldRedact && typeof value === "string" && value.length > 0) {
+              obj[key] = value.length > 8 ? value.substring(0, 2) + "\u25CF\u25CF\u25CF\u25CF\u25CF\u25CF\u25CF\u25CF" + value.substring(value.length - 2) : "\u25CF\u25CF\u25CF\u25CF\u25CF\u25CF\u25CF\u25CF";
+            } else if (typeof value === "object" && value !== null) {
+              redactObject(value);
+            }
+          }
+        }
+        redactObject(redacted);
+        return redacted;
+      },
+      // JSON syntax highlighting function
+      highlightJSON(jsonString) {
+        if (!jsonString || jsonString === "Configuration not available" || jsonString.startsWith("ERROR:")) {
+          return `<span class="text-gray-400">${jsonString}</span>`;
+        }
+        return jsonString.replace(/"([^"]+)"(\s*:)/g, '<span class="json-key">"$1"</span><span class="json-punctuation">$2</span>').replace(/:\s*"([^"]*)"/g, ': <span class="json-string">"$1"</span>').replace(/:\s*(-?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?)/g, ': <span class="json-number">$1</span>').replace(/:\s*(true|false)/g, ': <span class="json-boolean">$1</span>').replace(/:\s*(null)/g, ': <span class="json-null">$1</span>').replace(/([{}[\],])/g, '<span class="json-punctuation">$1</span>').replace(/<span class="json-punctuation">(<span class="json-punctuation">)/g, "$1").replace(/(<\/span>)<\/span>/g, "$1");
+      },
+      // Navigation
+      goBack() {
+        window.goBack();
+      }
+    };
+    return store;
+  }
+  document.addEventListener("alpine:init", () => {
+    if (window.diagnosticsStoreInstance) {
+      console.log("\u{1F6E0}\uFE0F Diagnostics: Store already exists, skipping alpine:init");
+      return;
+    }
+    const diagnosticsStore = initializeDiagnosticsStore();
+    Alpine.store("diagnostics", diagnosticsStore);
+    window.diagnosticsStoreInstance = diagnosticsStore;
+    diagnosticsStore.init();
+    Alpine.store("diagnosticsPartials", {
+      cache: {},
+      loading: {},
+      load(name) {
+        if (this.cache[name]) return this.cache[name];
+        if (this.loading[name]) return '<div class="p-4 text-center text-gray-500">Loading...</div>';
+        this.loading[name] = true;
+        fetch(`/html/partials/diagnostics/${name}.html`).then((response) => {
+          if (!response.ok) throw new Error(`Failed to load partial: ${name}`);
+          return response.text();
+        }).then((html) => {
+          this.loading[name] = false;
+          this.cache[name] = html;
+          Alpine.store("diagnosticsPartials", __spreadValues({}, this));
+        }).catch((error) => {
+          console.error("Error loading partial:", error);
+          this.cache[name] = `<div class="p-4 text-center text-red-500">Error loading ${name}</div>`;
+          this.loading[name] = false;
+          Alpine.store("diagnosticsPartials", __spreadValues({}, this));
+        });
+        return '<div class="p-4 text-center text-gray-500">Loading...</div>';
+      }
+    });
+  });
+  async function loadDiagnostics() {
+    try {
+      console.log("API: Loading diagnostics from server...");
+      const response = await fetch("/api/diagnostics");
+      if (!response.ok) {
+        throw new Error(`Diagnostics API returned ${response.status}: ${response.statusText}`);
+      }
+      const diagnostics = await response.json();
+      console.log("API: Diagnostics loaded successfully");
+      return diagnostics;
+    } catch (error) {
+      console.error("API: Failed to load diagnostics:", error);
+      throw error;
+    }
+  }
+  async function loadConfiguration() {
+    try {
+      console.log("API: Loading configuration from server...");
+      const response = await fetch("/api/config");
+      if (!response.ok) {
+        throw new Error(`Config API returned ${response.status}: ${response.statusText}`);
+      }
+      const config = await response.json();
+      console.log("API: Configuration loaded successfully");
+      return config;
+    } catch (error) {
+      console.error("API: Failed to load configuration:", error);
+      throw error;
+    }
+  }
+  async function loadNVSDump() {
+    try {
+      console.log("API: Loading NVS dump from server...");
+      const response = await fetch("/api/nvs-dump");
+      if (!response.ok) {
+        throw new Error(`NVS dump API returned ${response.status}: ${response.statusText}`);
+      }
+      const nvs = await response.json();
+      console.log("API: NVS dump loaded successfully");
+      return nvs;
+    } catch (error) {
+      console.error("API: Failed to load NVS dump:", error);
+      throw error;
+    }
+  }
+  async function executeQuickAction(action) {
+    try {
+      console.log(`API: Executing quick action: ${action}`);
+      const response = await fetch(`/api/${action}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" }
+      });
+      if (!response.ok) {
+        const errorData = await response.text();
+        throw new Error(`Quick action '${action}' failed: ${response.status} - ${errorData}`);
+      }
+      const result = await response.json();
+      console.log(`API: Quick action '${action}' completed successfully`);
+      return result;
+    } catch (error) {
+      console.error(`API: Failed to execute quick action '${action}':`, error);
+      throw error;
+    }
+  }
+  async function printLocalContent(content) {
+    try {
+      console.log("API: Sending content to local printer...");
+      const response = await fetch("/api/print-local", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: content })
+      });
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || `Print failed: HTTP ${response.status}`);
+      }
+      console.log("API: Content sent to printer successfully");
+    } catch (error) {
+      console.error("API: Failed to print content:", error);
+      throw error;
+    }
+  }
+  window.DiagnosticsAPI = {
+    loadDiagnostics,
+    loadConfiguration,
+    loadNVSDump,
+    executeQuickAction,
+    printLocalContent
+  };
+})();
