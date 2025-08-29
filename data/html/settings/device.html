@@ -137,10 +137,9 @@
                                                           ]"
                                                           x-text="pin"></span>
                                                     <span x-show="usedGpioPins.has(pin) && config.device.printerTxPin !== pin" class="ml-1 text-xs text-gray-400 flex items-center">
-                                                        <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                                        <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20" >
                                                             <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd"></path>
                                                         </svg>
-                                                        In use
                                                     </span>
                                                 </label>
                                             </template>
@@ -183,10 +182,9 @@
                                                           ]"
                                                           x-text="pin"></span>
                                                     <span x-show="usedGpioPins.has(pin) && config.leds?.pin !== pin" class="ml-1 text-xs text-gray-400 flex items-center">
-                                                        <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                                        <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20" >
                                                             <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd"></path>
                                                         </svg>
-                                                        In use
                                                     </span>
                                                 </label>
                                             </template>
@@ -239,12 +237,13 @@
                                                               config.buttons.button1?.gpio === pin ? 'font-bold' : 'font-normal'
                                                           ]"
                                                           x-text="pin"></span>
-                                                    <span x-show="usedGpioPins.has(pin) && config.buttons.button1?.gpio !== pin" class="ml-1 text-xs text-gray-400 flex items-center">
-                                                        <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                                                            <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd"></path>
-                                                        </svg>
-                                                        In use
-                                                    </span>
+                                                    <svg x-show="usedGpioPins.has(pin) && config.buttons.button1?.gpio !== pin" 
+                                                         class="w-3 h-3 ml-1 text-gray-400" 
+                                                         fill="currentColor" 
+                                                         viewBox="0 0 20 20"
+                                                         >
+                                                        <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd"></path>
+                                                    </svg>
                                                 </label>
                                             </template>
                                         </div>
@@ -292,12 +291,13 @@
                                                               config.buttons.button2?.gpio === pin ? 'font-bold' : 'font-normal'
                                                           ]"
                                                           x-text="pin"></span>
-                                                    <span x-show="usedGpioPins.has(pin) && config.buttons.button2?.gpio !== pin" class="ml-1 text-xs text-gray-400 flex items-center">
-                                                        <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                                                            <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd"></path>
-                                                        </svg>
-                                                        In use
-                                                    </span>
+                                                    <svg x-show="usedGpioPins.has(pin) && config.buttons.button2?.gpio !== pin" 
+                                                         class="w-3 h-3 ml-1 text-gray-400" 
+                                                         fill="currentColor" 
+                                                         viewBox="0 0 20 20"
+                                                         >
+                                                        <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd"></path>
+                                                    </svg>
                                                 </label>
                                             </template>
                                         </div>
@@ -349,10 +349,9 @@
                                                           ]"
                                                           x-text="pin"></span>
                                                     <span x-show="usedGpioPins.has(pin) && config.buttons.button3?.gpio !== pin" class="ml-1 text-xs text-gray-400 flex items-center">
-                                                        <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                                        <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20" >
                                                             <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd"></path>
                                                         </svg>
-                                                        In use
                                                     </span>
                                                 </label>
                                             </template>
@@ -402,10 +401,9 @@
                                                           ]"
                                                           x-text="pin"></span>
                                                     <span x-show="usedGpioPins.has(pin) && config.buttons.button4?.gpio !== pin" class="ml-1 text-xs text-gray-400 flex items-center">
-                                                        <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                                        <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20" >
                                                             <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd"></path>
                                                         </svg>
-                                                        In use
                                                     </span>
                                                 </label>
                                             </template>
@@ -432,7 +430,7 @@
                     </div>
 
                     <!-- Action Buttons -->
-                    <div class="flex flex-col sm:flex-row justify-center gap-6 pt-6">
+                    <div class="flex flex-col sm:flex-row justify-center gap-8 pt-6">
                         <button type="submit" :disabled="saving" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold text-lg py-4 px-6 rounded-xl transition-all duration-200 hover:scale-[1.02] hover:shadow-xl transform active:scale-95 shadow-lg"
                             :class="{ 'opacity-50 cursor-not-allowed': saving }">
                             <span x-show="!saving" class="flex items-center justify-center">
