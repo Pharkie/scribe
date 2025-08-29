@@ -553,9 +553,6 @@ This memo printed from Settings \u2192 WiFi`;
     window.wifiStoreInstance = wifiStore;
     wifiStore.init();
     Alpine.effect(() => {
-      const mode = wifiStore.wifiScan.mode;
-      const selectedNetwork = wifiStore.wifiScan.selectedNetwork;
-      const manualSSID = wifiStore.wifiScan.manualSSID;
       wifiStore.updateSSID();
     });
     console.log("\u2705 WiFi Settings Store registered and initialized");
