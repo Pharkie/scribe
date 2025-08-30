@@ -97,6 +97,8 @@
                                 <p x-show="validation.errors['device.owner']"
                                     class="text-xs text-red-600 dark:text-red-400 mt-1"
                                     x-text="validation.errors['device.owner']"></p>
+                                <p x-show="!validation.errors['device.owner']"
+                                    class="text-xs text-gray-500 dark:text-gray-400 mt-2">If you change the device owner, the mDNS hostname will change on restart and you'll need to connect to the new address</p>
                             </div>
 
                             <!-- Timezone -->
@@ -191,7 +193,7 @@
                                     <div x-show="config.leds?.enabled"
                                         class="bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-xl p-5 shadow-lg border-l-4 border-l-violet-600">
                                         <div class="text-center mb-4">
-                                            <h4 class="font-semibold text-violet-600 dark:text-violet-400 text-lg mb-2">
+                                            <h4 class="font-semibold text-gray-900 dark:text-white text-lg mb-2">
                                                 LED Strip</h4>
                                         </div>
                                         <div class="space-y-1">
