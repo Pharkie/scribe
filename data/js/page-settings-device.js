@@ -379,26 +379,32 @@
           });
           return [...popular, ...others.slice(0, 5 - popular.length)].slice(0, 5);
         }
-        const results = this.timezonePicker.timezones.filter((timezone) => {
-          if (timezone.displayName.toLowerCase().includes(query)) return true;
-          if (timezone.id.toLowerCase().includes(query)) return true;
+        const results = [];
+        this.timezonePicker.timezones.forEach((timezone) => {
+          let priority = null;
           const parts = timezone.id.split("/");
           const city = parts[parts.length - 1].replace(/_/g, " ").toLowerCase();
-          if (city.includes(query)) return true;
-          if (timezone.countryName && timezone.countryName.toLowerCase().includes(query)) return true;
-          const region = timezone.id.split("/")[0];
-          if (region && region.toLowerCase().includes(query)) return true;
-          if (timezone.aliases && timezone.aliases.some((alias) => alias.toLowerCase().includes(query))) return true;
-          if (timezone.comment && timezone.comment.toLowerCase().includes(query)) return true;
-          return false;
+          if (city.includes(query)) {
+            priority = 1;
+          } else if (timezone.displayName.toLowerCase().includes(query)) {
+            priority = 2;
+          } else if (timezone.id.toLowerCase().includes(query)) {
+            priority = 3;
+          } else if (timezone.countryName && timezone.countryName.toLowerCase().includes(query)) {
+            priority = 4;
+          } else if (timezone.comment && timezone.comment.toLowerCase().includes(query)) {
+            priority = 5;
+          }
+          if (priority !== null) {
+            results.push({ timezone, priority });
+          }
         });
         return results.sort((a, b) => {
-          if (a.displayName.toLowerCase() === query) return -1;
-          if (b.displayName.toLowerCase() === query) return 1;
-          if (a.displayName.toLowerCase().startsWith(query) && !b.displayName.toLowerCase().startsWith(query)) return -1;
-          if (b.displayName.toLowerCase().startsWith(query) && !a.displayName.toLowerCase().startsWith(query)) return 1;
-          return a.displayName.localeCompare(b.displayName);
-        });
+          if (a.priority !== b.priority) {
+            return a.priority - b.priority;
+          }
+          return a.timezone.displayName.localeCompare(b.timezone.displayName);
+        }).map((result) => result.timezone);
       },
       // Load timezone data from API
       async loadTimezones() {
@@ -493,6 +499,24 @@
       // Reset focus index
       resetTimezoneFocus() {
         this.focusedIndex = -1;
+      },
+      // Handle global keydown to capture typing when dropdown is open
+      handleGlobalKeydown(event, refs) {
+        if (!this.isOpen || document.activeElement === refs.searchInput) {
+          return;
+        }
+        if (event.key.length === 1 && !event.ctrlKey && !event.metaKey && !event.altKey) {
+          refs.searchInput.focus();
+          return;
+        }
+        if (event.key === "Backspace") {
+          event.preventDefault();
+          refs.searchInput.focus();
+          if (this.searchQuery.length > 0) {
+            this.searchQuery = this.searchQuery.slice(0, -1);
+            this.onSearchInputWithReset();
+          }
+        }
       },
       // Close timezone picker
       closeTimezonePicker() {
