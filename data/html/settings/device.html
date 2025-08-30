@@ -147,7 +147,7 @@
                                         <button 
                                             type="button"
                                             tabindex="0"
-                                            class="timezone-option w-full text-left px-4 py-3 focus:outline-none transition-colors duration-150 hover:bg-blue-50 dark:hover:bg-blue-900/50"
+                                            class="timezone-option w-full text-left px-4 py-3 focus:outline-none transition-colors duration-150"
                                             :class="{
                                                 'border-b border-gray-100 dark:border-gray-700': filteredTimezones.length > 1 && index < Math.min(filteredTimezones.length, 10) - 1
                                             }"
@@ -158,8 +158,8 @@
                                             @focus="focusedIndex = index"
                                             @keydown.escape="isOpen = false"
                                             @keydown.enter.prevent="selectTimezone(timezone)"
-                                            @keydown.up.prevent="focusedIndex = index > 0 ? index - 1 : -1; focusedIndex === -1 ? $refs.searchInput.focus() : $el.previousElementSibling.focus()"
-                                            @keydown.down.prevent="focusedIndex = index < Math.min(filteredTimezones.length - 1, 9) ? index + 1 : 0; $el.nextElementSibling ? $el.nextElementSibling.focus() : $refs.dropdown.querySelector('.timezone-option').focus()"
+                                            @keydown.up.prevent="focusedIndex = focusedIndex > 0 ? focusedIndex - 1 : -1; focusedIndex === -1 ? $refs.searchInput.focus() : $refs.dropdown.querySelectorAll('.timezone-option')[focusedIndex].focus()"
+                                            @keydown.down.prevent="focusedIndex = focusedIndex < Math.min(filteredTimezones.length - 1, 9) ? focusedIndex + 1 : 0; $refs.dropdown.querySelectorAll('.timezone-option')[focusedIndex].focus()"
                                             
                                             <div class="flex flex-col">
                                                 <span class="font-medium text-gray-900 dark:text-gray-100" x-text="timezone.displayName"></span>
