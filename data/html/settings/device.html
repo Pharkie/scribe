@@ -104,6 +104,7 @@
                             <!-- Timezone Picker -->
                             <div x-data="{ isOpen: false, searchQuery: '', focusedIndex: -1 }" 
                                  @timezone-picker-open="openTimezonePicker()" 
+                                 @keydown.window="handleGlobalKeydown($event, $refs)"
                                  class="relative">
                                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Timezone:</label>
                                 
