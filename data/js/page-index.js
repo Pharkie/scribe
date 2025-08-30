@@ -1,4 +1,648 @@
-(()=>{function g(){return{config:{},loading:!0,error:null,initialized:!1,message:"",selectedPrinter:"local-direct",submitting:!1,buttonTextOverride:null,printers:[],localPrinterName:"Unknown",overlayVisible:!1,overlayPrinterData:null,overlayPrinterName:"",overlayPrinterType:"mqtt",settingsStashed:!1,toasts:[],activeQuickAction:null,memoModalVisible:!1,memos:[],memosLoading:!1,memosLoaded:!1,printing:!1,get maxChars(){var e,t;if(!((t=(e=this.config)==null?void 0:e.device)!=null&&t.maxCharacters))throw new Error("Maximum characters configuration is missing from server");return this.config.device.maxCharacters},get charCount(){return this.message.length},get charCountText(){let e=this.charCount,t=this.maxChars;if(e>t){let o=e-t;return`${e}/${t} characters (${o} over limit)`}return`${e}/${t} characters`},get charCountClass(){let e=this.charCount,t=this.maxChars,o=e/t;return e>t?"text-red-600 dark:text-red-400 font-semibold":o>=.9?"text-yellow-700 dark:text-yellow-300 font-medium":"text-gray-500 dark:text-gray-400"},get canSubmit(){return this.message.trim().length>0&&this.charCount<=this.maxChars&&!this.isLoading},get isConfigReady(){return!this.loading&&!this.error&&this.config&&this.config.device&&this.config.device.maxCharacters},async init(){if(this.initialized){console.log("\u{1F4CB} Index: Already initialized, skipping");return}this.initialized=!0,console.log("\u{1F4CB} Index: Starting initialization..."),this.checkForSettingsSuccess();try{await this.loadConfig()}catch(e){console.error("\u{1F4CB} Index: Config loading failed:",e),this.error=e.message,this.loading=!1}this.initializePrinterDiscovery(),this.setupEventListeners(),console.log("\u{1F4CB} Index: Initialization complete")},async loadConfig(){var e,t,o,n,r;try{if(console.log("\u{1F4CB} Index: Loading configuration from API..."),this.config=await window.IndexAPI.loadConfiguration(),console.log("\u{1F4CB} Index: Raw config received:",this.config),console.log("\u{1F4CB} Index: Config keys:",Object.keys(this.config)),((t=(e=this.config)==null?void 0:e.device)==null?void 0:t.printer_name)===void 0)throw new Error("Printer name configuration is missing from server");if(((n=(o=this.config)==null?void 0:o.device)==null?void 0:n.maxCharacters)===void 0)throw new Error("Maximum characters validation configuration is missing from server");if(((r=this.config)==null?void 0:r.device)===void 0)throw new Error("Device configuration is missing from server");return this.localPrinterName=this.config.device.printer_name,console.log("\u{1F4CB} Index: Config loaded successfully, printer name:",this.localPrinterName),await this.loadMemosFromAPI(),this.error=null,this.loading=!1,this.config}catch(a){throw console.error("\u{1F4CB} Index: Failed to load config:",a),this.error=a.message,this.loading=!1,a}},initializePrinterDiscovery(){typeof window.initializePrinterDiscovery=="function"&&window.initializePrinterDiscovery(),this.updatePrinterList()},updatePrinterList(e=[]){this.printers=[{value:"local-direct",icon:"home",name:"Local direct",isLocal:!0,selected:this.selectedPrinter==="local-direct"}],e.forEach(t=>{let o=`scribe/${t.name}/print`;this.printers.push({value:o,icon:"megaphone",name:t.name,isLocal:!1,data:t,selected:this.selectedPrinter===o})})},setupEventListeners(){document.addEventListener("printersUpdated",e=>{console.log("\u{1F504} Printers updated, refreshing index page printer selection"),this.updatePrinterList(e.detail.printers||[])})},selectPrinter(e){this.selectedPrinter=e,this.printers.forEach(t=>{t.selected=t.value===e})},async handleSubmit(e){if(e&&e.preventDefault(),!!this.canSubmit){this.submitting=!0;try{let t=this.message.trim(),o=await window.IndexAPI.generateUserMessage(t,this.selectedPrinter);if(!o.content)throw new Error("Failed to generate message content");this.selectedPrinter==="local-direct"?await window.IndexAPI.printLocalContent(o.content):await window.IndexAPI.printMQTTContent(o.content,this.selectedPrinter),this.triggerSubmitCelebration(),this.message=""}catch(t){console.error("Submit error:",t),this.showToast(`Error: ${t.message}`,"error")}finally{this.submitting=!1}}},async sendQuickAction(e){if(!this.activeQuickAction)try{this.activeQuickAction=e;let t=await window.IndexAPI.executeQuickAction(e);if(!t.content){this.showToast("No content received from server","error");return}this.selectedPrinter==="local-direct"?await window.IndexAPI.printLocalContent(t.content):await window.IndexAPI.printMQTTContent(t.content,this.selectedPrinter),this.triggerQuickActionCelebration(e)}catch(t){console.error("Error sending quick action:",t),this.showToast(`Network error: ${t.message}`,"error")}finally{setTimeout(()=>{this.activeQuickAction=null},2e3)}},handleTextareaKeydown(e){e.key==="Enter"&&!e.shiftKey&&(e.preventDefault(),this.canSubmit&&this.handleSubmit(e))},showLocalPrinterInfo(){var o;if(!((o=this.config)!=null&&o.device))throw new Error("Device configuration is missing from server");let e=this.config.device,t={name:e.printer_name||e.owner,ip_address:e.ip_address,mdns:e.mdns,status:"online",firmware_version:e.firmware_version,timezone:e.timezone,last_power_on:e.boot_time};this.showPrinterOverlay(t,t.name,"local")},showPrinterOverlay(e,t,o="mqtt"){this.overlayPrinterData=e,this.overlayPrinterName=t,this.overlayPrinterType=o,this.overlayVisible=!0},closePrinterOverlay(){this.overlayVisible=!1,this.overlayPrinterData=null},get overlayData(){if(!this.overlayPrinterData)return null;let e=this.overlayPrinterData,t=this.overlayPrinterType,o=t==="mqtt"?`scribe/${this.overlayPrinterName}/print`:null,n=e.ip_address,r=e.mdns,a=e.firmware_version,d=t==="local"?window.getIcon("home","w-6 h-6"):window.getIcon("megaphone","w-6 h-6"),c="Not available";if(e.last_power_on)try{let s;if(typeof e.last_power_on=="string")s=new Date(e.last_power_on);else if(typeof e.last_power_on=="number"){let u=e.last_power_on<1e10?e.last_power_on*1e3:e.last_power_on;s=new Date(u)}else s=new Date(e.last_power_on);let f=new Date().getTime()-s.getTime(),m=this.formatTimeDifference(f),l=s.toLocaleString(void 0,{year:"numeric",month:"short",day:"numeric",hour:"2-digit",minute:"2-digit",second:"2-digit",hour12:!1});c=`${m}${l?` (${l})`:""}`}catch(s){c="Invalid date"}let h=e.timezone;return{topic:o,ipAddress:n,mdns:r,firmwareVersion:a,printerIcon:d,lastPowerOnText:c,timezone:h}},async copyTopic(e){try{if(navigator.clipboard&&window.isSecureContext)await navigator.clipboard.writeText(e);else{let t=document.createElement("textarea");t.value=e,t.style.position="fixed",t.style.left="-999999px",t.style.top="-999999px",document.body.appendChild(t),t.focus(),t.select(),document.execCommand("copy"),document.body.removeChild(t)}}catch(t){console.error("Failed to copy:",t),this.showToast("Failed to copy topic","error")}},formatTimeDifference(e){let t=Math.floor(e/1e3),o=Math.floor(t/60),n=Math.floor(o/60),r=Math.floor(n/24);return r>0?`${r} day${r>1?"s":""} ago`:n>0?`about ${n} hour${n>1?"s":""} ago`:o>=2?`${o} mins ago`:o===1?"A minute ago":t>30?"30 seconds ago":"Just now"},showToast(e,t="info"){let o=Date.now(),n={id:o,message:e,type:t};this.toasts.push(n),setTimeout(()=>{this.removeToast(o)},4e3)},removeToast(e){this.toasts=this.toasts.filter(t=>t.id!==e)},checkForSettingsSuccess(){let e=new URLSearchParams(window.location.search);if(e.get("settings")==="stashed"){this.settingsStashed=!0,setTimeout(()=>{this.settingsStashed=!1},3e3);let t=window.location.pathname;window.history.replaceState({},document.title,t)}else if(e.get("settings_saved")==="true"){this.showToast("\u{1F4BE} Settings saved","success");let t=window.location.pathname;window.history.replaceState({},document.title,t)}},triggerQuickActionCelebration(e){if(typeof confetti!="undefined"){let t=document.querySelector(`[data-action="${e}"]`),o=t==null?void 0:t.getBoundingClientRect();switch(e){case"riddle":confetti({particleCount:100,spread:70,origin:o?{x:(o.left+o.width/2)/window.innerWidth,y:(o.top+o.height/2)/window.innerHeight}:{y:.6},colors:["#f59e0b","#eab308","#facc15","#fde047"],shapes:["square"]});break;case"joke":confetti({particleCount:150,spread:90,origin:o?{x:(o.left+o.width/2)/window.innerWidth,y:(o.top+o.height/2)/window.innerHeight}:{y:.6},colors:["#10b981","#34d399","#6ee7b7","#a7f3d0"],scalar:1.2});break;case"quote":confetti({particleCount:80,spread:45,origin:o?{x:(o.left+o.width/2)/window.innerWidth,y:(o.top+o.height/2)/window.innerHeight}:{y:.6},colors:["#8b5cf6","#a78bfa","#c4b5fd","#e0e7ff"],scalar:.8,shapes:["star"]});break;case"quiz":confetti({particleCount:120,spread:360,origin:o?{x:(o.left+o.width/2)/window.innerWidth,y:(o.top+o.height/2)/window.innerHeight}:{y:.6},colors:["#06b6d4","#67e8f9","#a5f3fc","#cffafe"],startVelocity:45,decay:.85});break;case"news":confetti({particleCount:120,spread:80,origin:o?{x:(o.left+o.width/2)/window.innerWidth,y:(o.top+o.height/2)/window.innerHeight}:{y:.6},colors:["#6b7280","#9ca3af","#d1d5db","#f3f4f6"],shapes:["square"],scalar:1.1,gravity:.9,drift:.05});break;case"memo":confetti({particleCount:100,spread:60,origin:o?{x:(o.left+o.width/2)/window.innerWidth,y:(o.top+o.height/2)/window.innerHeight}:{y:.6},colors:["#ec4899","#f472b6","#f9a8d4","#fce7f3"],scalar:.9,startVelocity:30});break;default:confetti({particleCount:100,spread:70,origin:o?{x:(o.left+o.width/2)/window.innerWidth,y:(o.top+o.height/2)/window.innerHeight}:{y:.6}})}}},triggerSubmitCelebration(){if(typeof confetti!="undefined"){let e=document.querySelector("#main-submit-btn"),t=e==null?void 0:e.getBoundingClientRect(),o=t?{x:(t.left+t.width/2)/window.innerWidth,y:(t.top+t.height/2)/window.innerHeight}:{y:.6};confetti({particleCount:200,spread:100,origin:o,colors:["#3b82f6","#60a5fa","#93c5fd","#dbeafe"],scalar:1.5})}},goToSettings(){window.location.href="/settings.html"},async loadMemosFromAPI(){if(!this.memosLoaded){console.log("\u{1F4DD} Loading memos from API...");try{let e=await window.IndexAPI.loadMemos();this.memos=[{id:1,content:e.memo1||""},{id:2,content:e.memo2||""},{id:3,content:e.memo3||""},{id:4,content:e.memo4||""}],this.memosLoaded=!0,console.log("\u{1F4DD} Memos loaded from API:",this.memos)}catch(e){console.error("\u{1F4DD} Failed to load memos:",e),this.memos=[{id:1,content:""},{id:2,content:""},{id:3,content:""},{id:4,content:""}],this.memosLoaded=!0}}},async showMemoModal(){console.log("\u{1F4DD} Opening memo modal"),this.memoModalVisible=!0,this.memosLoaded||await this.loadMemosFromAPI()},closeMemoModal(){console.log("\u{1F4DD} Closing memo modal"),this.memoModalVisible=!1},async printMemo(e){if(!this.printing)try{this.printing=!0,console.log(`\u{1F4DD} Printing memo ${e}...`);let t=await fetch(`/api/memo/${e}`);if(!t.ok)throw new Error(`Failed to get memo: ${t.status}`);let o=await t.json();if(!o.content)throw new Error("No memo content received");console.log(`\u{1F4DD} Memo ${e} retrieved: ${o.content}`);let n;this.selectedPrinter==="local-direct"?n=await window.IndexAPI.printLocalContent(o.content):n=await window.IndexAPI.printMQTTContent(o.content,this.selectedPrinter),this.activeQuickAction="memo",this.closeMemoModal(),window.confetti&&confetti({colors:["#ec4899","#f472b6","#f9a8d4","#fce7f3"],startVelocity:30,spread:360,ticks:60,zIndex:0}),setTimeout(()=>{this.activeQuickAction=null},2e3)}catch(t){console.error(`\u{1F4DD} Failed to print memo ${e}:`,t),this.showToast(`Failed to print memo: ${t.message}`,"error")}finally{this.printing=!1}},initializePrinterDiscovery(){console.log("\u{1F50C} Initializing real-time printer discovery (SSE)");let e=null,t=()=>{e&&e.close(),e=new EventSource("/events"),e.addEventListener("printer-update",o=>{try{console.log("\u{1F5A8}\uFE0F Real-time printer update received");let n=JSON.parse(o.data);this.updatePrintersFromData(n)}catch(n){console.error("Error parsing printer update:",n)}}),e.addEventListener("system-status",o=>{try{let n=JSON.parse(o.data);console.log(`\u{1F4E1} System status: ${n.status} - ${n.message}`),this.showSystemNotification(n.status,n.message)}catch(n){console.error("Error parsing system status:",n)}}),e.onerror=o=>{console.error("SSE connection error:",o),setTimeout(()=>{console.log("\u{1F504} Attempting to reconnect SSE..."),t()},5e3)},e.onopen=o=>{console.log("\u2705 Real-time updates connected")}};t(),window.addEventListener("beforeunload",()=>{e&&e.close()})},updatePrintersFromData(e){if(e&&e.discovered_printers){this.printers=e.discovered_printers;let t=new CustomEvent("printersUpdated",{detail:{printers:e.discovered_printers}});document.dispatchEvent(t)}},showSystemNotification(e,t){if(!["connected","error","reconnecting"].includes(e))return;let o=document.createElement("div");switch(o.className=`notification notification-${e}`,o.style.cssText=`
+(() => {
+  // multi-entry:multi-entry:src/js/index-alpine-store.js,src/js/index-api.js
+  function initializeIndexStore() {
+    const store = {
+      // Core state
+      config: {},
+      loading: true,
+      error: null,
+      initialized: false,
+      // Flag to prevent duplicate initialization
+      // Form state
+      message: "",
+      selectedPrinter: "local-direct",
+      submitting: false,
+      buttonTextOverride: null,
+      // Printer state
+      printers: [],
+      localPrinterName: "Unknown",
+      // UI state
+      overlayVisible: false,
+      overlayPrinterData: null,
+      overlayPrinterName: "",
+      overlayPrinterType: "mqtt",
+      // Settings stashed indicator
+      settingsStashed: false,
+      // Toast state
+      toasts: [],
+      // Active quick action (only one can be active at a time)
+      activeQuickAction: null,
+      // Memo state
+      memoModalVisible: false,
+      memos: [],
+      memosLoading: false,
+      memosLoaded: false,
+      printing: false,
+      // Character limits - updated path for new structure
+      get maxChars() {
+        var _a, _b;
+        if (!((_b = (_a = this.config) == null ? void 0 : _a.device) == null ? void 0 : _b.maxCharacters)) {
+          throw new Error("Maximum characters configuration is missing from server");
+        }
+        return this.config.device.maxCharacters;
+      },
+      get charCount() {
+        return this.message.length;
+      },
+      get charCountText() {
+        const count = this.charCount;
+        const max = this.maxChars;
+        if (count > max) {
+          const over = count - max;
+          return `${count}/${max} characters (${over} over limit)`;
+        }
+        return `${count}/${max} characters`;
+      },
+      get charCountClass() {
+        const count = this.charCount;
+        const max = this.maxChars;
+        const percentage = count / max;
+        if (count > max) {
+          return "text-red-600 dark:text-red-400 font-semibold";
+        } else if (percentage >= 0.9) {
+          return "text-yellow-700 dark:text-yellow-300 font-medium";
+        } else {
+          return "text-gray-500 dark:text-gray-400";
+        }
+      },
+      get canSubmit() {
+        return this.message.trim().length > 0 && this.charCount <= this.maxChars && !this.isLoading;
+      },
+      get isConfigReady() {
+        return !this.loading && !this.error && this.config && this.config.device && this.config.device.maxCharacters;
+      },
+      // Initialize store
+      async init() {
+        var _a;
+        if (this.initialized) {
+          console.log("\u{1F4CB} Index: Already initialized, skipping");
+          return;
+        }
+        this.initialized = true;
+        console.log("\u{1F4CB} Index: Starting initialization...");
+        this.checkForSettingsSuccess();
+        try {
+          await this.loadConfig();
+          if ((_a = this.config.mqtt) == null ? void 0 : _a.enabled) {
+            console.log("\u{1F4CB} Index: MQTT enabled, initializing printer discovery");
+            this.initializePrinterDiscovery();
+          } else {
+            console.log("\u{1F4CB} Index: MQTT disabled, skipping printer discovery");
+          }
+        } catch (error) {
+          console.error("\u{1F4CB} Index: Config loading failed:", error);
+          this.error = error.message;
+          this.loading = false;
+        }
+        this.setupEventListeners();
+        console.log("\u{1F4CB} Index: Initialization complete");
+      },
+      // Load configuration
+      async loadConfig() {
+        var _a, _b, _c, _d, _e;
+        try {
+          console.log("\u{1F4CB} Index: Loading configuration from API...");
+          this.config = await window.IndexAPI.loadConfiguration();
+          console.log("\u{1F4CB} Index: Raw config received:", this.config);
+          console.log("\u{1F4CB} Index: Config keys:", Object.keys(this.config));
+          if (((_b = (_a = this.config) == null ? void 0 : _a.device) == null ? void 0 : _b.printer_name) === void 0) {
+            throw new Error("Printer name configuration is missing from server");
+          }
+          if (((_d = (_c = this.config) == null ? void 0 : _c.device) == null ? void 0 : _d.maxCharacters) === void 0) {
+            throw new Error("Maximum characters validation configuration is missing from server");
+          }
+          if (((_e = this.config) == null ? void 0 : _e.device) === void 0) {
+            throw new Error("Device configuration is missing from server");
+          }
+          this.localPrinterName = this.config.device.printer_name;
+          console.log("\u{1F4CB} Index: Config loaded successfully, printer name:", this.localPrinterName);
+          await this.loadMemosFromAPI();
+          this.error = null;
+          this.loading = false;
+          return this.config;
+        } catch (error) {
+          console.error("\u{1F4CB} Index: Failed to load config:", error);
+          this.error = error.message;
+          this.loading = false;
+          throw error;
+        }
+      },
+      // Initialize printer discovery
+      initializePrinterDiscovery() {
+        this.setupSSEConnection();
+        this.updatePrinterList();
+      },
+      // Update printer list from discovered printers
+      updatePrinterList(discoveredPrinters = []) {
+        this.printers = [
+          {
+            value: "local-direct",
+            icon: "home",
+            name: "Local direct",
+            isLocal: true,
+            selected: this.selectedPrinter === "local-direct"
+          }
+        ];
+        discoveredPrinters.forEach((printer) => {
+          const topic = `scribe/${printer.name}/print`;
+          this.printers.push({
+            value: topic,
+            icon: "megaphone",
+            name: printer.name,
+            isLocal: false,
+            data: printer,
+            selected: this.selectedPrinter === topic
+          });
+        });
+      },
+      // Setup event listeners
+      setupEventListeners() {
+        document.addEventListener("printersUpdated", (event) => {
+          console.log("\u{1F504} Printers updated, refreshing index page printer selection");
+          this.updatePrinterList(event.detail.printers || []);
+        });
+      },
+      // Select printer
+      selectPrinter(value) {
+        this.selectedPrinter = value;
+        this.printers.forEach((printer) => {
+          printer.selected = printer.value === value;
+        });
+      },
+      // Submit form
+      async handleSubmit(event) {
+        if (event) event.preventDefault();
+        if (!this.canSubmit) return;
+        this.submitting = true;
+        try {
+          const message = this.message.trim();
+          const contentResult = await window.IndexAPI.generateUserMessage(message, this.selectedPrinter);
+          if (!contentResult.content) {
+            throw new Error("Failed to generate message content");
+          }
+          if (this.selectedPrinter === "local-direct") {
+            await window.IndexAPI.printLocalContent(contentResult.content);
+          } else {
+            await window.IndexAPI.printMQTTContent(contentResult.content, this.selectedPrinter);
+          }
+          this.triggerSubmitCelebration();
+          this.message = "";
+        } catch (error) {
+          console.error("Submit error:", error);
+          this.showToast(`Error: ${error.message}`, "error");
+        } finally {
+          this.submitting = false;
+        }
+      },
+      // Quick actions
+      async sendQuickAction(action) {
+        if (this.activeQuickAction) {
+          return;
+        }
+        try {
+          this.activeQuickAction = action;
+          const contentResult = await window.IndexAPI.executeQuickAction(action);
+          if (!contentResult.content) {
+            this.showToast("No content received from server", "error");
+            return;
+          }
+          if (this.selectedPrinter === "local-direct") {
+            await window.IndexAPI.printLocalContent(contentResult.content);
+          } else {
+            await window.IndexAPI.printMQTTContent(contentResult.content, this.selectedPrinter);
+          }
+          this.triggerQuickActionCelebration(action);
+        } catch (error) {
+          console.error("Error sending quick action:", error);
+          this.showToast(`Network error: ${error.message}`, "error");
+        } finally {
+          setTimeout(() => {
+            this.activeQuickAction = null;
+          }, 2e3);
+        }
+      },
+      // Handle textarea keydown
+      handleTextareaKeydown(event) {
+        if (event.key === "Enter" && !event.shiftKey) {
+          event.preventDefault();
+          if (this.canSubmit) {
+            this.handleSubmit(event);
+          }
+        }
+      },
+      // Printer info overlay
+      showLocalPrinterInfo() {
+        var _a;
+        if (!((_a = this.config) == null ? void 0 : _a.device)) {
+          throw new Error("Device configuration is missing from server");
+        }
+        const deviceConfig = this.config.device;
+        const localPrinterData = {
+          name: deviceConfig.printer_name || deviceConfig.owner,
+          ip_address: deviceConfig.ip_address,
+          mdns: deviceConfig.mdns,
+          status: "online",
+          firmware_version: deviceConfig.firmware_version,
+          timezone: deviceConfig.timezone,
+          last_power_on: deviceConfig.boot_time
+        };
+        this.showPrinterOverlay(localPrinterData, localPrinterData.name, "local");
+      },
+      showPrinterOverlay(printerData, printerName, printerType = "mqtt") {
+        this.overlayPrinterData = printerData;
+        this.overlayPrinterName = printerName;
+        this.overlayPrinterType = printerType;
+        this.overlayVisible = true;
+      },
+      closePrinterOverlay() {
+        this.overlayVisible = false;
+        this.overlayPrinterData = null;
+      },
+      // Get formatted printer overlay data
+      get overlayData() {
+        if (!this.overlayPrinterData) return null;
+        const printerData = this.overlayPrinterData;
+        const printerType = this.overlayPrinterType;
+        const topic = printerType === "mqtt" ? `scribe/${this.overlayPrinterName}/print` : null;
+        const ipAddress = printerData.ip_address;
+        const mdns = printerData.mdns;
+        const firmwareVersion = printerData.firmware_version;
+        const printerIcon = printerType === "local" ? window.getIcon("home", "w-6 h-6") : window.getIcon("megaphone", "w-6 h-6");
+        let lastPowerOnText = "Not available";
+        if (printerData.last_power_on) {
+          try {
+            let powerOnTime;
+            if (typeof printerData.last_power_on === "string") {
+              powerOnTime = new Date(printerData.last_power_on);
+            } else if (typeof printerData.last_power_on === "number") {
+              const timestamp = printerData.last_power_on < 1e10 ? printerData.last_power_on * 1e3 : printerData.last_power_on;
+              powerOnTime = new Date(timestamp);
+            } else {
+              powerOnTime = new Date(printerData.last_power_on);
+            }
+            const now = /* @__PURE__ */ new Date();
+            const diffMs = now.getTime() - powerOnTime.getTime();
+            const lastPowerOnRelative = this.formatTimeDifference(diffMs);
+            const lastPowerOnAbsolute = powerOnTime.toLocaleString(void 0, {
+              year: "numeric",
+              month: "short",
+              day: "numeric",
+              hour: "2-digit",
+              minute: "2-digit",
+              second: "2-digit",
+              hour12: false
+            });
+            lastPowerOnText = `${lastPowerOnRelative}${lastPowerOnAbsolute ? ` (${lastPowerOnAbsolute})` : ""}`;
+          } catch (e) {
+            lastPowerOnText = "Invalid date";
+          }
+        }
+        const timezone = printerData.timezone;
+        return {
+          topic,
+          ipAddress,
+          mdns,
+          firmwareVersion,
+          printerIcon,
+          lastPowerOnText,
+          timezone
+        };
+      },
+      // Copy topic to clipboard
+      async copyTopic(topic) {
+        try {
+          if (navigator.clipboard && window.isSecureContext) {
+            await navigator.clipboard.writeText(topic);
+          } else {
+            const textarea = document.createElement("textarea");
+            textarea.value = topic;
+            textarea.style.position = "fixed";
+            textarea.style.left = "-999999px";
+            textarea.style.top = "-999999px";
+            document.body.appendChild(textarea);
+            textarea.focus();
+            textarea.select();
+            document.execCommand("copy");
+            document.body.removeChild(textarea);
+          }
+        } catch (error) {
+          console.error("Failed to copy:", error);
+          this.showToast("Failed to copy topic", "error");
+        }
+      },
+      // Format time difference
+      formatTimeDifference(diffMs) {
+        const diffSeconds = Math.floor(diffMs / 1e3);
+        const diffMinutes = Math.floor(diffSeconds / 60);
+        const diffHours = Math.floor(diffMinutes / 60);
+        const diffDays = Math.floor(diffHours / 24);
+        if (diffDays > 0) {
+          return `${diffDays} day${diffDays > 1 ? "s" : ""} ago`;
+        } else if (diffHours > 0) {
+          return `about ${diffHours} hour${diffHours > 1 ? "s" : ""} ago`;
+        } else if (diffMinutes >= 2) {
+          return `${diffMinutes} mins ago`;
+        } else if (diffMinutes === 1) {
+          return "A minute ago";
+        } else if (diffSeconds > 30) {
+          return "30 seconds ago";
+        } else {
+          return "Just now";
+        }
+      },
+      // Toast management
+      showToast(message, type = "info") {
+        const id = Date.now();
+        const toast = { id, message, type };
+        this.toasts.push(toast);
+        setTimeout(() => {
+          this.removeToast(id);
+        }, 4e3);
+      },
+      removeToast(id) {
+        this.toasts = this.toasts.filter((toast) => toast.id !== id);
+      },
+      // Check for settings success
+      checkForSettingsSuccess() {
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get("settings") === "stashed") {
+          this.settingsStashed = true;
+          setTimeout(() => {
+            this.settingsStashed = false;
+          }, 3e3);
+          const cleanUrl = window.location.pathname;
+          window.history.replaceState({}, document.title, cleanUrl);
+        } else if (urlParams.get("settings_saved") === "true") {
+          this.showToast("\u{1F4BE} Settings saved", "success");
+          const cleanUrl = window.location.pathname;
+          window.history.replaceState({}, document.title, cleanUrl);
+        }
+      },
+      // Confetti Celebration Methods
+      triggerQuickActionCelebration(action) {
+        if (typeof confetti !== "undefined") {
+          const buttonElement = document.querySelector(`[data-action="${action}"]`);
+          const buttonRect = buttonElement == null ? void 0 : buttonElement.getBoundingClientRect();
+          switch (action) {
+            case "riddle":
+              confetti({
+                particleCount: 100,
+                spread: 70,
+                origin: buttonRect ? {
+                  x: (buttonRect.left + buttonRect.width / 2) / window.innerWidth,
+                  y: (buttonRect.top + buttonRect.height / 2) / window.innerHeight
+                } : { y: 0.6 },
+                colors: ["#f59e0b", "#eab308", "#facc15", "#fde047"],
+                // Yellow tones
+                shapes: ["square"]
+              });
+              break;
+            case "joke":
+              confetti({
+                particleCount: 150,
+                spread: 90,
+                origin: buttonRect ? {
+                  x: (buttonRect.left + buttonRect.width / 2) / window.innerWidth,
+                  y: (buttonRect.top + buttonRect.height / 2) / window.innerHeight
+                } : { y: 0.6 },
+                colors: ["#10b981", "#34d399", "#6ee7b7", "#a7f3d0"],
+                // Emerald tones
+                scalar: 1.2
+              });
+              break;
+            case "quote":
+              confetti({
+                particleCount: 80,
+                spread: 45,
+                origin: buttonRect ? {
+                  x: (buttonRect.left + buttonRect.width / 2) / window.innerWidth,
+                  y: (buttonRect.top + buttonRect.height / 2) / window.innerHeight
+                } : { y: 0.6 },
+                colors: ["#8b5cf6", "#a78bfa", "#c4b5fd", "#e0e7ff"],
+                // Purple tones
+                scalar: 0.8,
+                shapes: ["star"]
+              });
+              break;
+            case "quiz":
+              confetti({
+                particleCount: 120,
+                spread: 360,
+                origin: buttonRect ? {
+                  x: (buttonRect.left + buttonRect.width / 2) / window.innerWidth,
+                  y: (buttonRect.top + buttonRect.height / 2) / window.innerHeight
+                } : { y: 0.6 },
+                colors: ["#06b6d4", "#67e8f9", "#a5f3fc", "#cffafe"],
+                // Cyan tones
+                startVelocity: 45,
+                decay: 0.85
+              });
+              break;
+            case "news":
+              confetti({
+                particleCount: 120,
+                spread: 80,
+                origin: buttonRect ? {
+                  x: (buttonRect.left + buttonRect.width / 2) / window.innerWidth,
+                  y: (buttonRect.top + buttonRect.height / 2) / window.innerHeight
+                } : { y: 0.6 },
+                colors: ["#6b7280", "#9ca3af", "#d1d5db", "#f3f4f6"],
+                // Gray tones to match gray button
+                shapes: ["square"],
+                scalar: 1.1,
+                gravity: 0.9,
+                drift: 0.05
+              });
+              break;
+            case "memo":
+              confetti({
+                particleCount: 100,
+                spread: 60,
+                origin: buttonRect ? {
+                  x: (buttonRect.left + buttonRect.width / 2) / window.innerWidth,
+                  y: (buttonRect.top + buttonRect.height / 2) / window.innerHeight
+                } : { y: 0.6 },
+                colors: ["#ec4899", "#f472b6", "#f9a8d4", "#fce7f3"],
+                // Pink tones to match pink button
+                scalar: 0.9,
+                startVelocity: 30
+              });
+              break;
+            default:
+              confetti({
+                particleCount: 100,
+                spread: 70,
+                origin: buttonRect ? {
+                  x: (buttonRect.left + buttonRect.width / 2) / window.innerWidth,
+                  y: (buttonRect.top + buttonRect.height / 2) / window.innerHeight
+                } : { y: 0.6 }
+              });
+          }
+        }
+      },
+      triggerSubmitCelebration() {
+        if (typeof confetti !== "undefined") {
+          const submitButton = document.querySelector("#main-submit-btn");
+          const buttonRect = submitButton == null ? void 0 : submitButton.getBoundingClientRect();
+          const origin = buttonRect ? {
+            x: (buttonRect.left + buttonRect.width / 2) / window.innerWidth,
+            y: (buttonRect.top + buttonRect.height / 2) / window.innerHeight
+          } : { y: 0.6 };
+          confetti({
+            particleCount: 200,
+            spread: 100,
+            origin,
+            colors: ["#3b82f6", "#60a5fa", "#93c5fd", "#dbeafe"],
+            // Blue tones only
+            scalar: 1.5
+          });
+        }
+      },
+      // Navigation
+      goToSettings() {
+        window.location.href = "/settings.html";
+      },
+      // === Memo Functions ===
+      async loadMemosFromAPI() {
+        if (this.memosLoaded) return;
+        console.log("\u{1F4DD} Loading memos from API...");
+        try {
+          const memosData = await window.IndexAPI.loadMemos();
+          this.memos = [
+            { id: 1, content: memosData.memo1 || "" },
+            { id: 2, content: memosData.memo2 || "" },
+            { id: 3, content: memosData.memo3 || "" },
+            { id: 4, content: memosData.memo4 || "" }
+          ];
+          this.memosLoaded = true;
+          console.log("\u{1F4DD} Memos loaded from API:", this.memos);
+        } catch (error) {
+          console.error("\u{1F4DD} Failed to load memos:", error);
+          this.memos = [
+            { id: 1, content: "" },
+            { id: 2, content: "" },
+            { id: 3, content: "" },
+            { id: 4, content: "" }
+          ];
+          this.memosLoaded = true;
+        }
+      },
+      async showMemoModal() {
+        console.log("\u{1F4DD} Opening memo modal");
+        this.memoModalVisible = true;
+        if (!this.memosLoaded) {
+          await this.loadMemosFromAPI();
+        }
+      },
+      closeMemoModal() {
+        console.log("\u{1F4DD} Closing memo modal");
+        this.memoModalVisible = false;
+      },
+      async printMemo(memoId) {
+        if (this.printing) return;
+        try {
+          this.printing = true;
+          console.log(`\u{1F4DD} Printing memo ${memoId}...`);
+          const response = await fetch(`/api/memo/${memoId}`);
+          if (!response.ok) {
+            throw new Error(`Failed to get memo: ${response.status}`);
+          }
+          const memoData = await response.json();
+          if (!memoData.content) {
+            throw new Error("No memo content received");
+          }
+          console.log(`\u{1F4DD} Memo ${memoId} retrieved: ${memoData.content}`);
+          let printResponse;
+          if (this.selectedPrinter === "local-direct") {
+            printResponse = await window.IndexAPI.printLocalContent(memoData.content);
+          } else {
+            printResponse = await window.IndexAPI.printMQTTContent(memoData.content, this.selectedPrinter);
+          }
+          this.activeQuickAction = "memo";
+          this.closeMemoModal();
+          if (window.confetti) {
+            confetti({
+              colors: ["#ec4899", "#f472b6", "#f9a8d4", "#fce7f3"],
+              // Pink tones to match pink button
+              startVelocity: 30,
+              spread: 360,
+              ticks: 60,
+              zIndex: 0
+            });
+          }
+          setTimeout(() => {
+            this.activeQuickAction = null;
+          }, 2e3);
+        } catch (error) {
+          console.error(`\u{1F4DD} Failed to print memo ${memoId}:`, error);
+          this.showToast(`Failed to print memo: ${error.message}`, "error");
+        } finally {
+          this.printing = false;
+        }
+      },
+      // Setup SSE connection for printer discovery
+      setupSSEConnection() {
+        console.log("\u{1F50C} Initializing real-time printer discovery (SSE)");
+        let eventSource = null;
+        const connectSSE = () => {
+          if (eventSource) {
+            eventSource.close();
+          }
+          eventSource = new EventSource("/events");
+          eventSource.addEventListener("printer-update", (event) => {
+            try {
+              console.log("\u{1F5A8}\uFE0F Real-time printer update received");
+              const data = JSON.parse(event.data);
+              this.updatePrintersFromData(data);
+            } catch (error) {
+              console.error("Error parsing printer update:", error);
+            }
+          });
+          eventSource.addEventListener("system-status", (event) => {
+            try {
+              const data = JSON.parse(event.data);
+              console.log(`\u{1F4E1} System status: ${data.status} - ${data.message}`);
+              this.showSystemNotification(data.status, data.message);
+            } catch (error) {
+              console.error("Error parsing system status:", error);
+            }
+          });
+          eventSource.onerror = (error) => {
+            console.error("SSE connection error:", error);
+            setTimeout(() => {
+              console.log("\u{1F504} Attempting to reconnect SSE...");
+              connectSSE();
+            }, 5e3);
+          };
+          eventSource.onopen = (event) => {
+            console.log("\u2705 Real-time updates connected");
+          };
+        };
+        connectSSE();
+        window.addEventListener("beforeunload", () => {
+          if (eventSource) {
+            eventSource.close();
+          }
+        });
+      },
+      updatePrintersFromData(data) {
+        if (data && data.discovered_printers) {
+          this.printers = data.discovered_printers;
+          const event = new CustomEvent("printersUpdated", {
+            detail: {
+              printers: data.discovered_printers
+            }
+          });
+          document.dispatchEvent(event);
+        }
+      },
+      showSystemNotification(status, message) {
+        if (!["connected", "error", "reconnecting"].includes(status)) {
+          return;
+        }
+        const notification = document.createElement("div");
+        notification.className = `notification notification-${status}`;
+        notification.style.cssText = `
         position: fixed;
         top: 20px;
         right: 20px;
@@ -9,4 +653,166 @@
         z-index: 10000;
         opacity: 0;
         transition: opacity 0.3s ease;
-      `,e){case"connected":o.style.backgroundColor="#10b981";break;case"error":o.style.backgroundColor="#ef4444";break;case"reconnecting":o.style.backgroundColor="#f59e0b";break}o.textContent=t,document.body.appendChild(o),requestAnimationFrame(()=>{o.style.opacity="1"}),setTimeout(()=>{o.style.opacity="0",setTimeout(()=>{o.parentNode&&o.parentNode.removeChild(o)},300)},3e3)}}}document.addEventListener("alpine:init",()=>{if(window.indexStoreInstance){console.log("\u{1F3E0} Index: Store already exists, skipping alpine:init");return}let i=g();Alpine.store("index",i),window.indexStoreInstance=i,i.init()});async function w(){try{console.log("API: Loading configuration from server...");let i=await fetch("/api/config");if(!i.ok)throw new Error(`Config API returned ${i.status}: ${i.statusText}`);let e=await i.json();return console.log("API: Configuration loaded successfully"),e}catch(i){throw console.error("API: Failed to load configuration:",i),i}}async function p(i){try{console.log("API: Sending content to local printer...");let e=await fetch("/api/print-local",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({message:i})});if(!e.ok){let o=await e.text();throw new Error(`Print failed: ${o}`)}let t=await e.json();return console.log("API: Content sent to local printer successfully"),t}catch(e){throw console.error("API: Failed to print local content:",e),e}}async function y(i,e){try{console.log(`API: Sending content to MQTT printer on topic: ${e}`);let t=await fetch("/api/print-mqtt",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({message:i,topic:e})});if(!t.ok){let n=await t.text();throw new Error(`MQTT print failed: ${n}`)}let o=await t.json();return console.log("API: Content sent to MQTT printer successfully"),o}catch(t){throw console.error("API: Failed to print MQTT content:",t),t}}async function v(i){try{console.log(`API: Executing quick action: ${i}`);let e=await fetch(`/api/${i}`,{method:"POST",headers:{"Content-Type":"application/json"}});if(!e.ok){let o=await e.text();throw new Error(`Quick action '${i}' failed: ${o}`)}let t=await e.json();return console.log(`API: Quick action '${i}' completed successfully`),t}catch(e){throw console.error(`API: Failed to execute quick action '${i}':`,e),e}}async function P(i,e="local-direct"){try{console.log("API: Generating user message content...");let t={message:i};e!=="local-direct"&&(t.target=e);let o=await fetch("/api/user-message",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(t)});if(!o.ok)throw new Error(`HTTP ${o.status}: ${o.statusText}`);let n=await o.json();return console.log("API: User message content generated successfully"),n}catch(t){throw console.error("API: Failed to generate user message content:",t),t}}async function x(){try{console.log("API: Loading memos from server...");let i=await fetch("/api/memos");if(!i.ok)throw new Error(`Memos API returned ${i.status}: ${i.statusText}`);let e=await i.json();return console.log("API: Memos loaded successfully"),e}catch(i){throw console.error("API: Failed to load memos:",i),i}}window.IndexAPI={loadConfiguration:w,printLocalContent:p,printMQTTContent:y,executeQuickAction:v,generateUserMessage:P,loadMemos:x};})();
+      `;
+        switch (status) {
+          case "connected":
+            notification.style.backgroundColor = "#10b981";
+            break;
+          case "error":
+            notification.style.backgroundColor = "#ef4444";
+            break;
+          case "reconnecting":
+            notification.style.backgroundColor = "#f59e0b";
+            break;
+        }
+        notification.textContent = message;
+        document.body.appendChild(notification);
+        requestAnimationFrame(() => {
+          notification.style.opacity = "1";
+        });
+        setTimeout(() => {
+          notification.style.opacity = "0";
+          setTimeout(() => {
+            if (notification.parentNode) {
+              notification.parentNode.removeChild(notification);
+            }
+          }, 300);
+        }, 3e3);
+      }
+    };
+    return store;
+  }
+  document.addEventListener("alpine:init", () => {
+    if (window.indexStoreInstance) {
+      console.log("\u{1F3E0} Index: Store already exists, skipping alpine:init");
+      return;
+    }
+    const indexStore = initializeIndexStore();
+    Alpine.store("index", indexStore);
+    window.indexStoreInstance = indexStore;
+    indexStore.init();
+  });
+  async function loadConfiguration() {
+    try {
+      console.log("API: Loading configuration from server...");
+      const response = await fetch("/api/config");
+      if (!response.ok) {
+        throw new Error(`Config API returned ${response.status}: ${response.statusText}`);
+      }
+      const config = await response.json();
+      console.log("API: Configuration loaded successfully");
+      return config;
+    } catch (error) {
+      console.error("API: Failed to load configuration:", error);
+      throw error;
+    }
+  }
+  async function printLocalContent(content) {
+    try {
+      console.log("API: Sending content to local printer...");
+      const response = await fetch("/api/print-local", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: content })
+      });
+      if (!response.ok) {
+        const errorData = await response.text();
+        throw new Error(`Print failed: ${errorData}`);
+      }
+      const result = await response.json();
+      console.log("API: Content sent to local printer successfully");
+      return result;
+    } catch (error) {
+      console.error("API: Failed to print local content:", error);
+      throw error;
+    }
+  }
+  async function printMQTTContent(content, topic) {
+    try {
+      console.log(`API: Sending content to MQTT printer on topic: ${topic}`);
+      const response = await fetch("/api/print-mqtt", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          message: content,
+          topic
+        })
+      });
+      if (!response.ok) {
+        const errorData = await response.text();
+        throw new Error(`MQTT print failed: ${errorData}`);
+      }
+      const result = await response.json();
+      console.log("API: Content sent to MQTT printer successfully");
+      return result;
+    } catch (error) {
+      console.error("API: Failed to print MQTT content:", error);
+      throw error;
+    }
+  }
+  async function executeQuickAction(action) {
+    try {
+      console.log(`API: Executing quick action: ${action}`);
+      const response = await fetch(`/api/${action}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" }
+      });
+      if (!response.ok) {
+        const errorData = await response.text();
+        throw new Error(`Quick action '${action}' failed: ${errorData}`);
+      }
+      const result = await response.json();
+      console.log(`API: Quick action '${action}' completed successfully`);
+      return result;
+    } catch (error) {
+      console.error(`API: Failed to execute quick action '${action}':`, error);
+      throw error;
+    }
+  }
+  async function generateUserMessage(message, target = "local-direct") {
+    try {
+      console.log("API: Generating user message content...");
+      const payload = { message };
+      if (target !== "local-direct") {
+        payload.target = target;
+      }
+      const response = await fetch("/api/user-message", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+      const result = await response.json();
+      console.log("API: User message content generated successfully");
+      return result;
+    } catch (error) {
+      console.error("API: Failed to generate user message content:", error);
+      throw error;
+    }
+  }
+  async function loadMemos() {
+    try {
+      console.log("API: Loading memos from server...");
+      const response = await fetch("/api/memos");
+      if (!response.ok) {
+        throw new Error(`Memos API returned ${response.status}: ${response.statusText}`);
+      }
+      const memos = await response.json();
+      console.log("API: Memos loaded successfully");
+      return memos;
+    } catch (error) {
+      console.error("API: Failed to load memos:", error);
+      throw error;
+    }
+  }
+  window.IndexAPI = {
+    loadConfiguration,
+    printLocalContent,
+    printMQTTContent,
+    executeQuickAction,
+    generateUserMessage,
+    loadMemos
+  };
+})();
