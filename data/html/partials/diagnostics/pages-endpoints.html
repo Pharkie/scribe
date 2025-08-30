@@ -2,7 +2,7 @@
     <div class="diag-header">
         <h4 class="diag-title teal">
 <span x-html="window.renderSectionIcon ? window.renderSectionIcon('link') : '🔗'"></span>
-            Pages & Endpoints
+            Routes
         </h4>
     </div>
     <div class="space-y-4">
@@ -49,8 +49,19 @@
                         <div class="space-y-1">
                             <template x-for="endpoint in endpoints" :key="endpoint.path">
                                 <div class="diag-row text-sm">
-                                    <span class="diag-label font-mono"
-                                        x-text="endpoint.path"></span>
+                                    <span class="diag-label font-mono">
+                                        <!-- Only make GET endpoints clickable -->
+                                        <template x-if="method === 'GET'">
+                                            <a :href="endpoint.path"
+                                                class="text-teal-600 dark:text-teal-400 hover:underline hover:text-teal-800 dark:hover:text-teal-200 transition-colors"
+                                                target="_blank"
+                                                x-text="endpoint.path"></a>
+                                        </template>
+                                        <!-- Non-GET endpoints as plain text -->
+                                        <template x-if="method !== 'GET'">
+                                            <span class="text-gray-700 dark:text-gray-300" x-text="endpoint.path"></span>
+                                        </template>
+                                    </span>
                                     <span class="diag-value" x-text="endpoint.description"></span>
                                 </div>
                             </template>
