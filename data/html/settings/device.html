@@ -102,7 +102,9 @@
                             </div>
 
                             <!-- Timezone Picker -->
-                            <div x-data="{ isOpen: false, searchQuery: '' }" class="relative">
+                            <div x-data="{ isOpen: false, searchQuery: '' }" 
+                                 @timezone-picker-open="openTimezonePicker()" 
+                                 class="relative">
                                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Timezone:</label>
                                 
                                 <!-- Timezone Input/Dropdown Button -->
@@ -110,8 +112,8 @@
                                     <input 
                                         type="text" 
                                         x-model="searchQuery"
-                                        @click="openTimezonePicker()"
-                                        @focus="openTimezonePicker()"
+                                        @click.stop="$dispatch('timezone-picker-open')"
+                                        @focus.stop="$dispatch('timezone-picker-open')"
                                         @input="onSearchInput()"
                                         @keydown.escape="isOpen = false"
                                         @keydown.arrow-down.prevent="$nextTick(() => $refs.dropdown.querySelector('.timezone-option:first-child')?.focus())"
@@ -127,19 +129,11 @@
                                     </div>
                                 </div>
                                 
-                                <!-- Loading State -->
-                                <div x-show="timezonePicker.loading" class="absolute inset-0 bg-white/80 dark:bg-gray-700/80 rounded-xl flex items-center justify-center z-20">
-                                    <div class="flex items-center space-x-2 text-gray-600 dark:text-gray-300">
-                                        <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-500"></div>
-                                        <span class="text-sm">Loading timezones...</span>
-                                    </div>
-                                </div>
-                                
                                 <!-- Dropdown Menu -->
-                                <div x-show="isOpen && !timezonePicker.loading" 
+                                <div x-show="isOpen" 
                                      x-ref="dropdown"
                                      @click.away="isOpen = false"
-                                     class="absolute z-30 w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-xl shadow-lg mt-1 max-h-60 overflow-y-auto">
+                                     class="absolute z-50 w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-xl shadow-xl mt-1 max-h-60 overflow-y-auto">
                                     
                                     <!-- No Results -->
                                     <div x-show="filteredTimezones.length === 0" class="p-3 text-center text-gray-500 dark:text-gray-400 text-sm">
@@ -150,7 +144,7 @@
                                     <template x-for="(timezone, index) in filteredTimezones.slice(0, 10)" :key="timezone.id">
                                         <button 
                                             type="button"
-                                            class="timezone-option w-full text-left px-4 py-3 hover:bg-blue-50 dark:hover:bg-gray-700 focus:bg-blue-100 dark:focus:bg-gray-600 focus:outline-none"
+                                            class="timezone-option w-full text-left px-4 py-3 hover:bg-blue-50 dark:hover:bg-blue-900/50 focus:bg-blue-100 dark:focus:bg-blue-800/70 focus:outline-none transition-colors duration-150"
                                             :class="filteredTimezones.length > 1 && index < Math.min(filteredTimezones.length, 10) - 1 ? 'border-b border-gray-100 dark:border-gray-700' : ''"
                                             @click="selectTimezone(timezone)"
                                             @keydown.escape="isOpen = false"
@@ -173,7 +167,8 @@
                                 <!-- Selected Timezone Display -->
                                 <div x-show="config.device.timezone && !isOpen" class="mt-2">
                                     <div class="text-sm text-gray-600 dark:text-gray-300">
-                                        Selected: <span class="font-medium" x-text="getTimezoneDisplayName(config.device.timezone)"></span>
+                                        <div class="font-medium" x-text="getSelectedTimezoneDisplayName(config.device.timezone)"></div>
+                                        <div class="text-xs mt-1" x-text="getSelectedTimezoneOffset(config.device.timezone)"></div>
                                     </div>
                                 </div>
                                 
