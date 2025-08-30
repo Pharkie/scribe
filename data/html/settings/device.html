@@ -153,7 +153,7 @@
                                             }"
                                             :style="focusedIndex === index ? 'background-color: rgb(191 219 254) !important;' : ''"
                                             @click="selectTimezone(timezone)"
-                                            @mouseenter="focusedIndex = index"
+                                            @mouseenter="focusedIndex = index; $el.focus()"
                                             @mouseleave="resetTimezoneFocus()"
                                             @focus="focusedIndex = index"
                                             @keydown.escape="closeTimezonePicker()"
@@ -163,7 +163,10 @@
                                             
                                             <div class="flex flex-col">
                                                 <span class="font-medium text-gray-900 dark:text-gray-100" x-text="timezone.displayName"></span>
-                                                <span class="text-xs text-gray-500 dark:text-gray-400" x-text="timezone.id + ' • ' + timezone.offset"></span>
+                                                <div class="text-xs text-gray-500 dark:text-gray-400">
+                                                    <div x-text="timezone.id"></div>
+                                                    <div x-text="timezone.offset"></div>
+                                                </div>
                                             </div>
                                         </button>
                                     </template>
