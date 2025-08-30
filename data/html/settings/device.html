@@ -102,7 +102,7 @@
                             </div>
 
                             <!-- Timezone Picker -->
-                            <div x-data="{ isOpen: false, searchQuery: '' }" 
+                            <div x-data="{ isOpen: false, searchQuery: '', focusedIndex: -1 }" 
                                  @timezone-picker-open="openTimezonePicker()" 
                                  class="relative">
                                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Timezone:</label>
@@ -111,12 +111,14 @@
                                 <div class="relative">
                                     <input 
                                         type="text" 
+                                        x-ref="searchInput"
                                         x-model="searchQuery"
                                         @click.stop="$dispatch('timezone-picker-open')"
                                         @focus.stop="$dispatch('timezone-picker-open')"
-                                        @input="onSearchInput()"
-                                        @keydown.escape="isOpen = false"
-                                        @keydown.arrow-down.prevent="$nextTick(() => $refs.dropdown.querySelector('.timezone-option:first-child')?.focus())"
+                                        @input="onSearchInput(); focusedIndex = -1"
+                                        @keydown.escape="isOpen = false; focusedIndex = -1"
+                                        @keydown.down.prevent="if (isOpen && filteredTimezones.length > 0) { focusedIndex = 0; $nextTick(() => $refs.dropdown.querySelector('.timezone-option')?.focus()) }"
+                                        @keydown.up.prevent="if (isOpen && filteredTimezones.length > 0) { focusedIndex = Math.min(filteredTimezones.length - 1, 9); $nextTick(() => { const options = $refs.dropdown.querySelectorAll('.timezone-option'); options[focusedIndex]?.focus() }) }"
                                         class="w-full p-3 pr-10 rounded-xl border border-gray-200 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent text-gray-800 dark:text-gray-100 bg-white dark:bg-gray-700"
                                         placeholder="Search timezones (e.g., New York, London, UTC)"
                                         autocomplete="off">
@@ -132,7 +134,7 @@
                                 <!-- Dropdown Menu -->
                                 <div x-show="isOpen" 
                                      x-ref="dropdown"
-                                     @click.away="isOpen = false"
+                                     @click.away="isOpen = false; focusedIndex = -1"
                                      class="absolute z-50 w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-xl shadow-xl mt-1 max-h-60 overflow-y-auto">
                                     
                                     <!-- No Results -->
@@ -144,12 +146,20 @@
                                     <template x-for="(timezone, index) in filteredTimezones.slice(0, 10)" :key="timezone.id">
                                         <button 
                                             type="button"
-                                            class="timezone-option w-full text-left px-4 py-3 hover:bg-blue-50 dark:hover:bg-blue-900/50 focus:bg-blue-100 dark:focus:bg-blue-800/70 focus:outline-none transition-colors duration-150"
-                                            :class="filteredTimezones.length > 1 && index < Math.min(filteredTimezones.length, 10) - 1 ? 'border-b border-gray-100 dark:border-gray-700' : ''"
+                                            tabindex="0"
+                                            class="timezone-option w-full text-left px-4 py-3 focus:outline-none transition-colors duration-150 hover:bg-blue-50 dark:hover:bg-blue-900/50"
+                                            :class="{
+                                                'border-b border-gray-100 dark:border-gray-700': filteredTimezones.length > 1 && index < Math.min(filteredTimezones.length, 10) - 1
+                                            }"
+                                            :style="focusedIndex === index ? 'background-color: rgb(191 219 254) !important;' : ''"
                                             @click="selectTimezone(timezone)"
+                                            @mouseenter="focusedIndex = index"
+                                            @mouseleave="focusedIndex = -1"
+                                            @focus="focusedIndex = index"
                                             @keydown.escape="isOpen = false"
-                                            @keydown.arrow-up.prevent="$el.previousElementSibling?.focus() || $refs.dropdown.lastElementChild?.focus()"
-                                            @keydown.arrow-down.prevent="$el.nextElementSibling?.focus() || $refs.dropdown.firstElementChild?.focus()">
+                                            @keydown.enter.prevent="selectTimezone(timezone)"
+                                            @keydown.up.prevent="focusedIndex = index > 0 ? index - 1 : -1; focusedIndex === -1 ? $refs.searchInput.focus() : $el.previousElementSibling.focus()"
+                                            @keydown.down.prevent="focusedIndex = index < Math.min(filteredTimezones.length - 1, 9) ? index + 1 : 0; $el.nextElementSibling ? $el.nextElementSibling.focus() : $refs.dropdown.querySelector('.timezone-option').focus()"
                                             
                                             <div class="flex flex-col">
                                                 <span class="font-medium text-gray-900 dark:text-gray-100" x-text="timezone.displayName"></span>
